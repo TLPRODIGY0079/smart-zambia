@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Zambia - Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">Smart Zambia - System Test</h1>
+        
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">Backend API Test</h2>
+            <button onclick="testAPI()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                Test API Connection
+            </button>
+            <div id="apiResult" class="mt-4"></div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">Database Test</h2>
+            <button onclick="testDatabase()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                Test Database
+            </button>
+            <div id="dbResult" class="mt-4"></div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-bold mb-4">Authentication Test</h2>
+            <div class="flex gap-4 mb-4">
+                <input type="email" id="testEmail" placeholder="Email" class="border px-3 py-2 rounded" value="test@example.com">
+                <input type="password" id="testPassword" placeholder="Password" class="border px-3 py-2 rounded" value="password123">
+                <button onclick="testLogin()" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">
+                    Test Login
+                </button>
+            </div>
+            <div id="authResult" class="mt-4"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001/api';
+
+        async function testAPI() {
+            const result = document.getElementById('apiResult');
+            result.innerHTML = '<p class="text-blue-600">Testing API...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/destinations`);
+                const data = await response.json();
+                result.innerHTML = `
+                    <div class="text-green-600">
+                        <p><strong>✅ API Working!</strong></p>
+                        <p>Found ${data.length} destinations</p>
+                        <p>First destination: ${data[0]?.name}</p>
+                    </div>
+                `;
+            } catch (error) {
+                result.innerHTML = `<p class="text-red-600">❌ API Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testDatabase() {
+            const result = document.getElementById('dbResult');
+            result.innerHTML = '<p class="text-blue-600">Testing Database...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/destinations`);
+                const data = await response.json();
+                
+                if (data.length > 0) {
+                    result.innerHTML = `
+                        <div class="text-green-600">
+                            <p><strong>✅ Database Working!</strong></p>
+                            <p>Total destinations: ${data.length}</p>
+                            <p>Sample data: ${JSON.stringify(data[0], null, 2).substring(0, 200)}...</p>
+                        </div>
+                    `;
+                } else {
+                    result.innerHTML = '<p class="text-yellow-600">⚠️ Database empty</p>';
+                }
+            } catch (error) {
+                result.innerHTML = `<p class="text-red-600">❌ Database Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testLogin() {
+            const result = document.getElementById('authResult');
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+            
+            result.innerHTML = '<p class="text-blue-600">Testing Authentication...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.token) {
+                    result.innerHTML = `
+                        <div class="text-green-600">
+                            <p><strong>✅ Authentication Working!</strong></p>
+                            <p>User: ${data.user.fullName}</p>
+                            <p>Token: ${data.token.substring(0, 20)}...</p>
+                            <button onclick="window.location.href='index.html'" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded">
+                                Go to Main App
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    result.innerHTML = `<p class="text-red-600">❌ Auth Error: ${data.error}</p>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<p class="text-red-600">❌ Auth Error: ${error.message}</p>`;
+            }
+        }
+
+        // Auto-test on load
+        window.onload = () => {
+            testAPI();
+            testDatabase();
+        };
+    </script>
+</body>
+</html>

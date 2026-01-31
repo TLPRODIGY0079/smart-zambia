@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Zambia - Discover the Real Africa</title>
+
+  <link rel="stylesheet" href="css/tailwind.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- Authentication Check -->
+  <script>
+    // Check if user is logged in
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      window.location.href = 'login.html';
+    }
+  </script>
+
+  <!-- Navigation -->
+  <nav class="bg-white/90 backdrop-blur-lg border-b border-gray-100 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">Z</div>
+          <div>
+            <span class="text-xl font-bold gradient-text">Smart Zambia</span>
+            <p class="text-xs text-gray-500 -mt-1">Discover the Real Africa</p>
+          </div>
+        </div>
+        <div class="hidden md:flex items-center gap-2">
+          <button class="tab-btn active" data-tab="discover"><i class="fas fa-compass mr-2"></i>Discover</button>
+          <button class="tab-btn" data-tab="map"><i class="fas fa-map-marked-alt mr-2"></i>Map</button>
+          <button class="tab-btn" data-tab="civic"><i class="fas fa-city mr-2"></i>Civic</button>
+          <button class="tab-btn" data-tab="adventures"><i class="fas fa-hiking mr-2"></i>Adventures</button>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2 text-sm">
+            <i class="fas fa-user text-gray-500"></i>
+            <span id="userWelcome" class="text-gray-700 font-medium">Loading...</span>
+            <button onclick="logout()" class="text-red-500 hover:text-red-600 ml-2" title="Logout">
+              <i class="fas fa-sign-out-alt"></i>
+            </button>
+          </div>
+          <div class="compass" id="magicCompass" title="Magic Compass - Click for a random destination!">
+            <div class="compass-needle"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Adventure Badge -->
+  <div class="adventure-badge" id="adventureBadge">
+    <i class="fas fa-trophy"></i>
+    <span id="adventureScore">0</span> XP
+    <span class="text-xs opacity-70">| Level <span id="adventureLevel">1</span></span>
+  </div>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Tabs will be rendered here dynamically -->
+    <div id="discoverTab" class="tab-content"><!-- filled by JS --></div>
+    <div id="mapTab" class="tab-content hidden"><!-- filled by JS --></div>
+    <div id="civicTab" class="tab-content hidden"><!-- filled by JS --></div>
+    <div id="adventuresTab" class="tab-content hidden"><!-- filled by JS --></div>
+  </main>
+
+  <!-- Modals -->
+  <div class="modal-overlay" id="destinationModal"><!-- ... --></div>
+  <div class="achievement-toast" id="achievementToast"><!-- ... --></div>
+  <div class="secret-door" id="secretDoor" onclick="secretDoorClick()"></div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module" src="js/api.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

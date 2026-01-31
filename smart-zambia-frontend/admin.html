@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Zambia Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: Inter, sans-serif; background: #f9fafb; padding: 2rem; }
+    .form-container { max-width: 600px; margin: 0 auto; background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    input, select, textarea { width: 100%; padding: 0.75rem; margin: 0.5rem 0; border: 1px solid #ddd; border-radius: 8px; }
+    button { background: #f97316; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 1rem; }
+    button:hover { background: #ea580c; }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h1 class="text-2xl font-bold mb-4">Add New Destination</h1>
+    <form id="destinationForm">
+      <input name="name" placeholder="Name" required />
+      <input name="province" placeholder="Province (e.g., Southern Province)" required />
+      
+      <select name="category" required>
+        <option value="">Select Category</option>
+        <option value="Nature">Nature</option>
+        <option value="Wildlife">Wildlife</option>
+        <option value="Heritage">Heritage</option>
+        <option value="Adventure">Adventure</option>
+      </select>
+
+      <input type="number" step="0.1" min="0" max="5" name="rating" placeholder="Rating (e.g., 4.9)" required />
+      <textarea name="description" placeholder="Description" rows="4" required></textarea>
+      <input name="image_url" placeholder="Image URL (Unsplash, etc.)" required />
+
+      <input type="number" name="entry_fee_foreign" placeholder="Entry Fee (Foreign, USD)" />
+      <input type="number" name="entry_fee_local" placeholder="Entry Fee (Local, ZMW)" />
+
+      <label class="flex items-center gap-2">
+        <input type="checkbox" name="featured" />
+        <span>Featured</span>
+      </label>
+
+      <input type="number" step="0.0001" name="lat" placeholder="Latitude (e.g., -17.9243)" required />
+      <input type="number" step="0.0001" name="lng" placeholder="Longitude (e.g., 25.8572)" required />
+
+      <textarea name="secrets" placeholder='["Secret 1", "Secret 2"]' rows="2"></textarea>
+      <button type="submit">Save Destination</button>
+    </form>
+  </div>
+
+  <script>
+    let authToken = localStorage.getItem('authToken');
+
+    // Check if user is logged in
+    if (!authToken) {
+      const email = prompt('Enter admin email:');
+      const password = prompt('Enter password:');
+      
+      if (email && password) {
+        fetch('http://localhost:3001/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.token) {
+            authToken = data.token;
+            localStorage.setItem('authToken', authToken);
+            alert('✅ Logged in successfully!');
+          } else {
+            alert('❌ Login failed: ' + (data.error || 'Unknown error'));
+          }
+        })
+        .catch(err => alert('❌ Login error: ' + err.message));
+      }
+    }
+
+    document.getElementById('destinationForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData);
+
+      // Clean & convert data
+      data.rating = parseFloat(data.rating);
+      data.entry_fee_foreign = data.entry_fee_foreign ? parseInt(data.entry_fee_foreign) : null;
+      data.entry_fee_local = data.entry_fee_local ? parseInt(data.entry_fee_local) : null;
+      data.lat = parseFloat(data.lat);
+      data.lng = parseFloat(data.lng);
+      data.featured = data.featured === 'on'; // checkbox returns 'on' if checked
+      try {
+        data.secrets = data.secrets ? JSON.parse(data.secrets) : [];
+      } catch (err) {
+        alert('Invalid secrets format. Use JSON array like ["Secret 1", "Secret 2"]');
+        return;
+      }
+
+      const res = await fetch('http://localhost:3001/api/admin/destinations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (res.ok) {
+        alert('✅ Destination saved!');
+        e.target.reset();
+      } else {
+        const error = await res.json().catch(() => ({ error: 'Unknown error' }));
+        alert('❌ Failed: ' + (error.error || 'Server error'));
+      }
+    });
+  </script>
+</body>
+</html>
