@@ -4,80 +4,1706 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Smart Zambia - Discover the Real Africa</title>
-
-  <link rel="stylesheet" href="css/tailwind.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="stylesheet" href="css/style.css" />
-</head>
-<body>
-  <!-- Authentication Check -->
   <script>
-    // Check if user is logged in
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      window.location.href = 'login.html';
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Playfair Display', 'serif'],
+            sans: ['DM Sans', 'sans-serif'],
+          },
+          colors: {
+            zambia: {
+              orange: '#E85D04',
+              copper: '#C45508',
+              gold: '#F59E0B',
+              forest: '#166534',
+              sky: '#0EA5E9',
+              earth: '#78350F',
+            }
+          }
+        }
+      }
     }
   </script>
+  <style>
+    * { box-sizing: border-box; }
+    
+    :root {
+      --bg-primary: #FFFBF5;
+      --bg-secondary: #FFFFFF;
+      --bg-card: #FFFFFF;
+      --text-primary: #1F2937;
+      --text-secondary: #6B7280;
+      --border-color: rgba(0,0,0,0.08);
+      --glass-bg: rgba(255,255,255,0.85);
+      --glass-border: rgba(255,255,255,0.5);
+    }
+    
+    .dark {
+      --bg-primary: #0F172A;
+      --bg-secondary: #1E293B;
+      --bg-card: #1E293B;
+      --text-primary: #F1F5F9;
+      --text-secondary: #94A3B8;
+      --border-color: rgba(255,255,255,0.1);
+      --glass-bg: rgba(30,41,59,0.9);
+      --glass-border: rgba(255,255,255,0.1);
+    }
+    
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    .font-display { font-family: 'Playfair Display', serif; }
+    
+    /* Hero Background */
+    .hero-bg {
+      background: linear-gradient(135deg, rgba(232,93,4,0.9) 0%, rgba(196,85,8,0.85) 50%, rgba(120,53,15,0.9) 100%),
+                  url('https://pfst.cf2.poecdn.net/base/image/de16b54bf009fecce7da5e49114b7c4cba7c18101d0d98dc2834361d9072a860?w=1280&h=720');
+      background-size: cover;
+      background-position: center;
+    }
+    
+    .dark .hero-bg {
+      background: linear-gradient(135deg, rgba(15,23,42,0.95) 0%, rgba(30,41,59,0.9) 50%, rgba(15,23,42,0.95) 100%),
+                  url('https://pfst.cf2.poecdn.net/base/image/de16b54bf009fecce7da5e49114b7c4cba7c18101d0d98dc2834361d9072a860?w=1280&h=720');
+      background-size: cover;
+      background-position: center;
+    }
+    
+    /* Glass morphism */
+    .glass {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+    }
+    
+    /* Gradient text */
+    .gradient-text {
+      background: linear-gradient(135deg, #E85D04 0%, #F59E0B 50%, #C45508 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .dark .gradient-text {
+      background: linear-gradient(135deg, #F59E0B 0%, #FBBF24 50%, #F97316 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    /* Destination Cards */
+    .destination-card {
+      background: var(--bg-card);
+      border-radius: 24px;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+    }
+    
+    .destination-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 25px 50px -12px rgba(232,93,4,0.25);
+    }
+    
+    .destination-card:hover .card-image {
+      transform: scale(1.1);
+    }
+    
+    .card-image {
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Tabs */
+    .tab-btn {
+      padding: 12px 24px;
+      border-radius: 16px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-secondary);
+      transition: all 0.3s ease;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    
+    .tab-btn:hover {
+      color: #E85D04;
+      background: rgba(232,93,4,0.1);
+    }
+    
+    .tab-btn.active {
+      background: linear-gradient(135deg, #E85D04 0%, #C45508 100%);
+      color: white;
+      box-shadow: 0 8px 24px rgba(232,93,4,0.35);
+    }
+    
+    /* Login Form */
+    .login-card {
+      background: var(--bg-card);
+      border-radius: 32px;
+      box-shadow: 0 25px 80px -20px rgba(0,0,0,0.3);
+      border: 1px solid var(--border-color);
+    }
+    
+    .input-field {
+      background: var(--bg-primary);
+      border: 2px solid var(--border-color);
+      border-radius: 16px;
+      padding: 16px 20px;
+      font-size: 16px;
+      color: var(--text-primary);
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+    
+    .input-field:focus {
+      outline: none;
+      border-color: #E85D04;
+      box-shadow: 0 0 0 4px rgba(232,93,4,0.1);
+    }
+    
+    .input-field::placeholder {
+      color: var(--text-secondary);
+    }
+    
+    /* Primary Button */
+    .btn-primary {
+      background: linear-gradient(135deg, #E85D04 0%, #C45508 100%);
+      color: white;
+      font-weight: 700;
+      padding: 16px 32px;
+      border-radius: 16px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 16px;
+      width: 100%;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(232,93,4,0.4);
+    }
+    
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+    
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .modal-content {
+      background: var(--bg-card);
+      border-radius: 32px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: scale(0.9) translateY(20px);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 40px 100px -20px rgba(0,0,0,0.5);
+    }
+    
+    .modal-overlay.active .modal-content {
+      transform: scale(1) translateY(0);
+    }
+    
+    /* Achievement Toast */
+    .achievement-toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: linear-gradient(135deg, #166534 0%, #15803D 100%);
+      color: white;
+      padding: 20px 28px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      z-index: 200;
+      transform: translateX(150%);
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 16px 48px rgba(22,101,52,0.4);
+    }
+    
+    .achievement-toast.show {
+      transform: translateX(0);
+    }
+    
+    /* Adventure Badge */
+    .adventure-badge {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      background: linear-gradient(135deg, #E85D04 0%, #F59E0B 100%);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 50px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 50;
+      box-shadow: 0 8px 32px rgba(232,93,4,0.4);
+      font-weight: 700;
+      font-size: 14px;
+    }
+    
+    /* Compass */
+    .compass {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #F59E0B 0%, #E85D04 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 16px rgba(232,93,4,0.3);
+      position: relative;
+    }
+    
+    .compass:hover {
+      transform: rotate(45deg) scale(1.1);
+    }
+    
+    .compass::before {
+      content: '↑';
+      font-size: 20px;
+      font-weight: 900;
+      color: white;
+    }
+    
+    /* Progress bars */
+    .treasure-progress {
+      height: 8px;
+      background: rgba(0,0,0,0.1);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    
+    .dark .treasure-progress {
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .treasure-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #F59E0B 0%, #E85D04 100%);
+      border-radius: 999px;
+      transition: width 0.5s ease;
+    }
+    
+    /* Animations */
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(232,93,4,0.4); }
+      50% { box-shadow: 0 0 40px rgba(232,93,4,0.6); }
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .animate-float { animation: float 3s ease-in-out infinite; }
+    .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+    .animate-fadeInUp { animation: fadeInUp 0.6s ease forwards; }
+    
+    .stagger-1 { animation-delay: 0.1s; opacity: 0; }
+    .stagger-2 { animation-delay: 0.2s; opacity: 0; }
+    .stagger-3 { animation-delay: 0.3s; opacity: 0; }
+    .stagger-4 { animation-delay: 0.4s; opacity: 0; }
+    
+    /* Map Container */
+    #fullMap, #destination-map {
+      border-radius: 24px;
+      overflow: hidden;
+    }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #E85D04, #C45508);
+      border-radius: 4px;
+    }
+    
+    /* Mobile nav */
+    .mobile-nav {
+      display: none;
+    }
+    
+    @media (max-width: 768px) {
+      .desktop-nav { display: none; }
+      .mobile-nav {
+        display: flex;
+        overflow-x: auto;
+        gap: 8px;
+        padding: 8px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      .mobile-nav::-webkit-scrollbar { display: none; }
+      .tab-btn { font-size: 12px; padding: 10px 16px; }
+      .adventure-badge { bottom: auto; top: auto; left: 12px; right: 12px; bottom: 12px; justify-content: center; }
+    }
+    
+    /* Leaflet fixes */
+    .leaflet-popup-content-wrapper {
+      border-radius: 16px !important;
+    }
+    
+    .leaflet-popup-content {
+      margin: 12px !important;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    // Dark mode detection
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark');
+    }
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+      if (event.matches) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    });
+  </script>
 
-  <!-- Navigation -->
-  <nav class="bg-white/90 backdrop-blur-lg border-b border-gray-100 sticky top-0 z-50 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">Z</div>
-          <div>
-            <span class="text-xl font-bold gradient-text">Smart Zambia</span>
-            <p class="text-xs text-gray-500 -mt-1">Discover the Real Africa</p>
+  <!-- App Container -->
+  <div id="app">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen hero-bg flex items-center justify-center p-4">
+      <div class="max-w-md w-full">
+        <!-- Logo -->
+        <div class="text-center mb-10 animate-fadeInUp">
+          <div class="w-20 h-20 mx-auto mb-6 bg-white/20 backdrop-blur-xl rounded-3xl flex items-center justify-center animate-float">
+            <span class="text-4xl font-display font-black text-white">Z</span>
+          </div>
+          <h1 class="text-4xl md:text-5xl font-display font-bold text-white mb-3">Smart Zambia</h1>
+          <p class="text-white/80 text-lg">Discover the Real Africa</p>
+        </div>
+        
+        <!-- Login Card -->
+        <div class="login-card p-8 md:p-10 animate-fadeInUp stagger-1">
+          <div id="loginForm">
+            <h2 class="text-2xl font-bold text-center mb-8" style="color: var(--text-primary)">Welcome Back!</h2>
+            <form onsubmit="handleLogin(event)">
+              <div class="mb-5">
+                <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">
+                  <i class="fas fa-envelope mr-2 text-zambia-orange"></i>Email
+                </label>
+                <input type="email" id="loginEmail" required class="input-field" placeholder="your@email.com" value="demo@zambia.com">
+              </div>
+              <div class="mb-8">
+                <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">
+                  <i class="fas fa-lock mr-2 text-zambia-orange"></i>Password
+                </label>
+                <input type="password" id="loginPassword" required class="input-field" placeholder="••••••••" value="demo123">
+              </div>
+              <button type="submit" class="btn-primary">
+                <i class="fas fa-sign-in-alt mr-2"></i>Explore Zambia
+              </button>
+            </form>
+            <div class="text-center mt-8">
+              <p style="color: var(--text-secondary)">New explorer? 
+                <button onclick="showRegister()" class="text-zambia-orange font-bold hover:underline">Create Account</button>
+              </p>
+            </div>
+          </div>
+          
+          <!-- Register Form (hidden) -->
+          <div id="registerForm" class="hidden">
+            <h2 class="text-2xl font-bold text-center mb-8" style="color: var(--text-primary)">Join the Adventure!</h2>
+            <form onsubmit="handleRegister(event)">
+              <div class="mb-5">
+                <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">
+                  <i class="fas fa-user mr-2 text-zambia-orange"></i>Full Name
+                </label>
+                <input type="text" id="registerName" required class="input-field" placeholder="Your Name">
+              </div>
+              <div class="mb-5">
+                <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">
+                  <i class="fas fa-envelope mr-2 text-zambia-orange"></i>Email
+                </label>
+                <input type="email" id="registerEmail" required class="input-field" placeholder="your@email.com">
+              </div>
+              <div class="mb-8">
+                <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">
+                  <i class="fas fa-lock mr-2 text-zambia-orange"></i>Password
+                </label>
+                <input type="password" id="registerPassword" required minlength="6" class="input-field" placeholder="••••••••">
+              </div>
+              <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, #166534 0%, #15803D 100%);">
+                <i class="fas fa-user-plus mr-2"></i>Create Account
+              </button>
+            </form>
+            <div class="text-center mt-8">
+              <p style="color: var(--text-secondary)">Already exploring? 
+                <button onclick="showLogin()" class="text-zambia-orange font-bold hover:underline">Sign In</button>
+              </p>
+            </div>
           </div>
         </div>
-        <div class="hidden md:flex items-center gap-2">
-          <button class="tab-btn active" data-tab="discover"><i class="fas fa-compass mr-2"></i>Discover</button>
-          <button class="tab-btn" data-tab="map"><i class="fas fa-map-marked-alt mr-2"></i>Map</button>
-          <button class="tab-btn" data-tab="civic"><i class="fas fa-city mr-2"></i>Civic</button>
-          <button class="tab-btn" data-tab="adventures"><i class="fas fa-hiking mr-2"></i>Adventures</button>
-        </div>
-        <div class="flex items-center gap-3">
-          <div class="flex items-center gap-2 text-sm">
-            <i class="fas fa-user text-gray-500"></i>
-            <span id="userWelcome" class="text-gray-700 font-medium">Loading...</span>
-            <button onclick="logout()" class="text-red-500 hover:text-red-600 ml-2" title="Logout">
-              <i class="fas fa-sign-out-alt"></i>
-            </button>
+        
+        <!-- Features -->
+        <div class="mt-10 grid grid-cols-3 gap-4 animate-fadeInUp stagger-2">
+          <div class="text-center p-4 rounded-2xl bg-white/10 backdrop-blur-lg">
+            <i class="fas fa-map-marked-alt text-2xl text-white mb-2"></i>
+            <p class="text-white/90 text-sm font-medium">Explore</p>
           </div>
-          <div class="compass" id="magicCompass" title="Magic Compass - Click for a random destination!">
-            <div class="compass-needle"></div>
+          <div class="text-center p-4 rounded-2xl bg-white/10 backdrop-blur-lg">
+            <i class="fas fa-shield-alt text-2xl text-white mb-2"></i>
+            <p class="text-white/90 text-sm font-medium">Report</p>
+          </div>
+          <div class="text-center p-4 rounded-2xl bg-white/10 backdrop-blur-lg">
+            <i class="fas fa-coins text-2xl text-white mb-2"></i>
+            <p class="text-white/90 text-sm font-medium">Earn XP</p>
           </div>
         </div>
       </div>
     </div>
-  </nav>
-
-  <!-- Adventure Badge -->
-  <div class="adventure-badge" id="adventureBadge">
-    <i class="fas fa-trophy"></i>
-    <span id="adventureScore">0</span> XP
-    <span class="text-xs opacity-70">| Level <span id="adventureLevel">1</span></span>
+    
+    <!-- Main App (hidden initially) -->
+    <div id="mainApp" class="hidden">
+      <!-- Navigation -->
+      <nav class="glass sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between h-16 md:h-20">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 bg-gradient-to-br from-zambia-orange to-zambia-copper rounded-xl flex items-center justify-center text-white font-display font-bold text-xl shadow-lg">Z</div>
+              <div class="hidden sm:block">
+                <span class="text-xl font-display font-bold gradient-text">Smart Zambia</span>
+                <p class="text-xs" style="color: var(--text-secondary)">Discover the Real Africa</p>
+              </div>
+            </div>
+            
+            <!-- Desktop Nav -->
+            <div class="desktop-nav hidden md:flex items-center gap-2">
+              <button class="tab-btn active" data-tab="discover"><i class="fas fa-compass mr-2"></i>Discover</button>
+              <button class="tab-btn" data-tab="map"><i class="fas fa-map-marked-alt mr-2"></i>Map</button>
+              <button class="tab-btn" data-tab="community"><i class="fas fa-users mr-2"></i>Community</button>
+              <button class="tab-btn" data-tab="bookings"><i class="fas fa-calendar-check mr-2"></i>Book</button>
+              <button class="tab-btn" data-tab="planner"><i class="fas fa-route mr-2"></i>Plan Trip</button>
+              <button class="tab-btn" data-tab="safety"><i class="fas fa-shield-alt mr-2"></i>Safety</button>
+              <button class="tab-btn" data-tab="adventures"><i class="fas fa-trophy mr-2"></i>Adventures</button>
+            </div>
+            
+            <div class="flex items-center gap-4">
+              <div class="hidden sm:flex items-center gap-2 text-sm">
+                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-zambia-orange to-zambia-copper flex items-center justify-center text-white font-bold text-sm">
+                  <span id="userInitial">D</span>
+                </div>
+                <span id="userWelcome" class="font-medium" style="color: var(--text-primary)">Demo User</span>
+                <button onclick="logout()" class="text-red-500 hover:text-red-600 ml-1 p-2" title="Logout">
+                  <i class="fas fa-sign-out-alt"></i>
+                </button>
+              </div>
+              <div class="compass" onclick="showRandomDestination()" title="Random destination"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Mobile Nav -->
+        <div class="mobile-nav md:hidden border-t" style="border-color: var(--border-color)">
+          <button class="tab-btn active" data-tab="discover"><i class="fas fa-compass mr-1"></i>Discover</button>
+          <button class="tab-btn" data-tab="map"><i class="fas fa-map mr-1"></i>Map</button>
+          <button class="tab-btn" data-tab="community"><i class="fas fa-users mr-1"></i>Community</button>
+          <button class="tab-btn" data-tab="bookings"><i class="fas fa-calendar mr-1"></i>Book</button>
+          <button class="tab-btn" data-tab="planner"><i class="fas fa-route mr-1"></i>Plan</button>
+          <button class="tab-btn" data-tab="safety"><i class="fas fa-shield-alt mr-1"></i>Safety</button>
+          <button class="tab-btn" data-tab="adventures"><i class="fas fa-trophy mr-1"></i>Adventures</button>
+        </div>
+      </nav>
+      
+      <!-- Adventure Badge -->
+      <div class="adventure-badge">
+        <i class="fas fa-trophy"></i>
+        <span id="adventureScore">0</span> XP
+        <span class="opacity-70">| Level <span id="adventureLevel">1</span></span>
+      </div>
+      
+      <!-- Main Content -->
+      <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10 pb-24">
+        <!-- Discover Tab -->
+        <div id="discoverTab" class="tab-content">
+          <!-- Hero Section -->
+          <div class="mb-10 rounded-3xl hero-bg p-8 md:p-12 text-white relative overflow-hidden">
+            <div class="relative z-10">
+              <h1 class="text-3xl md:text-5xl font-display font-bold mb-4 animate-fadeInUp">Explore Zambia's<br>Hidden Treasures</h1>
+              <p class="text-lg md:text-xl opacity-90 mb-6 max-w-xl animate-fadeInUp stagger-1">From thundering Victoria Falls to untouched wilderness — discover 21+ amazing destinations</p>
+              <div class="flex flex-wrap gap-4 animate-fadeInUp stagger-2">
+                <div class="flex items-center gap-2 bg-white/20 backdrop-blur-lg px-4 py-2 rounded-full text-sm font-medium">
+                  <i class="fas fa-map-marker-alt"></i> 21 Destinations
+                </div>
+                <div class="flex items-center gap-2 bg-white/20 backdrop-blur-lg px-4 py-2 rounded-full text-sm font-medium">
+                  <i class="fas fa-paw"></i> Wildlife Safari
+                </div>
+                <div class="flex items-center gap-2 bg-white/20 backdrop-blur-lg px-4 py-2 rounded-full text-sm font-medium">
+                  <i class="fas fa-water"></i> Waterfalls
+                </div>
+              </div>
+            </div>
+            <div class="absolute right-0 bottom-0 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
+          </div>
+          
+          <!-- Search & Filters -->
+          <div class="mb-8 space-y-4">
+            <div class="relative">
+              <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2" style="color: var(--text-secondary)"></i>
+              <input type="text" id="searchInput" placeholder="Search destinations..." class="input-field pl-14 text-lg" style="border-radius: 20px;">
+            </div>
+            <div class="flex flex-wrap gap-3">
+              <select id="provinceFilter" class="input-field" style="width: auto; padding: 12px 20px;">
+                <option value="All">All Provinces</option>
+                <option value="Southern">Southern Province</option>
+                <option value="Eastern">Eastern Province</option>
+                <option value="Northern">Northern Province</option>
+                <option value="Central">Central Province</option>
+                <option value="Western">Western Province</option>
+              </select>
+              <select id="categoryFilter" class="input-field" style="width: auto; padding: 12px 20px;">
+                <option value="All">All Categories</option>
+                <option value="Nature">🌿 Nature</option>
+                <option value="Wildlife">🦁 Wildlife</option>
+                <option value="Heritage">🏛️ Heritage</option>
+                <option value="Adventure">🎢 Adventure</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- Destinations Grid -->
+          <div id="destinationsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"></div>
+        </div>
+        
+        <!-- Map Tab -->
+        <div id="mapTab" class="tab-content hidden">
+          <div class="rounded-3xl overflow-hidden" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+            <div class="p-6 md:p-8 border-b" style="border-color: var(--border-color)">
+              <h2 class="text-2xl md:text-3xl font-display font-bold gradient-text">Explore Zambia</h2>
+              <p class="mt-2" style="color: var(--text-secondary)">Click markers to discover destinations</p>
+            </div>
+            <div id="fullMap" style="height: 500px;"></div>
+          </div>
+        </div>
+        
+        <!-- Community Tab -->
+        <div id="communityTab" class="tab-content hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Photo Upload -->
+            <div class="lg:col-span-2">
+              <div class="rounded-3xl p-6 md:p-8 mb-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h2 class="text-2xl font-bold mb-6 gradient-text">Share Your Adventure</h2>
+                <div class="border-2 border-dashed rounded-2xl p-8 text-center mb-6" style="border-color: var(--border-color)">
+                  <i class="fas fa-camera text-4xl mb-4" style="color: var(--text-secondary)"></i>
+                  <p class="text-lg font-semibold mb-2" style="color: var(--text-primary)">Upload Your Photos</p>
+                  <p class="text-sm mb-4" style="color: var(--text-secondary)">Share your amazing Zambian experiences</p>
+                  <input type="file" id="photoUpload" multiple accept="image/*" class="hidden">
+                  <button onclick="document.getElementById('photoUpload').click()" class="btn-primary" style="width: auto; padding: 12px 24px;">Choose Photos</button>
+                </div>
+              </div>
+              
+              <!-- Travel Stories -->
+              <div class="rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h2 class="text-2xl font-bold mb-6 gradient-text">Travel Stories</h2>
+                <div id="travelStories" class="space-y-6"></div>
+              </div>
+            </div>
+            
+            <!-- Travel Buddy Matching -->
+            <div>
+              <div class="rounded-3xl p-6 text-white mb-6" style="background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);">
+                <h3 class="text-xl font-bold mb-4"><i class="fas fa-users mr-2"></i>Find Travel Buddies</h3>
+                <p class="text-sm opacity-90 mb-4">Connect with fellow adventurers</p>
+                <button onclick="findTravelBuddies()" class="w-full bg-white text-purple-600 font-bold py-3 rounded-xl">Find Buddies</button>
+              </div>
+              
+              <div class="rounded-3xl p-6" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h3 class="text-lg font-bold mb-4" style="color: var(--text-primary)">Active Travelers</h3>
+                <div id="activeTravelers" class="space-y-3"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Bookings Tab -->
+        <div id="bookingsTab" class="tab-content hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Tour Guides -->
+            <div class="rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+              <h2 class="text-2xl font-bold mb-6 gradient-text">Book Tour Guides</h2>
+              <div id="tourGuides" class="space-y-4"></div>
+            </div>
+            
+            <!-- Transportation -->
+            <div class="rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+              <h2 class="text-2xl font-bold mb-6 gradient-text">Transportation</h2>
+              <div class="grid grid-cols-1 gap-4">
+                <div class="p-4 rounded-xl border cursor-pointer hover:bg-gray-50" style="border-color: var(--border-color)" onclick="bookTransport('flight')">
+                  <div class="flex items-center gap-3">
+                    <i class="fas fa-plane text-2xl text-blue-500"></i>
+                    <div>
+                      <h3 class="font-bold" style="color: var(--text-primary)">Flights</h3>
+                      <p class="text-sm" style="color: var(--text-secondary)">Domestic & International</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="p-4 rounded-xl border cursor-pointer hover:bg-gray-50" style="border-color: var(--border-color)" onclick="bookTransport('bus')">
+                  <div class="flex items-center gap-3">
+                    <i class="fas fa-bus text-2xl text-green-500"></i>
+                    <div>
+                      <h3 class="font-bold" style="color: var(--text-primary)">Buses</h3>
+                      <p class="text-sm" style="color: var(--text-secondary)">Intercity Travel</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="p-4 rounded-xl border cursor-pointer hover:bg-gray-50" style="border-color: var(--border-color)" onclick="bookTransport('car')">
+                  <div class="flex items-center gap-3">
+                    <i class="fas fa-car text-2xl text-orange-500"></i>
+                    <div>
+                      <h3 class="font-bold" style="color: var(--text-primary)">Car Rental</h3>
+                      <p class="text-sm" style="color: var(--text-secondary)">Self-drive Adventures</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Activity Reservations -->
+            <div class="lg:col-span-2 rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+              <h2 class="text-2xl font-bold mb-6 gradient-text">Activity Reservations</h2>
+              <div id="activityReservations" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Trip Planner Tab -->
+        <div id="plannerTab" class="tab-content hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Trip Builder -->
+            <div class="lg:col-span-2">
+              <div class="rounded-3xl p-6 md:p-8 mb-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h2 class="text-2xl font-bold mb-6 gradient-text">Plan Your Trip</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">Trip Duration</label>
+                    <select id="tripDuration" class="input-field">
+                      <option value="3">3 Days</option>
+                      <option value="7">1 Week</option>
+                      <option value="14">2 Weeks</option>
+                      <option value="21">3 Weeks</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">Budget (USD)</label>
+                    <select id="tripBudget" class="input-field">
+                      <option value="500">$500 - Budget</option>
+                      <option value="1500">$1,500 - Mid-range</option>
+                      <option value="3000">$3,000+ - Luxury</option>
+                    </select>
+                  </div>
+                </div>
+                <button onclick="generateItinerary()" class="btn-primary" style="width: auto; padding: 12px 24px;">Generate Itinerary</button>
+                <div id="generatedItinerary" class="mt-6"></div>
+              </div>
+              
+              <!-- Cultural Events -->
+              <div class="rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h2 class="text-2xl font-bold mb-6 gradient-text">Cultural Events Calendar</h2>
+                <div id="culturalEvents" class="space-y-4"></div>
+              </div>
+            </div>
+            
+            <!-- Cost Calculator -->
+            <div>
+              <div class="rounded-3xl p-6 text-white mb-6" style="background: linear-gradient(135deg, #16A34A 0%, #15803D 100%);">
+                <h3 class="text-xl font-bold mb-4"><i class="fas fa-calculator mr-2"></i>Cost Calculator</h3>
+                <div class="space-y-3 text-sm">
+                  <div class="flex justify-between">
+                    <span>Accommodation:</span>
+                    <span id="costAccommodation">$0</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Transport:</span>
+                    <span id="costTransport">$0</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Activities:</span>
+                    <span id="costActivities">$0</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Food:</span>
+                    <span id="costFood">$0</span>
+                  </div>
+                  <hr class="border-white/20">
+                  <div class="flex justify-between font-bold text-lg">
+                    <span>Total USD:</span>
+                    <span id="totalUSD">$0</span>
+                  </div>
+                  <div class="flex justify-between font-bold">
+                    <span>Total ZMW:</span>
+                    <span id="totalZMW">K0</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Payment Methods -->
+              <div class="rounded-3xl p-6" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h3 class="text-lg font-bold mb-4" style="color: var(--text-primary)">Payment Methods</h3>
+                <div class="space-y-3">
+                  <div class="flex items-center gap-3 p-3 rounded-xl" style="background: var(--bg-primary)">
+                    <i class="fas fa-mobile-alt text-orange-500"></i>
+                    <span class="font-medium" style="color: var(--text-primary)">MTN Mobile Money</span>
+                  </div>
+                  <div class="flex items-center gap-3 p-3 rounded-xl" style="background: var(--bg-primary)">
+                    <i class="fas fa-mobile-alt text-red-500"></i>
+                    <span class="font-medium" style="color: var(--text-primary)">Airtel Money</span>
+                  </div>
+                  <div class="flex items-center gap-3 p-3 rounded-xl" style="background: var(--bg-primary)">
+                    <i class="fas fa-credit-card text-blue-500"></i>
+                    <span class="font-medium" style="color: var(--text-primary)">Visa/Mastercard</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Safety Tab -->
+        <div id="safetyTab" class="tab-content hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Emergency Contacts -->
+            <div class="rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+              <h2 class="text-2xl font-bold mb-6 gradient-text">Emergency Contacts</h2>
+              <div class="space-y-4">
+                <div class="flex items-center gap-4 p-4 rounded-xl" style="background: var(--bg-primary)">
+                  <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white">
+                    <i class="fas fa-phone"></i>
+                  </div>
+                  <div>
+                    <h3 class="font-bold" style="color: var(--text-primary)">Emergency Services</h3>
+                    <p class="text-sm" style="color: var(--text-secondary)">Police, Fire, Ambulance</p>
+                    <p class="font-bold text-red-500">999 / 991</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-4 p-4 rounded-xl" style="background: var(--bg-primary)">
+                  <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white">
+                    <i class="fas fa-hospital"></i>
+                  </div>
+                  <div>
+                    <h3 class="font-bold" style="color: var(--text-primary)">Tourist Helpline</h3>
+                    <p class="text-sm" style="color: var(--text-secondary)">24/7 Tourist Assistance</p>
+                    <p class="font-bold text-blue-500">+260-211-229087</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-4 p-4 rounded-xl" style="background: var(--bg-primary)">
+                  <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white">
+                    <i class="fas fa-flag"></i>
+                  </div>
+                  <div>
+                    <h3 class="font-bold" style="color: var(--text-primary)">Embassy Services</h3>
+                    <p class="text-sm" style="color: var(--text-secondary)">Consular Assistance</p>
+                    <button onclick="showEmbassies()" class="text-green-500 font-bold text-sm">View Embassies</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Medical Facilities -->
+            <div class="rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+              <h2 class="text-2xl font-bold mb-6 gradient-text">Medical Facilities</h2>
+              <div id="medicalFacilities" class="space-y-4"></div>
+            </div>
+            
+            <!-- Safety Alerts -->
+            <div class="lg:col-span-2 rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+              <h2 class="text-2xl font-bold mb-6 gradient-text">Safety Alerts & Updates</h2>
+              <div id="safetyAlerts" class="space-y-4"></div>
+            </div>
+          </div>
+        </div>
+          <div class="rounded-3xl p-6 md:p-10 mb-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+            <div class="flex items-center gap-4 mb-6">
+              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl">
+                <i class="fas fa-shield-alt"></i>
+              </div>
+              <div>
+                <h2 class="text-2xl md:text-3xl font-display font-bold gradient-text">Tourism Safety Reports</h2>
+                <p style="color: var(--text-secondary)">Help keep Zambia's destinations safe!</p>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="civicChallenges"></div>
+          </div>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Safety Level -->
+            <div class="rounded-3xl p-8 text-white" style="background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);">
+              <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                <i class="fas fa-shield-alt"></i> Your Safety Level
+              </h2>
+              <div class="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
+                <p class="text-5xl font-bold mb-2" id="civicLevelDisplay">1</p>
+                <p class="text-lg opacity-90">Safety Guardian</p>
+                <div class="mt-6">
+                  <div class="flex justify-between text-sm mb-2">
+                    <span>XP: <span id="civicXPDisplay">0</span></span>
+                    <span>Next: <span id="civicXPNeeded">100</span></span>
+                  </div>
+                  <div class="w-full bg-white/20 rounded-full h-3">
+                    <div id="civicProgressBar" class="bg-white rounded-full h-3 transition-all" style="width: 0%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Reports List -->
+            <div class="rounded-3xl p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+              <h2 class="text-2xl font-bold mb-6 flex items-center gap-3" style="color: var(--text-primary)">
+                <i class="fas fa-list-check text-blue-500"></i> Your Reports
+              </h2>
+              <div id="civicReportsList" class="space-y-3">
+                <div class="text-center py-8">
+                  <i class="fas fa-camera text-4xl mb-4" style="color: var(--text-secondary); opacity: 0.3"></i>
+                  <p style="color: var(--text-secondary)">No reports yet. Help keep tourists safe!</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Adventures Tab -->
+        <div id="adventuresTab" class="tab-content hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Stats Card -->
+            <div class="rounded-3xl p-8 text-white" style="background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);">
+              <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                <i class="fas fa-chart-bar"></i> Your Stats
+              </h2>
+              <div class="space-y-4">
+                <div class="flex justify-between items-center p-4 bg-white/10 rounded-xl">
+                  <span><i class="fas fa-eye mr-2"></i>Places Viewed</span>
+                  <span class="font-bold text-xl" id="placesViewedCount">0</span>
+                </div>
+                <div class="flex justify-between items-center p-4 bg-white/10 rounded-xl">
+                  <span><i class="fas fa-coins mr-2"></i>Total XP</span>
+                  <span class="font-bold text-xl" id="totalXPCount">0</span>
+                </div>
+                <div class="flex justify-between items-center p-4 bg-white/10 rounded-xl">
+                  <span><i class="fas fa-medal mr-2"></i>Achievements</span>
+                  <span class="font-bold text-xl" id="achievementsCount">0</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Treasure Hunt -->
+            <div class="rounded-3xl p-8 text-white" style="background: linear-gradient(135deg, #F59E0B 0%, #E85D04 100%);">
+              <h2 class="text-2xl font-bold mb-4 flex items-center gap-3">
+                <i class="fas fa-gem"></i> Treasure Hunt
+              </h2>
+              <p class="mb-6 opacity-90">Find hidden treasures across Zambia's destinations!</p>
+              <div class="bg-white/20 backdrop-blur-sm rounded-2xl p-6 mb-6">
+                <p class="text-sm font-semibold mb-2 opacity-80">Current Clue:</p>
+                <p id="currentClue" class="text-lg font-bold">Click Start to begin!</p>
+              </div>
+              <div class="mb-6">
+                <div class="flex justify-between text-sm mb-2">
+                  <span id="treasureCount">0/5 Found</span>
+                  <span>+100 XP each</span>
+                </div>
+                <div class="treasure-progress" style="background: rgba(255,255,255,0.2);">
+                  <div id="treasureBar" class="treasure-progress-bar" style="width: 0%; background: white;"></div>
+                </div>
+              </div>
+              <button onclick="startTreasureHunt()" class="w-full bg-white text-zambia-orange font-bold py-4 rounded-xl hover:bg-orange-50 transition-all">
+                <i class="fas fa-play mr-2"></i>Start Treasure Hunt
+              </button>
+            </div>
+            
+            <!-- Achievements -->
+            <div class="rounded-3xl p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+              <h2 class="text-2xl font-bold mb-6 flex items-center gap-3" style="color: var(--text-primary)">
+                <i class="fas fa-trophy text-yellow-500"></i> Achievements
+              </h2>
+              <div id="achievementsList" class="space-y-3"></div>
+            </div>
+            
+            <!-- Leaderboard -->
+            <div class="rounded-3xl p-8 text-white" style="background: linear-gradient(135deg, #6366F1 0%, #3B82F6 100%);">
+              <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                <i class="fas fa-crown"></i> Leaderboard
+              </h2>
+              <div id="leaderboard" class="space-y-3"></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+    
+    <!-- Destination Modal -->
+    <div class="modal-overlay" id="destinationModal">
+      <div class="modal-content relative">
+        <button onclick="closeModal()" class="absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center z-10 transition-all hover:scale-110" style="background: var(--bg-card); color: var(--text-primary); box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+          <i class="fas fa-times"></i>
+        </button>
+        <div class="relative h-64 md:h-80 overflow-hidden">
+          <img id="modalImage" class="w-full h-full object-cover" src="assets/images/destination.jpg" alt="">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+          <div class="absolute bottom-6 left-6 right-6 text-white">
+            <div id="modalFeatured" class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold mb-3 hidden" style="background: linear-gradient(135deg, #E85D04, #F59E0B);">
+              <i class="fas fa-fire"></i> Featured
+            </div>
+            <h2 id="modalName" class="text-2xl md:text-3xl font-display font-bold mb-2"></h2>
+            <p id="modalProvince" class="flex items-center gap-2 opacity-90">
+              <i class="fas fa-map-marker-alt text-zambia-gold"></i>
+              <span></span>
+            </p>
+          </div>
+        </div>
+        <div class="p-6 md:p-8">
+          <div class="flex flex-wrap gap-3 mb-6">
+            <span id="modalCategory" class="px-4 py-2 rounded-full text-sm font-semibold" style="background: rgba(232,93,4,0.1); color: #E85D04;"></span>
+            <div id="modalRating" class="flex items-center gap-1 px-4 py-2 rounded-full text-sm font-semibold" style="background: rgba(245,158,11,0.1); color: #F59E0B;"></div>
+            <span id="modalPrice" class="px-4 py-2 rounded-full text-sm font-bold" style="background: rgba(22,163,74,0.1); color: #16A34A;"></span>
+          </div>
+          <p id="modalDescription" class="text-lg leading-relaxed mb-8" style="color: var(--text-secondary)"></p>
+          
+          <div id="destination-map" class="mb-8 h-48 rounded-2xl overflow-hidden"></div>
+          
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button onclick="addToWishlist()" class="flex-1 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2" style="background: linear-gradient(135deg, #E85D04, #C45508); color: white;">
+              <i class="fas fa-heart"></i> Add to Wishlist
+            </button>
+            <button onclick="getDirections()" class="flex-1 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2" style="background: linear-gradient(135deg, #16A34A, #15803D); color: white;">
+              <i class="fas fa-directions"></i> Get Directions
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Achievement Toast -->
+    <div class="achievement-toast" id="achievementToast">
+      <i class="fas fa-trophy text-3xl"></i>
+      <div>
+        <h3 id="achievementTitle" class="font-bold text-lg"></h3>
+        <p id="achievementDesc" class="text-sm opacity-90"></p>
+      </div>
+    </div>
+    
+    <!-- Report Modal -->
+    <div class="modal-overlay" id="reportModal">
+      <div class="modal-content p-8" style="max-width: 480px;">
+        <div class="text-center mb-6">
+          <div id="reportIcon" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"></div>
+          <h2 id="reportTitle" class="text-2xl font-bold" style="color: var(--text-primary)"></h2>
+          <p id="reportDesc" style="color: var(--text-secondary)"></p>
+        </div>
+        <form id="reportForm">
+          <div class="mb-4">
+            <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">Report Title</label>
+            <input type="text" id="reportTitleInput" required class="input-field" placeholder="Brief title for this issue">
+          </div>
+          <div class="mb-6">
+            <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">Description</label>
+            <textarea id="reportDescInput" required rows="3" class="input-field" placeholder="Describe the issue..."></textarea>
+          </div>
+          <div class="flex gap-3">
+            <button type="button" onclick="closeReportModal()" class="flex-1 py-3 rounded-xl font-semibold transition-all" style="background: var(--bg-primary); color: var(--text-primary); border: 2px solid var(--border-color);">Cancel</button>
+            <button type="submit" class="flex-1 py-3 rounded-xl font-semibold text-white transition-all" style="background: linear-gradient(135deg, #3B82F6, #8B5CF6);">Submit Report</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
-
-  <!-- Main Content -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Tabs will be rendered here dynamically -->
-    <div id="discoverTab" class="tab-content"><!-- filled by JS --></div>
-    <div id="mapTab" class="tab-content hidden"><!-- filled by JS --></div>
-    <div id="civicTab" class="tab-content hidden"><!-- filled by JS --></div>
-    <div id="adventuresTab" class="tab-content hidden"><!-- filled by JS --></div>
-  </main>
-
-  <!-- Modals -->
-  <div class="modal-overlay" id="destinationModal"><!-- ... --></div>
-  <div class="achievement-toast" id="achievementToast"><!-- ... --></div>
-  <div class="secret-door" id="secretDoor" onclick="secretDoorClick()"></div>
 
   <!-- Scripts -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script type="module" src="js/api.js"></script>
-  <script type="module" src="js/main.js"></script>
+  <script>
+    // ============================================
+    // DESTINATION DATA (Embedded for standalone use)
+    // ============================================
+    const destinations = [
+      { id: 1, name: "Victoria Falls", province: "Southern Province", category: "Nature", rating: 4.9, description: "One of the Seven Natural Wonders of the World. Known locally as 'Mosi-oa-Tunya' - The Smoke That Thunders. Experience the world's largest sheet of falling water.", image_url: "https://images.unsplash.com/photo-1568625502763-2a5ec6a94c47?w=800", entry_fee_foreign: 30, featured: true, lat: -17.9243, lng: 25.8572 },
+      { id: 2, name: "South Luangwa National Park", province: "Eastern Province", category: "Wildlife", rating: 4.8, description: "One of Africa's greatest wildlife sanctuaries. Famous for walking safaris and leopard sightings. Home to over 60 mammal species and 400 bird species.", image_url: "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800", entry_fee_foreign: 25, featured: true, lat: -13.0833, lng: 31.7500 },
+      { id: 3, name: "Lower Zambezi National Park", province: "Southern Province", category: "Wildlife", rating: 4.7, description: "Pristine wilderness along the mighty Zambezi River. Perfect for canoe safaris, fishing, and game viewing. Elephants frequently swim across the river.", image_url: "https://images.unsplash.com/photo-1549366021-9f761d450615?w=800", entry_fee_foreign: 25, featured: true, lat: -15.6667, lng: 29.1667 },
+      { id: 4, name: "Mosi-oa-Tunya National Park", province: "Southern Province", category: "Wildlife", rating: 4.6, description: "A wildlife reserve with diverse species including rare rhinos and spectacular views of Victoria Falls.", image_url: "https://images.unsplash.com/photo-1612196808214-b7e239e5f6dc?w=800", entry_fee_foreign: 15, featured: false, lat: -17.9167, lng: 25.8667 },
+      { id: 5, name: "Gorge Swing", province: "Southern Province", category: "Adventure", rating: 4.8, description: "A thrilling adventure offering spectacular views of Victoria Falls with an adrenaline-pumping swing experience over the gorge.", image_url: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=800", entry_fee_foreign: 85, featured: true, lat: -17.9300, lng: 25.8600 },
+      { id: 6, name: "Kalambo Falls", province: "Northern Province", category: "Nature", rating: 4.7, description: "The second highest uninterrupted waterfall in Africa at 235m. An archaeological treasure trove with Stone Age artifacts.", image_url: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800", entry_fee_foreign: 18, featured: true, lat: -8.6000, lng: 31.2333 },
+      { id: 7, name: "Lake Tanganyika", province: "Northern Province", category: "Nature", rating: 4.5, description: "The world's longest freshwater lake and second deepest. Home to hundreds of endemic fish species found nowhere else on Earth.", image_url: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800", entry_fee_foreign: 10, featured: false, lat: -8.8000, lng: 31.0000 },
+      { id: 8, name: "Liuwa Plains National Park", province: "Western Province", category: "Wildlife", rating: 4.7, description: "Witness the second-largest wildebeest migration in Africa. Vast open plains teeming with wildlife and spectacular sunsets.", image_url: "https://images.unsplash.com/photo-1535941339077-2dd1c7963098?w=800", entry_fee_foreign: 25, featured: true, lat: -14.5000, lng: 22.7000 },
+      { id: 9, name: "Kafue National Park", province: "Central Province", category: "Wildlife", rating: 4.6, description: "Zambia's largest national park, roughly the size of Wales. Diverse ecosystems from miombo woodland to vast floodplains.", image_url: "https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800", entry_fee_foreign: 20, featured: false, lat: -15.5000, lng: 26.0000 },
+      { id: 10, name: "Devil's Pool", province: "Southern Province", category: "Adventure", rating: 4.9, description: "Swim on the very edge of Victoria Falls! A natural infinity pool that forms during low water season. Ultimate bucket list experience.", image_url: "https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?w=800", entry_fee_foreign: 100, featured: true, lat: -17.9247, lng: 25.8539 },
+      { id: 11, name: "Kuomboka Ceremony", province: "Western Province", category: "Heritage", rating: 4.8, description: "Experience the Lozi King's majestic barge gliding through the Zambezi floodplains. One of Africa's most colorful traditional ceremonies.", image_url: "https://images.unsplash.com/photo-1594736797933-d0401ba2fe65?w=800", entry_fee_foreign: 0, featured: true, lat: -15.2500, lng: 23.1500 },
+      { id: 12, name: "Nyika Plateau", province: "Eastern Province", category: "Nature", rating: 4.5, description: "Rolling grasslands at high altitude, perfect for hiking and horseback riding. Stunning orchid displays and unique wildlife.", image_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800", entry_fee_foreign: 15, featured: false, lat: -10.5000, lng: 33.7500 },
+      { id: 13, name: "Kundalila Falls", province: "Central Province", category: "Nature", rating: 4.4, description: "Stunning 75m waterfall offering breathtaking views across the Luangwa valley. Perfect for swimming and hiking.", image_url: "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?w=800", entry_fee_foreign: 10, featured: false, lat: -14.7000, lng: 28.7500 },
+      { id: 14, name: "Chishimba Falls", province: "Northern Province", category: "Nature", rating: 4.4, description: "Three spectacular waterfalls considered sacred by the local Bemba people. Lush rainforest setting.", image_url: "https://images.unsplash.com/photo-1541675154750-0444c7d51e8e?w=800", entry_fee_foreign: 12, featured: false, lat: -10.7500, lng: 29.1333 },
+      { id: 15, name: "Ngonye Falls", province: "Western Province", category: "Nature", rating: 4.3, description: "A series of horseshoe-shaped waterfalls on the Zambezi, less crowded than Victoria Falls but equally stunning.", image_url: "https://images.unsplash.com/photo-1475113548554-5a36f1f523d6?w=800", entry_fee_foreign: 12, featured: false, lat: -16.1000, lng: 23.1000 },
+      { id: 16, name: "Zambezi River Safari", province: "Western Province", category: "Adventure", rating: 4.6, description: "Cruise along Africa's fourth-longest river. Spot hippos, crocodiles, and elephants while enjoying spectacular sunsets.", image_url: "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800", entry_fee_foreign: 15, featured: false, lat: -15.5000, lng: 23.0000 },
+      { id: 17, name: "Kasanka National Park", province: "Central Province", category: "Wildlife", rating: 4.5, description: "Famous for hosting the world's largest mammal migration - 10 million fruit bats! Also home to rare sitatunga antelope.", image_url: "https://images.unsplash.com/photo-1504173010664-32509aeebb62?w=800", entry_fee_foreign: 15, featured: false, lat: -12.5500, lng: 30.2000 },
+      { id: 18, name: "Blue Lagoon National Park", province: "Central Province", category: "Wildlife", rating: 4.2, description: "Vast wetland paradise for birdwatchers. Home to Kafue lechwe and stunning floodplain scenery.", image_url: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800", entry_fee_foreign: 10, featured: false, lat: -15.0167, lng: 28.0500 },
+      { id: 19, name: "Lochinvar National Park", province: "Southern Province", category: "Wildlife", rating: 4.3, description: "Wetland wonderland with thousands of Kafue lechwe. Over 400 bird species make this a birder's paradise.", image_url: "https://images.unsplash.com/photo-1557456170-0cf4f4d0d362?w=800", entry_fee_foreign: 10, featured: false, lat: -15.9667, lng: 27.2500 },
+      { id: 20, name: "Shiwa Ng'andu", province: "Northern Province", category: "Heritage", rating: 4.4, description: "A stunning English manor house in the heart of Africa. Built by Sir Stewart Gore-Browne in the 1920s.", image_url: "https://images.unsplash.com/photo-1577282748124-3c8c8f98af8d?w=800", entry_fee_foreign: 15, featured: false, lat: -11.2000, lng: 31.7500 },
+      { id: 21, name: "Bangweulu Wetlands", province: "Northern Province", category: "Wildlife", rating: 4.5, description: "Vast floodplain system where you can see the rare shoebill stork. One of Africa's great wetland ecosystems.", image_url: "https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?w=800", entry_fee_foreign: 15, featured: false, lat: -11.5000, lng: 29.7500 }
+    ];
+
+    // ============================================
+    // STATE MANAGEMENT
+    // ============================================
+    const state = {
+      isLoggedIn: false,
+      user: null,
+      score: 0,
+      level: 1,
+      achievements: [],
+      wishlist: [],
+      currentDestination: null,
+      visitedDestinations: [],
+      treasureHuntActive: false,
+      foundTreasures: [],
+      currentTreasureIndex: 0,
+      treasureClues: [
+        { clue: "Where the smoke thunders and rainbows dance...", destination: 1 },
+        { clue: "Where leopards prowl at night...", destination: 2 },
+        { clue: "Swim on the edge of the world...", destination: 10 },
+        { clue: "Millions of bats darken the sky...", destination: 17 },
+        { clue: "The King's royal barge glides through waters...", destination: 11 }
+      ],
+      civicXP: 0,
+      civicLevel: 1,
+      civicReports: []
+    };
+
+    // Civic Challenges
+    const civicChallenges = [
+      { id: 'flooded_area', name: 'Flooded Tourist Area', desc: 'Report flooded areas affecting tourists', icon: 'fa-water', xp: 40, cash: 5, color: 'bg-blue-500' },
+      { id: 'blocked_trail', name: 'Blocked Trail', desc: 'Report blocked hiking/walking trails', icon: 'fa-hiking', xp: 35, cash: 4, color: 'bg-green-500' },
+      { id: 'unsafe_viewpoint', name: 'Unsafe Viewpoint', desc: 'Report dangerous viewing areas', icon: 'fa-exclamation-triangle', xp: 45, cash: 6, color: 'bg-red-500' },
+      { id: 'damaged_facilities', name: 'Damaged Facilities', desc: 'Report broken tourist facilities', icon: 'fa-tools', xp: 30, cash: 3, color: 'bg-yellow-500' },
+      { id: 'wildlife_concern', name: 'Wildlife Safety', desc: 'Report wildlife-related issues', icon: 'fa-paw', xp: 50, cash: 7, color: 'bg-purple-500' },
+      { id: 'tourist_safety', name: 'Tourist Safety', desc: 'General tourist safety concerns', icon: 'fa-shield-alt', xp: 55, cash: 8, color: 'bg-indigo-500' }
+    ];
+
+    // Achievement Definitions
+    const achievementDefs = [
+      { id: 'first_visit', name: 'First Steps', desc: 'View your first destination', icon: 'fa-shoe-prints', xp: 10 },
+      { id: 'explorer', name: 'Explorer', desc: 'View 5 different destinations', icon: 'fa-compass', xp: 50 },
+      { id: 'treasure_hunter', name: 'Treasure Hunter', desc: 'Find your first treasure', icon: 'fa-gem', xp: 100 },
+      { id: 'wishlist_pro', name: 'Dream Collector', desc: 'Add 5 places to wishlist', icon: 'fa-heart', xp: 30 },
+      { id: 'civic_hero', name: 'Civic Hero', desc: 'Make your first safety report', icon: 'fa-shield-alt', xp: 50 }
+    ];
+
+    let mainMap = null;
+    let destinationMap = null;
+    let currentReportChallenge = null;
+
+    // ============================================
+    // AUTHENTICATION
+    // ============================================
+    function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const name = email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
+      
+      state.isLoggedIn = true;
+      state.user = { name, email };
+      
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('mainApp').classList.remove('hidden');
+      document.getElementById('userWelcome').textContent = name;
+      document.getElementById('userInitial').textContent = name.charAt(0).toUpperCase();
+      
+      initApp();
+      showAchievementToast('Welcome!', `Hello ${name}, start exploring Zambia!`);
+    }
+
+    function handleRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById('registerName').value;
+      const email = document.getElementById('registerEmail').value;
+      
+      state.isLoggedIn = true;
+      state.user = { name, email };
+      
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('mainApp').classList.remove('hidden');
+      document.getElementById('userWelcome').textContent = name;
+      document.getElementById('userInitial').textContent = name.charAt(0).toUpperCase();
+      
+      initApp();
+      showAchievementToast('Account Created!', `Welcome ${name}! Your adventure begins.`);
+    }
+
+    function showRegister() {
+      document.getElementById('loginForm').classList.add('hidden');
+      document.getElementById('registerForm').classList.remove('hidden');
+    }
+
+    function showLogin() {
+      document.getElementById('registerForm').classList.add('hidden');
+      document.getElementById('loginForm').classList.remove('hidden');
+    }
+
+    function logout() {
+      state.isLoggedIn = false;
+      state.user = null;
+      document.getElementById('mainApp').classList.add('hidden');
+      document.getElementById('loginScreen').classList.remove('hidden');
+    }
+
+    // ============================================
+    // APP INITIALIZATION
+    // ============================================
+    function initApp() {
+      renderDestinations();
+      renderCivicChallenges();
+      renderAchievements();
+      renderLeaderboard();
+      setupEventListeners();
+      updateUI();
+    }
+
+    // ============================================
+    // DESTINATIONS
+    // ============================================
+    function renderDestinations() {
+      const grid = document.getElementById('destinationsGrid');
+      const searchTerm = document.getElementById('searchInput')?.value?.toLowerCase() || '';
+      const province = document.getElementById('provinceFilter')?.value || 'All';
+      const category = document.getElementById('categoryFilter')?.value || 'All';
+
+      const filtered = destinations.filter(dest => {
+        const matchesSearch = dest.name.toLowerCase().includes(searchTerm) || 
+                              dest.description.toLowerCase().includes(searchTerm);
+        const matchesProvince = province === 'All' || dest.province.includes(province);
+        const matchesCategory = category === 'All' || dest.category === category;
+        return matchesSearch && matchesProvince && matchesCategory;
+      });
+
+      grid.innerHTML = filtered.map((dest, index) => `
+        <div class="destination-card animate-fadeInUp" style="animation-delay: ${index * 0.05}s; opacity: 0;" onclick="openDestination(${dest.id})">
+          <div class="relative h-48 md:h-56 overflow-hidden">
+            <img src="${dest.image_url}" alt="${dest.name}" class="card-image w-full h-full object-cover" loading="lazy">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+            <div class="absolute top-3 right-3 flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-bold text-yellow-900" style="background: rgba(250,204,21,0.95);">
+              <i class="fas fa-star text-yellow-600"></i>
+              ${dest.rating}
+            </div>
+            ${dest.featured ? `
+              <div class="absolute top-3 left-3 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-white shadow-lg" style="background: linear-gradient(135deg, #E85D04, #F59E0B);">
+                <i class="fas fa-fire"></i> Featured
+              </div>
+            ` : ''}
+            ${state.treasureHuntActive && state.treasureClues[state.currentTreasureIndex]?.destination === dest.id ? `
+              <div class="absolute bottom-3 left-3 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold animate-pulse" style="background: rgba(250,204,21,0.95); color: #78350F;">
+                <i class="fas fa-gem"></i> Treasure Here!
+              </div>
+            ` : ''}
+          </div>
+          <div class="p-5">
+            <h3 class="text-lg font-bold mb-1" style="color: var(--text-primary)">${dest.name}</h3>
+            <p class="text-sm flex items-center gap-1.5 mb-3" style="color: var(--text-secondary)">
+              <i class="fas fa-map-marker-alt text-zambia-orange"></i>
+              ${dest.province}
+            </p>
+            <p class="text-sm line-clamp-2 mb-4" style="color: var(--text-secondary)">${dest.description}</p>
+            <div class="flex items-center justify-between pt-4" style="border-top: 1px solid var(--border-color)">
+              <span class="text-xs font-semibold px-3 py-1.5 rounded-full" style="background: rgba(232,93,4,0.1); color: #E85D04;">
+                ${dest.category}
+              </span>
+              <span class="text-sm font-bold" style="color: #16A34A;">
+                $${dest.entry_fee_foreign}
+              </span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full text-center py-16">
+            <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" style="background: var(--bg-primary)">
+              <i class="fas fa-search text-3xl" style="color: var(--text-secondary)"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2" style="color: var(--text-primary)">No destinations found</h3>
+            <p style="color: var(--text-secondary)">Try adjusting your search or filters</p>
+          </div>
+        `;
+      }
+    }
+
+    function openDestination(id) {
+      const dest = destinations.find(d => d.id === id);
+      if (!dest) return;
+      
+      state.currentDestination = dest;
+      
+      // Track visit
+      if (!state.visitedDestinations.includes(id)) {
+        state.visitedDestinations.push(id);
+        addScore(5);
+        
+        if (state.visitedDestinations.length === 1) {
+          unlockAchievement('first_visit');
+        }
+        if (state.visitedDestinations.length >= 5) {
+          unlockAchievement('explorer');
+        }
+      }
+
+      // Populate modal
+      document.getElementById('modalImage').src = dest.image_url;
+      document.getElementById('modalName').textContent = dest.name;
+      document.getElementById('modalProvince').querySelector('span').textContent = dest.province;
+      document.getElementById('modalDescription').textContent = dest.description;
+      document.getElementById('modalCategory').textContent = dest.category;
+      document.getElementById('modalPrice').textContent = dest.entry_fee_foreign > 0 ? `$${dest.entry_fee_foreign} entry` : 'Free';
+      document.getElementById('modalFeatured').classList.toggle('hidden', !dest.featured);
+      document.getElementById('modalRating').innerHTML = `<i class="fas fa-star"></i> ${dest.rating}`;
+
+      document.getElementById('destinationModal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+
+      // Initialize map
+      setTimeout(() => initDestinationMap(dest.lat, dest.lng, dest.name), 100);
+
+      // Check treasure
+      if (state.treasureHuntActive && state.treasureClues[state.currentTreasureIndex]?.destination === id) {
+        findTreasure();
+      }
+
+      updateUI();
+    }
+
+    function closeModal() {
+      document.getElementById('destinationModal').classList.remove('active');
+      document.body.style.overflow = '';
+      if (destinationMap) {
+        destinationMap.remove();
+        destinationMap = null;
+      }
+    }
+
+    function initDestinationMap(lat, lng, name) {
+      const container = document.getElementById('destination-map');
+      if (destinationMap) {
+        destinationMap.remove();
+      }
+
+      destinationMap = L.map('destination-map').setView([lat, lng], 12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+      }).addTo(destinationMap);
+
+      L.marker([lat, lng]).addTo(destinationMap).bindPopup(name).openPopup();
+    }
+
+    function initMainMap() {
+      if (mainMap) return;
+
+      mainMap = L.map('fullMap').setView([-14.5, 28], 6);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+      }).addTo(mainMap);
+
+      destinations.forEach(dest => {
+        const marker = L.marker([dest.lat, dest.lng]).addTo(mainMap);
+        marker.bindPopup(`
+          <div style="min-width: 180px; font-family: 'DM Sans', sans-serif;">
+            <img src="${dest.image_url}" alt="${dest.name}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 8px; margin-bottom: 8px;">
+            <h3 style="font-weight: bold; margin-bottom: 4px; font-size: 14px;">${dest.name}</h3>
+            <p style="color: #666; font-size: 11px; margin-bottom: 8px;">${dest.province}</p>
+            <button onclick="openDestination(${dest.id})" style="background: linear-gradient(135deg, #E85D04, #C45508); color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 12px; font-weight: 600;">
+              View Details
+            </button>
+          </div>
+        `);
+      });
+    }
+
+    // ============================================
+    // CIVIC REPORTS
+    // ============================================
+    function renderCivicChallenges() {
+      const container = document.getElementById('civicChallenges');
+      container.innerHTML = civicChallenges.map(challenge => `
+        <div class="rounded-2xl p-6 text-white cursor-pointer transition-all hover:scale-105 hover:shadow-xl ${challenge.color}" onclick="startCivicChallenge('${challenge.id}')">
+          <div class="flex items-center gap-4 mb-4">
+            <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+              <i class="fas ${challenge.icon} text-2xl"></i>
+            </div>
+            <div>
+              <h3 class="font-bold">${challenge.name}</h3>
+              <p class="text-sm opacity-90">${challenge.desc}</p>
+            </div>
+          </div>
+          <div class="flex justify-between text-sm font-semibold">
+            <span>+${challenge.xp} XP</span>
+            <span>+K${challenge.cash}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function startCivicChallenge(challengeId) {
+      const challenge = civicChallenges.find(c => c.id === challengeId);
+      if (!challenge) return;
+      
+      currentReportChallenge = challenge;
+      
+      document.getElementById('reportIcon').className = `w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl ${challenge.color}`;
+      document.getElementById('reportIcon').innerHTML = `<i class="fas ${challenge.icon}"></i>`;
+      document.getElementById('reportTitle').textContent = challenge.name;
+      document.getElementById('reportDesc').textContent = challenge.desc;
+      
+      document.getElementById('reportModal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeReportModal() {
+      document.getElementById('reportModal').classList.remove('active');
+      document.body.style.overflow = '';
+      document.getElementById('reportTitleInput').value = '';
+      document.getElementById('reportDescInput').value = '';
+    }
+
+    function submitReport(e) {
+      e.preventDefault();
+      
+      if (!currentReportChallenge) return;
+      
+      const title = document.getElementById('reportTitleInput').value;
+      const desc = document.getElementById('reportDescInput').value;
+      
+      // Add report
+      state.civicReports.push({
+        id: Date.now(),
+        type: currentReportChallenge.id,
+        title,
+        description: desc,
+        xp: currentReportChallenge.xp,
+        cash: currentReportChallenge.cash,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Award XP
+      state.civicXP += currentReportChallenge.xp;
+      addScore(currentReportChallenge.xp);
+      
+      // Check level up
+      const newLevel = Math.floor(state.civicXP / 100) + 1;
+      if (newLevel > state.civicLevel) {
+        state.civicLevel = newLevel;
+        showAchievementToast('Level Up!', `Safety Level ${state.civicLevel}!`);
+      }
+      
+      // First report achievement
+      if (state.civicReports.length === 1) {
+        unlockAchievement('civic_hero');
+      }
+      
+      closeReportModal();
+      updateCivicUI();
+      showAchievementToast('Report Submitted!', `+${currentReportChallenge.xp} XP, +K${currentReportChallenge.cash}`);
+    }
+
+    function updateCivicUI() {
+      document.getElementById('civicLevelDisplay').textContent = state.civicLevel;
+      document.getElementById('civicXPDisplay').textContent = state.civicXP;
+      document.getElementById('civicXPNeeded').textContent = (state.civicLevel * 100) - state.civicXP;
+      document.getElementById('civicProgressBar').style.width = `${(state.civicXP % 100)}%`;
+      
+      // Update reports list
+      const list = document.getElementById('civicReportsList');
+      if (state.civicReports.length > 0) {
+        list.innerHTML = state.civicReports.slice(-5).reverse().map(report => {
+          const challenge = civicChallenges.find(c => c.id === report.type);
+          return `
+            <div class="flex items-center gap-3 p-3 rounded-xl transition-all" style="background: var(--bg-primary)">
+              <div class="w-10 h-10 ${challenge?.color || 'bg-gray-500'} rounded-full flex items-center justify-center text-white">
+                <i class="fas ${challenge?.icon || 'fa-exclamation'}"></i>
+              </div>
+              <div class="flex-1">
+                <p class="font-semibold text-sm" style="color: var(--text-primary)">${report.title}</p>
+                <p class="text-xs" style="color: var(--text-secondary)">${new Date(report.timestamp).toLocaleDateString()}</p>
+              </div>
+              <div class="text-right">
+                <span class="text-xs font-bold text-green-600">+K${report.cash}</span>
+                <br>
+                <span class="text-xs" style="color: var(--text-secondary)">${report.xp} XP</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // ============================================
+    // GAMIFICATION
+    // ============================================
+    function addScore(points) {
+      state.score += points;
+      updateLevel();
+      updateUI();
+    }
+
+    function updateLevel() {
+      const newLevel = Math.floor(state.score / 100) + 1;
+      if (newLevel > state.level) {
+        state.level = newLevel;
+        showAchievementToast('Level Up!', `You reached level ${newLevel}!`);
+      }
+    }
+
+    function unlockAchievement(id) {
+      if (state.achievements.includes(id)) return;
+      
+      const ach = achievementDefs.find(a => a.id === id);
+      if (!ach) return;
+      
+      state.achievements.push(id);
+      addScore(ach.xp);
+      showAchievementToast(ach.name, ach.desc);
+      renderAchievements();
+    }
+
+    function showAchievementToast(title, desc) {
+      const toast = document.getElementById('achievementToast');
+      document.getElementById('achievementTitle').textContent = title;
+      document.getElementById('achievementDesc').textContent = desc;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+
+    function startTreasureHunt() {
+      state.treasureHuntActive = true;
+      state.currentTreasureIndex = 0;
+      state.foundTreasures = [];
+      updateClue();
+      renderDestinations();
+      showAchievementToast('Treasure Hunt Started!', 'Find hidden treasures!');
+    }
+
+    function updateClue() {
+      if (state.currentTreasureIndex < state.treasureClues.length) {
+        document.getElementById('currentClue').textContent = state.treasureClues[state.currentTreasureIndex].clue;
+      } else {
+        document.getElementById('currentClue').textContent = '🎉 All treasures found!';
+        state.treasureHuntActive = false;
+      }
+      document.getElementById('treasureCount').textContent = `${state.foundTreasures.length}/5 Found`;
+      document.getElementById('treasureBar').style.width = `${(state.foundTreasures.length / 5) * 100}%`;
+    }
+
+    function findTreasure() {
+      const treasureId = state.treasureClues[state.currentTreasureIndex].destination;
+      if (!state.foundTreasures.includes(treasureId)) {
+        state.foundTreasures.push(treasureId);
+        addScore(100);
+        showAchievementToast('Treasure Found!', '+100 XP');
+        
+        if (state.foundTreasures.length === 1) {
+          unlockAchievement('treasure_hunter');
+        }
+        
+        state.currentTreasureIndex++;
+        updateClue();
+        renderDestinations();
+      }
+    }
+
+    function addToWishlist() {
+      if (!state.currentDestination) return;
+      if (!state.wishlist.includes(state.currentDestination.id)) {
+        state.wishlist.push(state.currentDestination.id);
+        showAchievementToast('Added to Wishlist!', state.currentDestination.name);
+        addScore(5);
+        
+        if (state.wishlist.length >= 5) {
+          unlockAchievement('wishlist_pro');
+        }
+      } else {
+        showAchievementToast('Already Saved', 'This is in your wishlist');
+      }
+    }
+
+    function getDirections() {
+      if (state.currentDestination) {
+        window.open(`https://www.google.com/maps/dir/?api=1&destination=${state.currentDestination.lat},${state.currentDestination.lng}`, '_blank');
+      }
+    }
+
+    function showRandomDestination() {
+      const randomDest = destinations[Math.floor(Math.random() * destinations.length)];
+      openDestination(randomDest.id);
+      addScore(10);
+    }
+
+    // ============================================
+    // UI UPDATES
+    // ============================================
+    function updateUI() {
+      document.getElementById('adventureScore').textContent = state.score;
+      document.getElementById('adventureLevel').textContent = state.level;
+      document.getElementById('placesViewedCount').textContent = state.visitedDestinations.length;
+      document.getElementById('totalXPCount').textContent = state.score;
+      document.getElementById('achievementsCount').textContent = state.achievements.length;
+      renderLeaderboard();
+    }
+
+    function renderAchievements() {
+      const list = document.getElementById('achievementsList');
+      list.innerHTML = achievementDefs.map(ach => {
+        const unlocked = state.achievements.includes(ach.id);
+        return `
+          <div class="flex items-center gap-4 p-4 rounded-xl" style="background: ${unlocked ? 'rgba(22,163,74,0.1)' : 'var(--bg-primary)'}">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background: ${unlocked ? 'linear-gradient(135deg, #16A34A, #15803D)' : 'var(--border-color)'}; color: ${unlocked ? 'white' : 'var(--text-secondary)'}">
+              <i class="fas ${ach.icon}"></i>
+            </div>
+            <div class="flex-1">
+              <h4 class="font-bold" style="color: ${unlocked ? '#16A34A' : 'var(--text-primary)'}">${ach.name}</h4>
+              <p class="text-sm" style="color: var(--text-secondary)">${ach.desc}</p>
+            </div>
+            <span class="font-bold" style="color: ${unlocked ? '#16A34A' : 'var(--text-secondary)'}">+${ach.xp} XP</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderLeaderboard() {
+      const leaderboard = document.getElementById('leaderboard');
+      const players = [
+        { name: state.user?.name || 'You', score: state.score, isYou: true },
+        { name: 'Safari Sam', score: 850 },
+        { name: 'WildlifeWatcher', score: 720 },
+        { name: 'ZambiaExplorer', score: 680 },
+        { name: 'NatureLover', score: 550 }
+      ].sort((a, b) => b.score - a.score);
+
+      leaderboard.innerHTML = players.map((p, i) => `
+        <div class="flex items-center gap-4 p-3 rounded-xl ${p.isYou ? 'bg-white/20' : 'bg-white/10'}">
+          <span class="w-8 h-8 flex items-center justify-center font-bold rounded-full ${i === 0 ? 'bg-yellow-400 text-yellow-900' : ''}">${i + 1}</span>
+          <span class="flex-1 font-medium">${p.name}</span>
+          <span class="font-bold">${p.score} XP</span>
+        </div>
+      `).join('');
+    }
+
+    // ============================================
+    // EVENT LISTENERS
+    // ============================================
+    function setupEventListeners() {
+      // Search and filters
+      document.getElementById('searchInput').addEventListener('input', renderDestinations);
+      document.getElementById('provinceFilter').addEventListener('change', renderDestinations);
+      document.getElementById('categoryFilter').addEventListener('change', renderDestinations);
+
+      // Tabs
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+          document.getElementById(`${btn.dataset.tab}Tab`).classList.remove('hidden');
+
+          if (btn.dataset.tab === 'map') {
+            setTimeout(() => {
+              if (!mainMap) initMainMap();
+              else mainMap.invalidateSize();
+            }, 100);
+          }
+        });
+      });
+
+      // Modal close
+      document.getElementById('destinationModal').addEventListener('click', (e) => {
+        if (e.target.id === 'destinationModal') closeModal();
+      });
+      
+      document.getElementById('reportModal').addEventListener('click', (e) => {
+        if (e.target.id === 'reportModal') closeReportModal();
+      });
+
+      // Report form
+      document.getElementById('reportForm').addEventListener('submit', submitReport);
+
+      // Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeModal();
+          closeReportModal();
+        }
+      });
+    }
+
+    // Global functions
+    window.handleLogin = handleLogin;
+    window.handleRegister = handleRegister;
+    window.showRegister = showRegister;
+    window.showLogin = showLogin;
+    window.logout = logout;
+    window.openDestination = openDestination;
+    window.closeModal = closeModal;
+    window.addToWishlist = addToWishlist;
+    window.getDirections = getDirections;
+    window.showRandomDestination = showRandomDestination;
+    window.startTreasureHunt = startTreasureHunt;
+    window.startCivicChallenge = startCivicChallenge;
+    window.closeReportModal = closeReportModal;
+  </script>
 </body>
 </html>
