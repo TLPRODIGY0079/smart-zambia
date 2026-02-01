@@ -54,3 +54,96 @@ INSERT INTO destinations (name, province, category, rating, description, image_u
 ('Livingstone Museum', 'Southern Province', 'Heritage', 4.3, 'National museum showcasing Zambian archaeology, ethnography, and history.', 'https://images.unsplash.com/photo-1566127444979-b3d2b654e3d7', 5, 10, false, -17.8419, 25.8544, '["Ancient artifacts", "Cultural heritage"]'),
 ('Kasanka National Park', 'Northern Province', 'Wildlife', 4.5, 'Famous for the annual bat migration - 10 million fruit bats darken the sky each November.', 'https://images.unsplash.com/photo-1612480797665-c96d261eae09', 15, 40, false, -12.5667, 30.2333, '["Bat migration", "Swamp secrets"]'),
 ('Devil''s Pool', 'Southern Province', 'Adventure', 4.9, 'Swim on the edge of Victoria Falls during low water season. The ultimate adrenaline rush.', 'https://images.unsplash.com/photo-1527004013197-933c4bb611b3', 75, 200, true, -17.9244, 25.8573, '["Edge of the world", "Natural infinity pool"]');
+
+-- =============================================
+-- TRAVEL & TOURISM FEATURES
+-- =============================================
+
+-- 2.1 Travel Reviews & Photos
+CREATE TABLE IF NOT EXISTS travel_reviews (
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id),
+  destination_id INT REFERENCES destinations(id),
+  rating INT CHECK (rating BETWEEN 1 AND 5),
+  review TEXT,
+  photo_urls TEXT[],
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2.2 Travel Buddy Matching
+CREATE TABLE IF NOT EXISTS travel_buddies (
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id),
+  destination_id INT REFERENCES destinations(id),
+  travel_date DATE,
+  interests TEXT[],
+  open BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2.3 Tour Guides & Bookings
+CREATE TABLE IF NOT EXISTS tour_guide_bookings (
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id),
+  guide_name TEXT,
+  destination_id INT,
+  booking_date DATE,
+  price_kwacha NUMERIC,
+  price_usd NUMERIC,
+  status TEXT DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2.4 Activities (Devil's Pool, Gorge Swing, etc.)
+CREATE TABLE IF NOT EXISTS activity_reservations (
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id),
+  destination_id INT,
+  activity_name TEXT,
+  reservation_date DATE,
+  price_kwacha NUMERIC,
+  price_usd NUMERIC,
+  status TEXT DEFAULT 'reserved'
+);
+
+-- 2.5 Transport Bookings
+CREATE TABLE IF NOT EXISTS transport_bookings (
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id),
+  type TEXT, -- flight | bus | car
+  provider TEXT,
+  origin TEXT,
+  destination TEXT,
+  travel_date DATE,
+  price_kwacha NUMERIC,
+  price_usd NUMERIC,
+  status TEXT DEFAULT 'booked'
+);
+
+-- 2.6 Safety, Medical & Emergency
+CREATE TABLE IF NOT EXISTS safety_alerts (
+  id SERIAL PRIMARY KEY,
+  title TEXT,
+  message TEXT,
+  province TEXT,
+  severity TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS medical_facilities (
+  id SERIAL PRIMARY KEY,
+  name TEXT,
+  province TEXT,
+  address TEXT,
+  phone TEXT,
+  lat NUMERIC,
+  lng NUMERIC
+);
+
+CREATE TABLE IF NOT EXISTS embassies (
+  id SERIAL PRIMARY KEY,
+  country TEXT,
+  address TEXT,
+  phone TEXT,
+  email TEXT
+);

@@ -659,7 +659,9 @@
               <!-- Travel Stories -->
               <div class="rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
                 <h2 class="text-2xl font-bold mb-6 gradient-text">Travel Stories</h2>
-                <div id="travelStories" class="space-y-6"></div>
+                <div id="travelStories" class="space-y-6">
+                  <p class="text-center py-8" style="color: var(--text-secondary)">Share your first photo to start your travel story!</p>
+                </div>
               </div>
             </div>
             
@@ -673,7 +675,9 @@
               
               <div class="rounded-3xl p-6" style="background: var(--bg-card); border: 1px solid var(--border-color);">
                 <h3 class="text-lg font-bold mb-4" style="color: var(--text-primary)">Active Travelers</h3>
-                <div id="activeTravelers" class="space-y-3"></div>
+                <div id="activeTravelers" class="space-y-3">
+                  <p class="text-center py-4" style="color: var(--text-secondary)">Click "Find Buddies" to connect with travelers!</p>
+                </div>
               </div>
             </div>
           </div>
@@ -685,7 +689,9 @@
             <!-- Tour Guides -->
             <div class="rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
               <h2 class="text-2xl font-bold mb-6 gradient-text">Book Tour Guides</h2>
-              <div id="tourGuides" class="space-y-4"></div>
+              <div id="tourGuides" class="space-y-4">
+                <p class="text-center py-4" style="color: var(--text-secondary)">Loading tour guides...</p>
+              </div>
             </div>
             
             <!-- Transportation -->
@@ -725,7 +731,9 @@
             <!-- Activity Reservations -->
             <div class="lg:col-span-2 rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
               <h2 class="text-2xl font-bold mb-6 gradient-text">Activity Reservations</h2>
-              <div id="activityReservations" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+              <div id="activityReservations" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <p class="col-span-full text-center py-4" style="color: var(--text-secondary)">Loading activities...</p>
+              </div>
             </div>
           </div>
         </div>
@@ -763,7 +771,9 @@
               <!-- Cultural Events -->
               <div class="rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
                 <h2 class="text-2xl font-bold mb-6 gradient-text">Cultural Events Calendar</h2>
-                <div id="culturalEvents" class="space-y-4"></div>
+                <div id="culturalEvents" class="space-y-4">
+                  <p class="text-center py-4" style="color: var(--text-secondary)">Loading cultural events...</p>
+                </div>
               </div>
             </div>
             
@@ -865,13 +875,17 @@
             <!-- Medical Facilities -->
             <div class="rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
               <h2 class="text-2xl font-bold mb-6 gradient-text">Medical Facilities</h2>
-              <div id="medicalFacilities" class="space-y-4"></div>
+              <div id="medicalFacilities" class="space-y-4">
+                <p class="text-center py-4" style="color: var(--text-secondary)">Loading medical facilities...</p>
+              </div>
             </div>
             
             <!-- Safety Alerts -->
             <div class="lg:col-span-2 rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
               <h2 class="text-2xl font-bold mb-6 gradient-text">Safety Alerts & Updates</h2>
-              <div id="safetyAlerts" class="space-y-4"></div>
+              <div id="safetyAlerts" class="space-y-4">
+                <p class="text-center py-4" style="color: var(--text-secondary)">Loading safety alerts...</p>
+              </div>
             </div>
           </div>
         </div>
@@ -1072,6 +1086,7 @@
 
   <!-- Scripts -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/enhanced-features.js"></script>
   <script>
     // ============================================
     // DESTINATION DATA (Embedded for standalone use)
