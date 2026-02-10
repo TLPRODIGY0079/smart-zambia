@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="manifest" href="/manifest.json">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Smart Zambia - Discover the Real Africa</title>
@@ -9,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script>
+    
     tailwind.config = {
       darkMode: 'class',
       theme: {
@@ -31,6 +33,14 @@
       }
     }
   </script>
+  <script>
+  // Register Service Worker for offline support
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('SW registered:', reg))
+      .catch(err => console.log('SW failed:', err));
+  }
+</script>
   <style>
     * { box-sizing: border-box; }
     
@@ -446,13 +456,13 @@
                 <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">
                   <i class="fas fa-envelope mr-2 text-zambia-orange"></i>Email
                 </label>
-                <input type="email" id="loginEmail" required class="input-field" placeholder="your@email.com" value="demo@zambia.com">
+                <input type="email" id="loginEmail" required class="input-field" placeholder="your@email.com">
               </div>
               <div class="mb-8">
                 <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">
                   <i class="fas fa-lock mr-2 text-zambia-orange"></i>Password
                 </label>
-                <input type="password" id="loginPassword" required class="input-field" placeholder="••••••••" value="demo123">
+                <input type="password" id="loginPassword" required class="input-field" placeholder="••••••••">
               </div>
               <button type="submit" class="btn-primary">
                 <i class="fas fa-sign-in-alt mr-2"></i>Explore Zambia
@@ -547,7 +557,7 @@
                 <div class="w-9 h-9 rounded-full bg-gradient-to-br from-zambia-orange to-zambia-copper flex items-center justify-center text-white font-bold text-sm">
                   <span id="userInitial">D</span>
                 </div>
-                <span id="userWelcome" class="font-medium" style="color: var(--text-primary)">Demo User</span>
+                <span id="userWelcome" class="font-medium" style="color: var(--text-primary)">User</span>
                 <button onclick="logout()" class="text-red-500 hover:text-red-600 ml-1 p-2" title="Logout">
                   <i class="fas fa-sign-out-alt"></i>
                 </button>

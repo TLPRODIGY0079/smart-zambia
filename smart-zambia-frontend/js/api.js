@@ -2,14 +2,29 @@
 const API_BASE = 'http://localhost:3001/api'; // Update when deployed
 
 export async function fetchDestinations(filters = {}) {
-  const params = new URLSearchParams(filters);
+  // Validate and sanitize filter parameters to prevent SSRF
+  const allowedFilters = ['province', 'category', 'featured', 'q'];
+  const sanitizedFilters = {};
+  
+  for (const [key, value] of Object.entries(filters)) {
+    if (allowedFilters.includes(key) && typeof value === 'string') {
+      sanitizedFilters[key] = encodeURIComponent(value);
+    }
+  }
+  
+  const params = new URLSearchParams(sanitizedFilters);
   const res = await fetch(`${API_BASE}/destinations?${params}`);
   if (!res.ok) throw new Error('Failed to fetch destinations');
   return await res.json();
 }
 
 export async function fetchDestinationById(id) {
-  const res = await fetch(`${API_BASE}/destinations/${id}`);
+  // Validate ID to prevent SSRF
+  if (!id || typeof id !== 'number' && typeof id !== 'string') {
+    throw new Error('Invalid destination ID');
+  }
+  const sanitizedId = encodeURIComponent(String(id));
+  const res = await fetch(`${API_BASE}/destinations/${sanitizedId}`);
   if (!res.ok) throw new Error('Destination not found');
   return await res.json();
 }

@@ -8,20 +8,59 @@ import jwt from 'jsonwebtoken';
 
 dotenv.config();
 
+// Validate required environment variables
+if (!process.env.JWT_SECRET) {
+  console.error('JWT_SECRET environment variable is required');
+  process.exit(1);
+}
+
 const app = express();
 const PORT = process.env.PORT || 3001;
-const JWT_SECRET = process.env.JWT_SECRET || 'smart-zambia-secret-2026';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigins = process.env.NODE_ENV === 'production'
+      ? ['https://smart-zambia.com', 'https://www.smart-zambia.com']
+      : ['http://localhost:3000', 'http://localhost:8000', 'http://127.0.0.1:8000'];
+    
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // ========================
 // AUTH ROUTES
 // ========================
 
+// Rate limiting middleware for registration
+const registrationAttempts = new Map();
+const rateLimitRegister = (req, res, next) => {
+  const ip = req.ip || req.connection.remoteAddress;
+  const now = Date.now();
+  const attempts = registrationAttempts.get(ip) || [];
+  const recentAttempts = attempts.filter(time => now - time < 3600000); // 1 hour
+  
+  if (recentAttempts.length >= 5) {
+    return res.status(429).json({ error: 'Too many registration attempts. Try again later.' });
+  }
+  
+  registrationAttempts.set(ip, [...recentAttempts, now]);
+  next();
+};
+
 // Register
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', rateLimitRegister, async (req, res) => {
   const { email, password, fullName } = req.body;
   if (!email || !password || !fullName) {
     return res.status(400).json({ error: 'Email, password, and full name are required' });
@@ -43,8 +82,24 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
+// Rate limiting middleware for login
+const loginAttempts = new Map();
+const rateLimitLogin = (req, res, next) => {
+  const ip = req.ip || req.connection.remoteAddress;
+  const now = Date.now();
+  const attempts = loginAttempts.get(ip) || [];
+  const recentAttempts = attempts.filter(time => now - time < 900000); // 15 minutes
+  
+  if (recentAttempts.length >= 10) {
+    return res.status(429).json({ error: 'Too many login attempts. Try again later.' });
+  }
+  
+  loginAttempts.set(ip, [...recentAttempts, now]);
+  next();
+};
+
 // Login
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', rateLimitLogin, async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });

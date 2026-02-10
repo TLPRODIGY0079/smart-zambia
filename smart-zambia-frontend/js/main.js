@@ -1157,11 +1157,21 @@ async function startCivicChallenge(challengeId) {
       // Get location
       let latitude, longitude;
       if (useLocation && navigator.geolocation) {
-        const position = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject);
-        });
-        latitude = position.coords.latitude;
-        longitude = position.coords.longitude;
+        try {
+          const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              timeout: 10000,
+              enableHighAccuracy: false
+            });
+          });
+          latitude = position.coords.latitude;
+          longitude = position.coords.longitude;
+        } catch (locationError) {
+          console.warn('Location access failed:', locationError);
+          // Default to Lusaka coordinates
+          latitude = -15.4167 + (Math.random() - 0.5) * 0.1;
+          longitude = 28.2833 + (Math.random() - 0.5) * 0.1;
+        }
       } else {
         // Default to Lusaka coordinates
         latitude = -15.4167 + (Math.random() - 0.5) * 0.1;

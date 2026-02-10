@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Travel Buddy | Smart Zambia</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-br from-green-50 to-blue-50 min-h-screen">
+
+<div class="max-w-4xl mx-auto p-6">
+  <!-- Header -->
+  <div class="text-center mb-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-2">
+      <i class="fas fa-users text-green-600 mr-2"></i>Find a Travel Buddy
+    </h1>
+    <p class="text-gray-600">Connect with fellow travelers exploring Zambia!</p>
+  </div>
+
+  <!-- Create Trip Card -->
+  <div class="bg-white rounded-2xl shadow-xl p-6 mb-8">
+    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+      <i class="fas fa-plus-circle text-green-500"></i> Post Your Trip
+    </h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div>
+        <label class="block text-sm font-medium mb-1">Destination</label>
+        <select id="destinationId" class="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-green-500 focus:outline-none">
+          <option value="1">Victoria Falls</option>
+          <option value="2">South Luangwa National Park</option>
+          <option value="3">Lower Zambezi</option>
+          <option value="4">Kafue National Park</option>
+          <option value="5">Lake Tanganyika</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium mb-1">Travel Date</label>
+        <input id="travelDate" type="date" class="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-green-500 focus:outline-none"/>
+      </div>
+    </div>
+    
+    <div class="mb-4">
+      <label class="block text-sm font-medium mb-1">Your Interests</label>
+      <input id="interests" placeholder="e.g., Safari, Photography, Hiking, Camping" 
+             class="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-green-500 focus:outline-none"/>
+      <p class="text-xs text-gray-500 mt-1">Separate multiple interests with commas</p>
+    </div>
+    
+    <button onclick="createBuddy()" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-3 rounded-xl hover:opacity-90 transition-all">
+      <i class="fas fa-paper-plane mr-2"></i>Post My Trip
+    </button>
+  </div>
+
+  <!-- Filter -->
+  <div class="flex gap-4 mb-6">
+    <select id="filterDestination" onchange="loadBuddies()" class="flex-1 border-2 border-gray-200 rounded-xl p-3 focus:border-green-500 focus:outline-none">
+      <option value="1">Victoria Falls</option>
+      <option value="2">South Luangwa</option>
+      <option value="3">Lower Zambezi</option>
+      <option value="4">Kafue National Park</option>
+      <option value="5">Lake Tanganyika</option>
+    </select>
+    <button onclick="loadBuddies()" class="bg-blue-500 text-white px-6 rounded-xl hover:bg-blue-600">
+      <i class="fas fa-search"></i>
+    </button>
+  </div>
+
+  <!-- Buddy List -->
+  <h2 class="text-xl font-bold mb-4">
+    <i class="fas fa-hiking text-orange-500 mr-2"></i>Available Travel Buddies
+  </h2>
+  <div id="buddyList" class="space-y-4">
+    <div class="text-center py-8 text-gray-500">
+      <i class="fas fa-spinner fa-spin text-3xl mb-4"></i>
+      <p>Loading travel buddies...</p>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg hidden">
+  <i class="fas fa-check-circle mr-2"></i>
+  <span id="toastMessage">Success!</span>
+</div>
+
+<script>
+const API = 'http://localhost:3001/api';
+const token = localStorage.getItem('authToken');
+
+function showToast(message, isError = false) {
+  const toast = document.getElementById('toast');
+  const toastMessage = document.getElementById('toastMessage');
+  toast.className = `fixed bottom-4 right-4 ${isError ? 'bg-red-500' : 'bg-green-500'} text-white px-6 py-3 rounded-xl shadow-lg`;
+  toastMessage.textContent = message;
+  toast.classList.remove('hidden');
+  setTimeout(() => toast.classList.add('hidden'), 3000);
+}
+
+async function createBuddy() {
+  if (!token) {
+    showToast('Please login first!', true);
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const destinationId = document.getElementById('destinationId').value;
+  const travelDate = document.getElementById('travelDate').value;
+  const interestsRaw = document.getElementById('interests').value;
+  const interests = interestsRaw.split(',').map(i => i.trim()).filter(i => i);
+
+  if (!travelDate) {
+    showToast('Please select a travel date!', true);
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API}/travel-buddy`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ destinationId: parseInt(destinationId), travelDate, interests })
+    });
+
+    if (res.ok) {
+      showToast('Trip posted successfully!');
+      document.getElementById('interests').value = '';
+      loadBuddies();
+    } else {
+      showToast('Failed to post trip', true);
+    }
+  } catch (error) {
+    console.error(error);
+    showToast('Network error', true);
+  }
+}
+
+async function loadBuddies() {
+  const destinationId = document.getElementById('filterDestination').value;
+  const list = document.getElementById('buddyList');
+  
+  list.innerHTML = `
+    <div class="text-center py-8 text-gray-500">
+      <i class="fas fa-spinner fa-spin text-3xl mb-4"></i>
+      <p>Loading...</p>
+    </div>
+  `;
+
+  try {
+    const res = await fetch(`${API}/travel-buddy/${destinationId}`);
+    const data = await res.json();
+
+    if (data.length === 0) {
+      list.innerHTML = `
+        <div class="text-center py-12 bg-white rounded-2xl">
+          <i class="fas fa-user-friends text-5xl text-gray-300 mb-4"></i>
+          <h3 class="text-xl font-bold text-gray-600 mb-2">No travel buddies yet!</h3>
+          <p class="text-gray-500">Be the first to post a trip to this destination.</p>
+        </div>
+      `;
+      return;
+    }
+
+    list.innerHTML = data.map(b => `
+      <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
+              ${b.full_name ? b.full_name.charAt(0).toUpperCase() : '?'}
+            </div>
+            <div>
+              <h3 class="font-bold text-lg">${b.full_name || 'Anonymous'}</h3>
+              <p class="text-gray-500 text-sm">
+                <i class="fas fa-calendar mr-1"></i>
+                ${new Date(b.travel_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              </p>
+            </div>
+          </div>
+          <span class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">
+            Open
+          </span>
+        </div>
+        
+        <div class="mt-4">
+          <p class="text-sm text-gray-600 mb-2"><strong>Interests:</strong></p>
+          <div class="flex flex-wrap gap-2">
+            ${(b.interests || []).map(interest => `
+              <span class="bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full">
+                ${interest}
+              </span>
+            `).join('')}
+          </div>
+        </div>
+        
+        <div class="mt-4 flex gap-2">
+          <button class="flex-1 bg-green-500 text-white py-2 rounded-xl hover:bg-green-600 transition-all">
+            <i class="fas fa-comments mr-1"></i> Connect
+          </button>
+          <button class="px-4 bg-gray-100 text-gray-600 py-2 rounded-xl hover:bg-gray-200 transition-all">
+            <i class="fas fa-user"></i>
+          </button>
+        </div>
+      </div>
+    `).join('');
+  } catch (error) {
+    console.error(error);
+    list.innerHTML = `
+      <div class="text-center py-8 text-red-500">
+        <i class="fas fa-exclamation-circle text-3xl mb-4"></i>
+        <p>Failed to load travel buddies. Is the server running?</p>
+      </div>
+    `;
+  }
+}
+
+// Load on page start
+loadBuddies();
+</script>
+</body>
+</html>

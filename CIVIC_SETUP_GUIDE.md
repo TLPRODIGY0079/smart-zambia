@@ -46,12 +46,12 @@ npm start
 # Test civic endpoints (after creating a user)
 curl -X POST http://localhost:3001/api/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"password123","fullName":"Test User"}'
+  -d '{"email":"<your_email>","password":"<your_password>","fullName":"Test User"}'
 
 # Login to get token
 curl -X POST http://localhost:3001/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"password123"}'
+  -d '{"email":"<your_email>","password":"<your_password>"}'
 ```
 
 ### Step 3: Frontend Updates
@@ -262,9 +262,9 @@ PORT=3001
 DB_USER=postgres
 DB_HOST=localhost
 DB_NAME=smart_zambia
-DB_PASSWORD=your_password
+DB_PASSWORD=<your_db_password>
 DB_PORT=5432
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+JWT_SECRET=<generate-secure-random-key>
 ```
 
 ### 2. Database Backup
