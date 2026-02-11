@@ -1668,6 +1668,47 @@
     }
 
     // ============================================
+    // TRAVEL BUDDIES
+    // ============================================
+    function findTravelBuddies() {
+      const mockTravelers = [
+        { name: 'Sarah M.', interests: ['Wildlife', 'Nature'], destinations: [2, 8], match: 85, avatar: 'S' },
+        { name: 'John K.', interests: ['Adventure', 'Nature'], destinations: [1, 10], match: 78, avatar: 'J' },
+        { name: 'Amina L.', interests: ['Heritage', 'Nature'], destinations: [11, 6], match: 72, avatar: 'A' },
+        { name: 'David R.', interests: ['Wildlife', 'Adventure'], destinations: [3, 9], match: 68, avatar: 'D' },
+        { name: 'Lisa T.', interests: ['Nature', 'Heritage'], destinations: [1, 12], match: 65, avatar: 'L' }
+      ];
+
+      const container = document.getElementById('activeTravelers');
+      container.innerHTML = mockTravelers.map(traveler => `
+        <div class="p-3 rounded-xl transition-all hover:scale-105" style="background: var(--bg-primary); border: 1px solid var(--border-color);">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">
+              ${traveler.avatar}
+            </div>
+            <div class="flex-1">
+              <h4 class="font-bold text-sm" style="color: var(--text-primary)">${traveler.name}</h4>
+              <p class="text-xs" style="color: var(--text-secondary)">${traveler.match}% match</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-1 mb-2">
+            ${traveler.interests.map(int => `<span class="text-xs px-2 py-1 rounded-full" style="background: rgba(139,92,246,0.1); color: #8B5CF6;">${int}</span>`).join('')}
+          </div>
+          <button onclick="connectBuddy('${traveler.name}')" class="w-full py-2 rounded-lg text-xs font-bold text-white transition-all hover:opacity-90" style="background: linear-gradient(135deg, #8B5CF6, #EC4899);">
+            <i class="fas fa-user-plus mr-1"></i>Connect
+          </button>
+        </div>
+      `).join('');
+      
+      showAchievementToast('Buddies Found!', `${mockTravelers.length} travelers match your interests`);
+    }
+
+    function connectBuddy(name) {
+      showAchievementToast('Connection Sent!', `Request sent to ${name}`);
+      addScore(10);
+    }
+
+    // ============================================
     // EVENT LISTENERS
     // ============================================
     function setupEventListeners() {
@@ -1729,6 +1770,8 @@
     window.startTreasureHunt = startTreasureHunt;
     window.startCivicChallenge = startCivicChallenge;
     window.closeReportModal = closeReportModal;
+    window.findTravelBuddies = findTravelBuddies;
+    window.connectBuddy = connectBuddy;
   </script>
 </body>
 </html>
