@@ -754,12 +754,13 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <div>
                     <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">Trip Duration</label>
-                    <select id="tripDuration" class="input-field">
-                      <option value="3">3 Days</option>
-                      <option value="7">1 Week</option>
-                      <option value="14">2 Weeks</option>
-                      <option value="21">3 Weeks</option>
-                    </select>
+                    <div class="grid grid-cols-4 gap-2">
+                      <button type="button" class="duration-btn border-2 rounded-lg py-2 text-sm font-semibold transition-all" data-days="3" style="border-color: var(--border-color); color: var(--text-primary);" onclick="selectDuration(3)">3 Days</button>
+                      <button type="button" class="duration-btn border-2 rounded-lg py-2 text-sm font-semibold transition-all" data-days="7" style="border-color: var(--border-color); color: var(--text-primary);" onclick="selectDuration(7)">1 Week</button>
+                      <button type="button" class="duration-btn border-2 rounded-lg py-2 text-sm font-semibold transition-all" data-days="14" style="border-color: var(--border-color); color: var(--text-primary);" onclick="selectDuration(14)">2 Weeks</button>
+                      <button type="button" class="duration-btn border-2 rounded-lg py-2 text-sm font-semibold transition-all" data-days="21" style="border-color: var(--border-color); color: var(--text-primary);" onclick="selectDuration(21)">3 Weeks</button>
+                    </div>
+                    <input type="hidden" id="tripDuration" value="3">
                   </div>
                   <div>
                     <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">Budget (USD)</label>
@@ -788,30 +789,16 @@
               <div class="rounded-3xl p-6 text-white mb-6" style="background: linear-gradient(135deg, #16A34A 0%, #15803D 100%);">
                 <h3 class="text-xl font-bold mb-4"><i class="fas fa-calculator mr-2"></i>Cost Calculator</h3>
                 <div class="space-y-3 text-sm">
-                  <div class="flex justify-between">
-                    <span>Accommodation:</span>
-                    <span id="costAccommodation">$0</span>
+                  <div class="grid grid-cols-2 gap-y-2">
+                    <div>Accommodation:</div><div class="text-right" id="costAccommodation">$0</div>
+                    <div>Transport:</div><div class="text-right" id="costTransport">$0</div>
+                    <div>Activities:</div><div class="text-right" id="costActivities">$0</div>
+                    <div>Food:</div><div class="text-right" id="costFood">$0</div>
                   </div>
-                  <div class="flex justify-between">
-                    <span>Transport:</span>
-                    <span id="costTransport">$0</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span>Activities:</span>
-                    <span id="costActivities">$0</span>
-                  </div>
-                  <div class="flex justify-between">
-                    <span>Food:</span>
-                    <span id="costFood">$0</span>
-                  </div>
-                  <hr class="border-white/20">
-                  <div class="flex justify-between font-bold text-lg">
-                    <span>Total USD:</span>
-                    <span id="totalUSD">$0</span>
-                  </div>
-                  <div class="flex justify-between font-bold">
-                    <span>Total ZMW:</span>
-                    <span id="totalZMW">K0</span>
+                  <hr class="border-white/20 my-3">
+                  <div class="grid grid-cols-2 gap-y-2 font-bold text-base">
+                    <div>Total USD:</div><div class="text-right" id="totalUSD">$0</div>
+                    <div class="text-xs font-normal">Total ZMW:</div><div class="text-right text-xs font-normal" id="totalZMW">K0</div>
                   </div>
                 </div>
               </div>
@@ -845,26 +832,28 @@
             <div class="rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
               <h2 class="text-2xl font-bold mb-6 gradient-text">Emergency Contacts</h2>
               <div class="space-y-4">
-                <div class="flex items-center gap-4 p-4 rounded-xl" style="background: var(--bg-primary)">
+                <a href="tel:999" class="flex items-center gap-4 p-4 rounded-xl hover:scale-105 transition-all" style="background: var(--bg-primary); text-decoration: none;">
                   <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white">
                     <i class="fas fa-phone"></i>
                   </div>
-                  <div>
+                  <div class="flex-1">
                     <h3 class="font-bold" style="color: var(--text-primary)">Emergency Services</h3>
                     <p class="text-sm" style="color: var(--text-secondary)">Police, Fire, Ambulance</p>
                     <p class="font-bold text-red-500">999 / 991</p>
                   </div>
-                </div>
-                <div class="flex items-center gap-4 p-4 rounded-xl" style="background: var(--bg-primary)">
+                  <i class="fas fa-phone-alt text-red-500"></i>
+                </a>
+                <a href="tel:+260211229087" class="flex items-center gap-4 p-4 rounded-xl hover:scale-105 transition-all" style="background: var(--bg-primary); text-decoration: none;">
                   <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white">
                     <i class="fas fa-hospital"></i>
                   </div>
-                  <div>
+                  <div class="flex-1">
                     <h3 class="font-bold" style="color: var(--text-primary)">Tourist Helpline</h3>
                     <p class="text-sm" style="color: var(--text-secondary)">24/7 Tourist Assistance</p>
                     <p class="font-bold text-blue-500">+260-211-229087</p>
                   </div>
-                </div>
+                  <i class="fas fa-phone-alt text-blue-500"></i>
+                </a>
                 <div class="flex items-center gap-4 p-4 rounded-xl" style="background: var(--bg-primary)">
                   <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white">
                     <i class="fas fa-flag"></i>
@@ -1856,8 +1845,26 @@
       addScore(20);
     }
 
+    let selectedDuration = 3;
+    
+    function selectDuration(days) {
+      selectedDuration = days;
+      document.getElementById('tripDuration').value = days;
+      document.querySelectorAll('.duration-btn').forEach(btn => {
+        if (parseInt(btn.dataset.days) === days) {
+          btn.style.borderColor = '#E85D04';
+          btn.style.background = 'rgba(232,93,4,0.1)';
+          btn.style.color = '#E85D04';
+        } else {
+          btn.style.borderColor = 'var(--border-color)';
+          btn.style.background = 'transparent';
+          btn.style.color = 'var(--text-primary)';
+        }
+      });
+    }
+    
     function generateItinerary() {
-      const days = parseInt(document.getElementById('tripDuration').value);
+      const days = selectedDuration;
       const budget = parseInt(document.getElementById('tripBudget').value);
       
       const itinerary = [];
