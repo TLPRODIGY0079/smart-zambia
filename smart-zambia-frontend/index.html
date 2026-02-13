@@ -657,21 +657,30 @@
             <div class="lg:col-span-2">
               <div class="rounded-3xl p-6 md:p-8 mb-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
                 <h2 class="text-2xl font-bold mb-6 gradient-text">Share Your Adventure</h2>
+                <div class="mb-4">
+                  <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">Caption</label>
+                  <textarea id="mediaCaption" rows="3" class="input-field" placeholder="Share your story... Where did you go? What did you experience?"></textarea>
+                </div>
                 <div class="border-2 border-dashed rounded-2xl p-8 text-center mb-6" style="border-color: var(--border-color)">
                   <i class="fas fa-camera text-4xl mb-4" style="color: var(--text-secondary)"></i>
-                  <p class="text-lg font-semibold mb-2" style="color: var(--text-primary)">Upload Your Photos</p>
+                  <p class="text-lg font-semibold mb-2" style="color: var(--text-primary)">Upload Your Photos & Videos</p>
                   <p class="text-sm mb-4" style="color: var(--text-secondary)">Share your amazing Zambian experiences</p>
-                  <input type="file" id="photoUpload" multiple accept="image/*" class="hidden">
-                  <button onclick="document.getElementById('photoUpload').click()" class="btn-primary" style="width: auto; padding: 12px 24px;">Choose Photos</button>
+                  <input type="file" id="photoUpload" multiple accept="image/*,video/*" class="hidden" onchange="handleMediaUpload(event)">
+                  <button onclick="document.getElementById('photoUpload').click()" class="btn-primary" style="width: auto; padding: 12px 24px;">
+                    <i class="fas fa-upload mr-2"></i>Choose Photos/Videos
+                  </button>
+                  <p class="text-xs mt-3" style="color: var(--text-secondary)">Supports: JPG, PNG, MP4, MOV (Max 50MB)</p>
                 </div>
+                <div id="mediaPreview" class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4"></div>
+                <button onclick="publishPost()" id="publishBtn" class="btn-primary hidden" style="width: auto; padding: 12px 24px;">
+                  <i class="fas fa-paper-plane mr-2"></i>Publish Post
+                </button>
               </div>
               
               <!-- Travel Stories -->
               <div class="rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
                 <h2 class="text-2xl font-bold mb-6 gradient-text">Travel Stories</h2>
-                <div id="travelStories" class="space-y-6">
-                  <p class="text-center py-8" style="color: var(--text-secondary)">Share your first photo to start your travel story!</p>
-                </div>
+                <div id="travelStories" class="space-y-6"></div>
               </div>
             </div>
             
@@ -1134,7 +1143,10 @@
       ],
       civicXP: 0,
       civicLevel: 1,
-      civicReports: []
+      civicReports: [],
+      uploadedMedia: [],
+      pendingMedia: [],
+      posts: []
     };
 
     // Civic Challenges
@@ -1703,6 +1715,209 @@
     }
 
     // ============================================
+    // MEDIA UPLOAD
+    // ============================================
+    function handleMediaUpload(event) {
+      const files = Array.from(event.target.files);
+      const preview = document.getElementById('mediaPreview');
+      
+      files.forEach(file => {
+        if (file.size > 50 * 1024 * 1024) {
+          showAchievementToast('File Too Large', `${file.name} exceeds 50MB`);
+          return;
+        }
+        
+        const reader = new FileReader();
+        const isVideo = file.type.startsWith('video/');
+        
+        reader.onload = (e) => {
+          const mediaItem = {
+            id: Date.now() + Math.random(),
+            url: e.target.result,
+            type: isVideo ? 'video' : 'image',
+            name: file.name
+          };
+          
+          state.pendingMedia.push(mediaItem);
+          
+          const div = document.createElement('div');
+          div.className = 'relative rounded-xl overflow-hidden group';
+          div.innerHTML = isVideo ? `
+            <video src="${e.target.result}" class="w-full h-48 object-cover" controls></video>
+            <div class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-lg text-xs font-bold">
+              <i class="fas fa-video mr-1"></i>VIDEO
+            </div>
+            <button onclick="removePendingMedia(${mediaItem.id})" class="absolute top-2 left-2 w-8 h-8 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all">
+              <i class="fas fa-times"></i>
+            </button>
+          ` : `
+            <img src="${e.target.result}" class="w-full h-48 object-cover" alt="Upload">
+            <button onclick="removePendingMedia(${mediaItem.id})" class="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all">
+              <i class="fas fa-times"></i>
+            </button>
+          `;
+          preview.appendChild(div);
+          
+          document.getElementById('publishBtn').classList.remove('hidden');
+        };
+        
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function removePendingMedia(id) {
+      state.pendingMedia = state.pendingMedia.filter(m => m.id !== id);
+      renderPendingMedia();
+      if (state.pendingMedia.length === 0) {
+        document.getElementById('publishBtn').classList.add('hidden');
+      }
+    }
+
+    function renderPendingMedia() {
+      const preview = document.getElementById('mediaPreview');
+      preview.innerHTML = state.pendingMedia.map(media => {
+        const isVideo = media.type === 'video';
+        return `
+          <div class="relative rounded-xl overflow-hidden group">
+            ${isVideo ? `
+              <video src="${media.url}" class="w-full h-48 object-cover" controls></video>
+              <div class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-lg text-xs font-bold">
+                <i class="fas fa-video mr-1"></i>VIDEO
+              </div>
+            ` : `
+              <img src="${media.url}" class="w-full h-48 object-cover" alt="Upload">
+            `}
+            <button onclick="removePendingMedia(${media.id})" class="absolute top-2 left-2 w-8 h-8 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function publishPost() {
+      const caption = document.getElementById('mediaCaption').value.trim();
+      
+      if (state.pendingMedia.length === 0) {
+        showAchievementToast('No Media', 'Please upload at least one photo or video');
+        return;
+      }
+      
+      const post = {
+        id: Date.now(),
+        caption: caption || 'Exploring Zambia! 🇿🇲',
+        media: [...state.pendingMedia],
+        timestamp: new Date().toISOString(),
+        likes: 0
+      };
+      
+      state.posts.unshift(post);
+      state.pendingMedia = [];
+      
+      document.getElementById('mediaCaption').value = '';
+      document.getElementById('mediaPreview').innerHTML = '';
+      document.getElementById('publishBtn').classList.add('hidden');
+      document.getElementById('photoUpload').value = '';
+      
+      renderTravelStories();
+      addScore(20);
+      showAchievementToast('Post Published!', '+20 XP for sharing your adventure');
+    }
+
+    function removeMedia(id) {
+      state.uploadedMedia = state.uploadedMedia.filter(m => m.id !== id);
+      renderMediaPreview();
+      renderTravelStories();
+    }
+
+    function renderMediaPreview() {
+      const preview = document.getElementById('mediaPreview');
+      preview.innerHTML = state.uploadedMedia.map(media => {
+        const isVideo = media.type === 'video';
+        return `
+          <div class="relative rounded-xl overflow-hidden group">
+            ${isVideo ? `
+              <video src="${media.url}" class="w-full h-48 object-cover" controls></video>
+              <div class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-lg text-xs font-bold">
+                <i class="fas fa-video mr-1"></i>VIDEO
+              </div>
+            ` : `
+              <img src="${media.url}" class="w-full h-48 object-cover" alt="Upload">
+            `}
+            <button onclick="removeMedia(${media.id})" class="absolute top-2 left-2 w-8 h-8 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderTravelStories() {
+      const container = document.getElementById('travelStories');
+      if (state.posts.length === 0) {
+        container.innerHTML = '<p class="text-center py-8" style="color: var(--text-secondary)">Share your first photo to start your travel story!</p>';
+        return;
+      }
+      
+      container.innerHTML = state.posts.map(post => {
+        const date = new Date(post.timestamp).toLocaleDateString();
+        const mainMedia = post.media[0];
+        const isVideo = mainMedia.type === 'video';
+        
+        return `
+          <div class="rounded-xl overflow-hidden" style="background: var(--bg-primary); border: 1px solid var(--border-color);">
+            <div class="p-4 flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-zambia-orange to-zambia-copper flex items-center justify-center text-white font-bold">
+                ${state.user?.name?.charAt(0) || 'U'}
+              </div>
+              <div>
+                <p class="font-bold" style="color: var(--text-primary)">${state.user?.name || 'User'}</p>
+                <p class="text-xs" style="color: var(--text-secondary)">${date}</p>
+              </div>
+            </div>
+            ${isVideo ? `
+              <video src="${mainMedia.url}" class="w-full h-64 object-cover" controls></video>
+            ` : `
+              <img src="${mainMedia.url}" class="w-full h-64 object-cover" alt="Story">
+            `}
+            ${post.media.length > 1 ? `
+              <div class="px-4 py-2 flex gap-2 overflow-x-auto">
+                ${post.media.slice(1, 4).map(m => `
+                  <img src="${m.url}" class="w-16 h-16 rounded-lg object-cover" alt="More">
+                `).join('')}
+                ${post.media.length > 4 ? `<div class="w-16 h-16 rounded-lg bg-black/50 flex items-center justify-center text-white font-bold text-sm">+${post.media.length - 4}</div>` : ''}
+              </div>
+            ` : ''}
+            <div class="p-4">
+              <p class="mb-3" style="color: var(--text-primary)">${post.caption}</p>
+              <div class="flex gap-4 text-sm" style="color: var(--text-secondary)">
+                <button onclick="likeStory(${post.id})" class="flex items-center gap-1 hover:text-red-500 transition-colors">
+                  <i class="fas fa-heart"></i> <span id="likes-${post.id}">${post.likes}</span>
+                </button>
+                <button class="flex items-center gap-1 hover:text-blue-500 transition-colors">
+                  <i class="fas fa-comment"></i> Comment
+                </button>
+                <button class="flex items-center gap-1 hover:text-green-500 transition-colors">
+                  <i class="fas fa-share"></i> Share
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function likeStory(id) {
+      const post = state.posts.find(p => p.id === id);
+      if (post) {
+        post.likes++;
+        document.getElementById(`likes-${id}`).textContent = post.likes;
+        showAchievementToast('Liked!', 'You liked this story');
+        addScore(2);
+      }
+    }
+
+    // ============================================
     // EVENT LISTENERS
     // ============================================
     function setupEventListeners() {
@@ -1940,6 +2155,11 @@
     window.confirmTransport = confirmTransport;
     window.bookActivity = bookActivity;
     window.generateItinerary = generateItinerary;
+    window.handleMediaUpload = handleMediaUpload;
+    window.removeMedia = removeMedia;
+    window.removePendingMedia = removePendingMedia;
+    window.publishPost = publishPost;
+    window.likeStory = likeStory;
   </script>
 </body>
 </html>
