@@ -382,6 +382,7 @@ function renderSafetyInfo() {
       </div>
     </div>
   `).join('');
+  }
   
   // Safety Alerts
   const alertsEl = document.getElementById('safetyAlerts');
@@ -393,6 +394,7 @@ function renderSafetyInfo() {
       <p class="text-xs mt-1 ${alert.level === 'warning' ? 'text-yellow-600' : 'text-blue-600'}">${new Date(alert.date).toLocaleDateString()}</p>
     </div>
   `).join('');
+  }
 }
 
 function showEmbassies() {

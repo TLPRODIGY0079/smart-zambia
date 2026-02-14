@@ -1,0 +1,42 @@
+{
+  "name": "Smart Zambia",
+  "short_name": "Smart Zambia",
+  "description": "Discover the Real Africa - Tourism & Travel Guide",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFBF5",
+  "theme_color": "#E85D04",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["travel", "tourism", "lifestyle"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Discover Destinations",
+      "short_name": "Discover",
+      "description": "Explore Zambia's destinations",
+      "url": "/?tab=discover",
+      "icons": [{ "src": "/assets/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "View Map",
+      "short_name": "Map",
+      "description": "Interactive map of Zambia",
+      "url": "/?tab=map",
+      "icons": [{ "src": "/assets/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

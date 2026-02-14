@@ -534,7 +534,7 @@ function renderDestinations() {
   grid.innerHTML = filtered.map(dest => `
     <div class="destination-card" onclick="openDestination(${dest.id})">
       <div class="relative h-48 overflow-hidden">
-        <img src="${dest.image_url}" alt="${dest.name}" class="card-image w-full h-full object-cover">
+        <img src="${dest.image_url}" alt="${dest.name}" class="card-image w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/400x300/E85D04/FFFFFF?text=${encodeURIComponent(dest.name)}'">
         <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-lg text-sm font-bold text-gray-800 flex items-center gap-1">
           <i class="fas fa-star text-yellow-500"></i>
           ${dest.rating}
@@ -652,7 +652,7 @@ function initMainMap() {
     const marker = L.marker([dest.lat, dest.lng]).addTo(mainMap);
     marker.bindPopup(`
       <div style="min-width: 200px;">
-        <img src="${dest.image_url}" alt="${dest.name}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 8px;">
+        <img src="${dest.image_url}" alt="${dest.name}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 8px;" onerror="this.src='https://via.placeholder.com/200x100/E85D04/FFFFFF?text=${encodeURIComponent(dest.name)}'">
         <h3 style="font-weight: bold; margin-bottom: 4px;">${dest.name}</h3>
         <p style="color: #666; font-size: 12px; margin-bottom: 8px;">${dest.province}</p>
         <button onclick="openDestination(${dest.id})" style="background: #f97316; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; width: 100%;">
