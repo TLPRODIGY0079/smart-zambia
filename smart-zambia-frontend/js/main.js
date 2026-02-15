@@ -532,8 +532,8 @@ function renderDestinations() {
   });
 
   grid.innerHTML = filtered.map(dest => `
-    <div class="destination-card" onclick="openDestination(${dest.id})">
-      <div class="relative h-48 overflow-hidden">
+    <div class="destination-card">
+      <div class="relative h-48 overflow-hidden" onclick="openDestination(${dest.id})"
         <img src="${dest.image_url}" alt="${dest.name}" class="card-image w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/400x300/E85D04/FFFFFF?text=${encodeURIComponent(dest.name)}'">
         <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-lg text-sm font-bold text-gray-800 flex items-center gap-1">
           <i class="fas fa-star text-yellow-500"></i>
@@ -564,6 +564,25 @@ function renderDestinations() {
           </span>
         </div>
         <p class="text-gray-600 text-sm line-clamp-2 mb-4">${dest.description}</p>
+        
+        <!-- Quick Win Buttons: Share & Favorite -->
+        <div class="flex items-center gap-2 mb-4">
+          <button onclick="event.stopPropagation(); toggleFavorite(${dest.id})" 
+                  data-favorite-btn 
+                  data-destination-id="${dest.id}"
+                  class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg transition-all hover:scale-105 bg-gray-50 hover:bg-gray-100"
+                  title="Add to favorites">
+            <i class="${isFavorite(${dest.id}) ? 'fas text-red-500' : 'far text-gray-600'} fa-heart"></i>
+            <span class="text-sm font-medium text-gray-700">Save</span>
+          </button>
+          <button onclick="event.stopPropagation(); shareDestination(${JSON.stringify(dest).replace(/"/g, '&quot;')})" 
+                  class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg transition-all hover:scale-105 bg-gray-50 hover:bg-gray-100"
+                  title="Share destination">
+            <i class="fas fa-share-alt text-gray-600"></i>
+            <span class="text-sm font-medium text-gray-700">Share</span>
+          </button>
+        </div>
+        
         <div class="flex items-center justify-between pt-4 border-t border-gray-100">
           <span class="text-xs font-semibold text-orange-600 bg-orange-50 px-3 py-1 rounded-full">
             ${dest.category}
@@ -891,64 +910,45 @@ function renderDailyChallenges() {
 }
 
 function setupEventListeners() {
-  document.getElementById('searchInput').addEventListener('input', renderDestinations);
-  document.getElementById('provinceFilter').addEventListener('change', loadDestinationsFromAPI);
-  document.getElementById('categoryFilter').addEventListener('change', loadDestinationsFromAPI);
+  const searchInput = document.getElementById('searchInput');
 
+  // Search with history tracking
+  searchInput.addEventListener('input', () => {
+    renderDestinations();
+    if (searchInput.value.trim()) {
+      addToSearchHistory(searchInput.value.trim());
+    }
+  });
+
+  document.getElementById('provinceFilter').addEventListener('change', renderDestinations);
+  document.getElementById('categoryFilter').addEventListener('change', renderDestinations);
+
+  // Tabs
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-
       document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
       document.getElementById(`${btn.dataset.tab}Tab`).classList.remove('hidden');
-
-      if (btn.dataset.tab === 'map' && mainMap) {
-        setTimeout(() => mainMap.invalidateSize(), 100);
+      if (btn.dataset.tab === 'map') {
+        setTimeout(() => {
+          if (!mainMap) initMainMap();
+          else mainMap.invalidateSize();
+        }, 100);
       }
     });
   });
 
-  document.getElementById('magicCompass').addEventListener('click', showRandomDestination);
-
-  document.querySelectorAll('.easter-egg').forEach(egg => {
-    egg.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const eggId = egg.dataset.egg;
-      if (!state.foundEggs.includes(eggId)) {
-        state.foundEggs.push(eggId);
-        egg.classList.add('found');
-        addScore(25);
-        showAchievementToast('Easter Egg Found!', `You found the ${eggId} egg!`);
-
-        if (state.foundEggs.length >= 3) {
-          unlockAchievement('easter_master');
-        }
-      }
-    });
-  });
-
-  document.addEventListener('keydown', (e) => {
-    state.konamiCode.push(e.key);
-    if (state.konamiCode.length > 10) {
-      state.konamiCode.shift();
-    }
-
-    if (state.konamiCode.join(',') === state.konamiSequence.join(',')) {
-      unlockAchievement('konami_master');
-      document.body.style.animation = 'rainbow 2s';
-      setTimeout(() => document.body.style.animation = '', 2000);
-    }
-  });
-
+  // Modal close
   document.getElementById('destinationModal').addEventListener('click', (e) => {
-    if (e.target.id === 'destinationModal') {
+    if (e.target.id === 'destinationModal') closeModal();
+  });
+
+  // Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
       closeModal();
     }
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeModal();
   });
 }
 
