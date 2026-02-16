@@ -69,10 +69,29 @@ app.post('/api/auth/register', rateLimitRegister, async (req, res) => {
   try {
     const hash = await bcrypt.hash(password, 10);
     const result = await pool.query(
-      'INSERT INTO users (email, password_hash, full_name) VALUES ($1, $2, $3) RETURNING id, email, full_name',
-      [email, hash, fullName]
+      'INSERT INTO users (email, password_hash, username, full_name, role, cash_earned) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, email, username, full_name, role, cash_earned',
+      [email, hash, fullName, fullName, 'user', 0]
     );
-    res.status(201).json(result.rows[0]);
+    
+    const user = result.rows[0];
+    
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role || 'user' },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+    
+    res.status(201).json({
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.full_name || user.username,
+        role: user.role || 'user',
+        cashEarned: user.cash_earned || 0
+      }
+    });
   } catch (err) {
     if (err.code === '23505') { // unique_violation
       return res.status(400).json({ error: 'Email already exists' });
@@ -118,7 +137,7 @@ app.post('/api/auth/login', rateLimitLogin, async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      { id: user.id, email: user.email, role: user.role || 'user' },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -128,8 +147,9 @@ app.post('/api/auth/login', rateLimitLogin, async (req, res) => {
       user: {
         id: user.id,
         email: user.email,
-        fullName: user.full_name,
-        role: user.role
+        fullName: user.full_name || user.username,
+        role: user.role || 'user',
+        cashEarned: user.cash_earned || 0
       }
     });
   } catch (err) {

@@ -468,7 +468,7 @@
         <div class="login-card p-8 md:p-10 animate-fadeInUp stagger-1">
           <div id="loginForm">
             <h2 class="text-2xl font-bold text-center mb-8" style="color: var(--text-primary)">Welcome Back!</h2>
-            <form onsubmit="handleLogin(event)">
+            <form onsubmit="handleLoginAPI(event)">
               <div class="mb-5">
                 <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">
                   <i class="fas fa-envelope mr-2 text-zambia-orange"></i>Email
@@ -495,7 +495,7 @@
           <!-- Register Form (hidden) -->
           <div id="registerForm" class="hidden">
             <h2 class="text-2xl font-bold text-center mb-8" style="color: var(--text-primary)">Join the Adventure!</h2>
-            <form onsubmit="handleRegister(event)">
+            <form onsubmit="handleRegisterAPI(event)">
               <div class="mb-5">
                 <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">
                   <i class="fas fa-user mr-2 text-zambia-orange"></i>Full Name
@@ -586,7 +586,7 @@
                   <span id="userInitial">D</span>
                 </div>
                 <span id="userWelcome" class="font-medium" style="color: var(--text-primary)">User</span>
-                <button onclick="logout()" class="text-red-500 hover:text-red-600 ml-1 p-2" title="Logout">
+                <button onclick="logoutAPI()" class="text-red-500 hover:text-red-600 ml-1 p-2" title="Logout">
                   <i class="fas fa-sign-out-alt"></i>
                 </button>
               </div>
@@ -604,7 +604,7 @@
           <button class="tab-btn" data-tab="planner"><i class="fas fa-route mr-1"></i>Plan</button>
           <button class="tab-btn" data-tab="safety"><i class="fas fa-shield-alt mr-1"></i>Safety</button>
           <button class="tab-btn" data-tab="adventures"><i class="fas fa-trophy mr-1"></i>Adventures</button>
-          <button class="tab-btn" onclick="logout()" style="color: #EF4444;"><i class="fas fa-sign-out-alt mr-1"></i>Logout</button>
+          <button class="tab-btn" onclick="logoutAPI()" style="color: #EF4444;"><i class="fas fa-sign-out-alt mr-1"></i>Logout</button>
         </div>
       </nav>
       
@@ -802,7 +802,7 @@
                   </div>
                   <div>
                     <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">Total Budget (USD)</label>
-                    <input type="number" id="tripBudget" class="input-field" placeholder="Enter your budget" min="100" step="50" value="1500" oninput="updateCostBreakdown()">
+                    <input type="number" id="tripBudget" class="input-field" placeholder="Enter your budget" min="100" step="50" value="1500">
                     <p class="text-xs mt-1" style="color: var(--text-secondary)">Recommended: $500-$3000+</p>
                   </div>
                 </div>
@@ -1106,7 +1106,7 @@
           <div id="destination-map" class="mb-8 h-48 rounded-2xl overflow-hidden"></div>
           
           <div class="flex flex-col sm:flex-row gap-3">
-            <button onclick="addToWishlist()" class="flex-1 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2" style="background: linear-gradient(135deg, #E85D04, #C45508); color: white;">
+            <button onclick="addToWishlistAPI()" class="flex-1 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2" style="background: linear-gradient(135deg, #E85D04, #C45508); color: white;">
               <i class="fas fa-heart"></i> Add to Wishlist
             </button>
             <button onclick="getDirections()" class="flex-1 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2" style="background: linear-gradient(135deg, #16A34A, #15803D); color: white;">
@@ -1154,6 +1154,8 @@
 
   <!-- Scripts -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/api-config.js"></script>
+  <script src="js/api-integration.js"></script>
   <script src="js/quick-wins.js"></script>
   <script src="js/enhanced-features.js"></script>
   <script>
@@ -2144,53 +2146,89 @@
     }
     
     function generateItinerary() {
-      const days = selectedDuration;
-      const budget = parseInt(document.getElementById('tripBudget').value);
-      
-      const itinerary = [];
-      const destinations = ['Victoria Falls', 'South Luangwa NP', 'Lower Zambezi NP', 'Livingstone', 'Lusaka'];
-      
-      for (let i = 1; i <= days; i++) {
-        const dest = destinations[Math.floor(Math.random() * destinations.length)];
-        itinerary.push({
-          day: i,
-          destination: dest,
-          activities: ['Morning game drive', 'Lunch at lodge', 'Afternoon activity', 'Dinner'],
-          accommodation: budget > 1500 ? 'Luxury Lodge' : budget > 500 ? 'Mid-range Hotel' : 'Budget Hostel'
-        });
-      }
-      
-      const accommodation = Math.round(budget * 0.4);
-      const transport = Math.round(budget * 0.25);
-      const activities = Math.round(budget * 0.25);
-      const food = budget - accommodation - transport - activities;
-      
-      document.getElementById('costAccommodation').textContent = `$${accommodation}`;
-      document.getElementById('costTransport').textContent = `$${transport}`;
-      document.getElementById('costActivities').textContent = `$${activities}`;
-      document.getElementById('costFood').textContent = `$${food}`;
-      document.getElementById('totalUSD').textContent = `$${budget}`;
-      document.getElementById('totalZMW').textContent = `K${Math.round(budget * 27)}`;
-      
-      document.getElementById('generatedItinerary').innerHTML = `
-        <div class="mt-6 p-6 rounded-2xl" style="background: var(--bg-primary); border: 1px solid var(--border-color);">
-          <h3 class="text-xl font-bold mb-4" style="color: var(--text-primary)">Your ${days}-Day Itinerary</h3>
-          <div class="space-y-4">
-            ${itinerary.map(day => `
-              <div class="p-4 rounded-xl" style="background: var(--bg-card); border: 1px solid var(--border-color);">
-                <h4 class="font-bold mb-2" style="color: var(--text-primary)">Day ${day.day}: ${day.destination}</h4>
-                <p class="text-sm mb-2" style="color: var(--text-secondary)"><i class="fas fa-bed mr-2"></i>${day.accommodation}</p>
-                <ul class="text-sm space-y-1" style="color: var(--text-secondary)">
-                  ${day.activities.map(a => `<li><i class="fas fa-check text-green-500 mr-2"></i>${a}</li>`).join('')}
-                </ul>
+      try {
+        console.log('Generate Itinerary clicked');
+        
+        const days = selectedDuration;
+        const budget = parseInt(document.getElementById('tripBudget').value);
+        
+        console.log('Days:', days, 'Budget:', budget);
+        
+        if (!budget || budget < 100) {
+          alert('Please enter a valid budget (minimum $100)');
+          return;
+        }
+        
+        const itinerary = [];
+        const destinations = ['Victoria Falls', 'South Luangwa NP', 'Lower Zambezi NP', 'Livingstone', 'Lusaka'];
+        
+        for (let i = 1; i <= days; i++) {
+          const dest = destinations[Math.floor(Math.random() * destinations.length)];
+          itinerary.push({
+            day: i,
+            destination: dest,
+            activities: ['Morning game drive', 'Lunch at lodge', 'Afternoon activity', 'Dinner'],
+            accommodation: budget > 1500 ? 'Luxury Lodge' : budget > 500 ? 'Mid-range Hotel' : 'Budget Hostel'
+          });
+        }
+        
+        const accommodation = Math.round(budget * 0.4);
+        const transport = Math.round(budget * 0.25);
+        const activities = Math.round(budget * 0.25);
+        const food = budget - accommodation - transport - activities;
+        
+        console.log('Breakdown:', { accommodation, transport, activities, food });
+        
+        // Update the cost calculator INPUT FIELDS
+        const inputAccommodation = document.getElementById('inputAccommodation');
+        const inputTransport = document.getElementById('inputTransport');
+        const inputActivities = document.getElementById('inputActivities');
+        const inputFood = document.getElementById('inputFood');
+        const totalUSD = document.getElementById('totalUSD');
+        const totalZMW = document.getElementById('totalZMW');
+        
+        if (inputAccommodation) inputAccommodation.value = accommodation;
+        if (inputTransport) inputTransport.value = transport;
+        if (inputActivities) inputActivities.value = activities;
+        if (inputFood) inputFood.value = food;
+        if (totalUSD) totalUSD.textContent = `${budget}`;
+        if (totalZMW) totalZMW.textContent = `K${Math.round(budget * 19)}`;
+        
+        console.log('Cost calculator updated');
+        
+        const itineraryContainer = document.getElementById('generatedItinerary');
+        if (itineraryContainer) {
+          itineraryContainer.innerHTML = `
+            <div class="mt-6 p-6 rounded-2xl" style="background: var(--bg-primary); border: 1px solid var(--border-color);">
+              <h3 class="text-xl font-bold mb-4" style="color: var(--text-primary)">Your ${days}-Day Itinerary</h3>
+              <div class="space-y-4">
+                ${itinerary.map(day => `
+                  <div class="p-4 rounded-xl" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                    <h4 class="font-bold mb-2" style="color: var(--text-primary)">Day ${day.day}: ${day.destination}</h4>
+                    <p class="text-sm mb-2" style="color: var(--text-secondary)"><i class="fas fa-bed mr-2"></i>${day.accommodation}</p>
+                    <ul class="text-sm space-y-1" style="color: var(--text-secondary)">
+                      ${day.activities.map(a => `<li><i class="fas fa-check text-green-500 mr-2"></i>${a}</li>`).join('')}
+                    </ul>
+                  </div>
+                `).join('')}
               </div>
-            `).join('')}
-          </div>
-        </div>
-      `;
-      
-      showAchievementToast('Itinerary Generated!', `${days}-day trip planned`);
-      addScore(30);
+            </div>
+          `;
+          console.log('Itinerary displayed');
+        }
+        
+        if (typeof showAchievementToast === 'function') {
+          showAchievementToast('Itinerary Generated!', `${days}-day trip planned`);
+        }
+        if (typeof addScore === 'function') {
+          addScore(30);
+        }
+        
+        console.log('Generate Itinerary completed successfully');
+      } catch (error) {
+        console.error('Error in generateItinerary:', error);
+        alert('Error generating itinerary: ' + error.message);
+      }
     }
 
     // Initialize bookings tab
