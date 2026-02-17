@@ -246,7 +246,124 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// POST new destination (admin only)
+// ========================
+// FAVORITES ROUTES
+// ========================
+
+// Get user's favorites
+app.get('/api/me/favorites', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const result = await pool.query(`
+      SELECT d.* 
+      FROM favorites f
+      JOIN destinations d ON f.destination_id = d.id
+      WHERE f.user_id = $1
+      ORDER BY f.created_at DESC
+    `, [userId]);
+    
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching favorites:', err);
+    res.status(500).json({ error: 'Failed to fetch favorites' });
+  }
+});
+
+// Add destination to favorites
+app.post('/api/me/favorites/:destinationId', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { destinationId } = req.params;
+    
+    // Check if already favorited
+    const existing = await pool.query(
+      'SELECT * FROM favorites WHERE user_id = $1 AND destination_id = $2',
+      [userId, destinationId]
+    );
+    
+    if (existing.rows.length > 0) {
+      return res.status(400).json({ error: 'Already in favorites' });
+    }
+    
+    // Add to favorites
+    await pool.query(
+      'INSERT INTO favorites (user_id, destination_id) VALUES ($1, $2)',
+      [userId, destinationId]
+    );
+    
+    res.status(201).json({ message: 'Added to favorites' });
+  } catch (err) {
+    console.error('Error adding favorite:', err);
+    res.status(500).json({ error: 'Failed to add favorite' });
+  }
+});
+
+// Remove destination from favorites
+app.delete('/api/me/favorites/:destinationId', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { destinationId } = req.params;
+    
+    await pool.query(
+      'DELETE FROM favorites WHERE user_id = $1 AND destination_id = $2',
+      [userId, destinationId]
+    );
+    
+    res.json({ message: 'Removed from favorites' });
+  } catch (err) {
+    console.error('Error removing favorite:', err);
+    res.status(500).json({ error: 'Failed to remove favorite' });
+  }
+});
+
+// ========================
+// SEARCH HISTORY ROUTES
+// ========================
+
+// Get user's search history
+app.get('/api/me/search-history', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const result = await pool.query(`
+      SELECT query, searched_at 
+      FROM search_history
+      WHERE user_id = $1
+      ORDER BY searched_at DESC
+      LIMIT 10
+    `, [userId]);
+    
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching search history:', err);
+    res.status(500).json({ error: 'Failed to fetch search history' });
+  }
+});
+
+// Save search query
+app.post('/api/me/search-history', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { query } = req.body;
+    
+    if (!query || query.trim().length === 0) {
+      return res.status(400).json({ error: 'Query is required' });
+    }
+    
+    await pool.query(
+      'INSERT INTO search_history (user_id, query) VALUES ($1, $2)',
+      [userId, query.trim()]
+    );
+    
+    res.status(201).json({ message: 'Search query saved' });
+  } catch (err) {
+    console.error('Error saving search query:', err);
+    res.status(500).json({ error: 'Failed to save search query' });
+  }
+});
+
+// ========================
+// ADMIN ROUTES
+// ========================
 app.post('/api/admin/destinations', authenticateToken, async (req, res) => {
   const { name, province, category, rating, description, image_url, entry_fee_foreign, entry_fee_local, featured, lat, lng, secrets } = req.body;
   
@@ -701,6 +818,202 @@ app.get('/api/admin/civic-analytics', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error('Analytics error:', err);
     res.status(500).json({ error: 'Failed to fetch analytics' });
+  }
+});
+
+// ========================
+// USER PROFILE DATA ROUTES
+// ========================
+
+// Get user profile data (XP, level, achievements, visited destinations, etc.)
+app.get('/api/me/profile', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    // Get user basic info
+    const userResult = await pool.query(
+      'SELECT id, email, full_name, xp, level, cash_earned, login_streak, last_login, profile_image_url FROM users WHERE id = $1',
+      [userId]
+    );
+    
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const user = userResult.rows[0];
+    
+    // Get achievements
+    const achievementsResult = await pool.query(
+      'SELECT achievement_id, achievement_name, achievement_desc, achievement_icon, xp_awarded, created_at FROM user_achievements WHERE user_id = $1 ORDER BY created_at DESC',
+      [userId]
+    );
+    
+    // Get visited destinations
+    const visitedResult = await pool.query(
+      'SELECT destination_id, visited_at FROM user_visited_destinations WHERE user_id = $1 ORDER BY visited_at DESC',
+      [userId]
+    );
+    
+    // Get reviews count
+    const reviewsResult = await pool.query(
+      'SELECT COUNT(*) as count FROM destination_reviews WHERE user_id = $1',
+      [userId]
+    );
+    
+    res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.full_name,
+        xp: user.xp,
+        level: user.level,
+        cashEarned: user.cash_earned,
+        loginStreak: user.login_streak,
+        lastLogin: user.last_login,
+        profileImageUrl: user.profile_image_url
+      },
+      achievements: achievementsResult.rows.map(a => ({
+        id: a.achievement_id,
+        name: a.achievement_name,
+        desc: a.achievement_desc,
+        icon: a.achievement_icon,
+        xp: a.xp_awarded,
+        earnedAt: a.created_at
+      })),
+      visitedDestinations: visitedResult.rows.map(v => v.destination_id),
+      reviewsCount: parseInt(reviewsResult.rows[0].count)
+    });
+  } catch (err) {
+    console.error('Profile fetch error:', err);
+    res.status(500).json({ error: 'Failed to fetch profile' });
+  }
+});
+
+// Update user XP and level
+app.post('/api/me/profile/xp', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { xp, level, cashEarned } = req.body;
+    
+    if (xp === undefined || level === undefined) {
+      return res.status(400).json({ error: 'XP and level are required' });
+    }
+    
+    await pool.query(
+      'UPDATE users SET xp = $1, level = $2, cash_earned = COALESCE($3, cash_earned) WHERE id = $4',
+      [xp, level, cashEarned, userId]
+    );
+    
+    res.json({ success: true });
+  } catch (err) {
+    console.error('XP update error:', err);
+    res.status(500).json({ error: 'Failed to update XP' });
+  }
+});
+
+// Add achievement
+app.post('/api/me/profile/achievements', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { achievementId, name, desc, icon, xp } = req.body;
+    
+    if (!achievementId || !name) {
+      return res.status(400).json({ error: 'Achievement ID and name are required' });
+    }
+    
+    // Check if already exists
+    const existing = await pool.query(
+      'SELECT id FROM user_achievements WHERE user_id = $1 AND achievement_id = $2',
+      [userId, achievementId]
+    );
+    
+    if (existing.rows.length > 0) {
+      return res.status(400).json({ error: 'Achievement already earned' });
+    }
+    
+    // Insert achievement
+    await pool.query(
+      'INSERT INTO user_achievements (user_id, achievement_id, achievement_name, achievement_desc, achievement_icon, xp_awarded) VALUES ($1, $2, $3, $4, $5, $6)',
+      [userId, achievementId, name, desc, icon, xp || 0]
+    );
+    
+    res.status(201).json({ success: true });
+  } catch (err) {
+    console.error('Achievement add error:', err);
+    res.status(500).json({ error: 'Failed to add achievement' });
+  }
+});
+
+// Mark destination as visited
+app.post('/api/me/profile/visited/:destinationId', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { destinationId } = req.params;
+    
+    // Check if already visited
+    const existing = await pool.query(
+      'SELECT id FROM user_visited_destinations WHERE user_id = $1 AND destination_id = $2',
+      [userId, destinationId]
+    );
+    
+    if (existing.rows.length > 0) {
+      return res.json({ success: true, alreadyVisited: true });
+    }
+    
+    // Mark as visited
+    await pool.query(
+      'INSERT INTO user_visited_destinations (user_id, destination_id) VALUES ($1, $2)',
+      [userId, destinationId]
+    );
+    
+    res.status(201).json({ success: true, alreadyVisited: false });
+  } catch (err) {
+    console.error('Visit tracking error:', err);
+    res.status(500).json({ error: 'Failed to track visit' });
+  }
+});
+
+// Update login streak
+app.post('/api/me/profile/streak', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { loginStreak } = req.body;
+    
+    if (loginStreak === undefined) {
+      return res.status(400).json({ error: 'Login streak is required' });
+    }
+    
+    await pool.query(
+      'UPDATE users SET login_streak = $1, last_login = NOW() WHERE id = $2',
+      [loginStreak, userId]
+    );
+    
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Streak update error:', err);
+    res.status(500).json({ error: 'Failed to update streak' });
+  }
+});
+
+// Upload profile image
+app.post('/api/me/profile/image', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { imageUrl } = req.body;
+    
+    if (!imageUrl) {
+      return res.status(400).json({ error: 'Image URL is required' });
+    }
+    
+    await pool.query(
+      'UPDATE users SET profile_image_url = $1 WHERE id = $2',
+      [imageUrl, userId]
+    );
+    
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Image upload error:', err);
+    res.status(500).json({ error: 'Failed to upload image' });
   }
 });
 

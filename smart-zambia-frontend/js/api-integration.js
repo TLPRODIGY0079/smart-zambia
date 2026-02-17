@@ -46,6 +46,9 @@ window.handleLoginAPI = async function(e) {
     document.getElementById('userWelcome').textContent = data.user.fullName;
     document.getElementById('userInitial').textContent = data.user.fullName.charAt(0).toUpperCase();
     
+    // Load user profile data from backend
+    await window.loadUserProfileData();
+    
     // Initialize app
     if (typeof initApp === 'function') {
       initApp();
@@ -115,6 +118,9 @@ window.handleRegisterAPI = async function(e) {
     document.getElementById('mainApp').classList.remove('hidden');
     document.getElementById('userWelcome').textContent = data.user.fullName;
     document.getElementById('userInitial').textContent = data.user.fullName.charAt(0).toUpperCase();
+    
+    // Load user profile data from backend (new user will have defaults)
+    await window.loadUserProfileData();
     
     // Initialize app
     if (typeof initApp === 'function') {
@@ -278,6 +284,195 @@ window.markNotificationReadAPI = async function(notificationId) {
 };
 
 // ============================================
+// USER PROFILE DATA SYNC
+// ============================================
+
+// Load user profile data from backend
+window.loadUserProfileData = async function() {
+  if (!window.AuthAPI || !window.AuthAPI.isLoggedIn()) {
+    console.log('Not logged in, skipping profile data load');
+    return null;
+  }
+  
+  try {
+    console.log('Fetching profile data from backend...');
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`${window.API_BASE_URL}/api/me/profile`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to load profile data');
+    }
+    
+    const data = await response.json();
+    
+    console.log('Backend profile data received:', data);
+    
+    // Update window.state with backend data
+    if (window.state) {
+      window.state.score = data.user.xp || 0;
+      window.state.level = data.user.level || 1;
+      window.state.cashEarned = data.user.cashEarned || 0;
+      window.state.loginStreak = data.user.loginStreak || 0;
+      window.state.lastLogin = data.user.lastLogin;
+      window.state.visitedDestinations = data.visitedDestinations || [];
+      window.state.achievements = data.achievements || [];
+      
+      console.log('Updated window.state:', {
+        score: window.state.score,
+        level: window.state.level,
+        cashEarned: window.state.cashEarned,
+        visitedCount: window.state.visitedDestinations.length,
+        achievementsCount: window.state.achievements.length
+      });
+      
+      // Store profile image URL
+      if (data.user.profileImageUrl) {
+        localStorage.setItem('profileImage', data.user.profileImageUrl);
+      }
+      
+      // Update UI immediately after loading data
+      if (typeof updateUI === 'function') {
+        updateUI();
+      }
+    }
+    
+    console.log('Profile data loaded from backend successfully');
+    return data;
+  } catch (error) {
+    console.error('Failed to load profile data:', error);
+    return null;
+  }
+};
+
+// Save XP and level to backend
+window.saveUserXP = async function(xp, level, cashEarned) {
+  if (!window.AuthAPI || !window.AuthAPI.isLoggedIn()) {
+    console.log('Not logged in, saving to localStorage only');
+    return;
+  }
+  
+  try {
+    const token = localStorage.getItem('authToken');
+    await fetch(`${window.API_BASE_URL}/api/me/profile/xp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ xp, level, cashEarned })
+    });
+    
+    console.log('XP saved to backend:', { xp, level, cashEarned });
+  } catch (error) {
+    console.error('Failed to save XP:', error);
+  }
+};
+
+// Save achievement to backend
+window.saveUserAchievement = async function(achievement) {
+  if (!window.AuthAPI || !window.AuthAPI.isLoggedIn()) {
+    console.log('Not logged in, saving to localStorage only');
+    return;
+  }
+  
+  try {
+    const token = localStorage.getItem('authToken');
+    await fetch(`${window.API_BASE_URL}/api/me/profile/achievements`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        achievementId: achievement.id,
+        name: achievement.name,
+        desc: achievement.desc,
+        icon: achievement.icon,
+        xp: achievement.xp
+      })
+    });
+    
+    console.log('Achievement saved to backend:', achievement);
+  } catch (error) {
+    console.error('Failed to save achievement:', error);
+  }
+};
+
+// Mark destination as visited in backend
+window.saveVisitedDestination = async function(destinationId) {
+  if (!window.AuthAPI || !window.AuthAPI.isLoggedIn()) {
+    console.log('Not logged in, saving to localStorage only');
+    return;
+  }
+  
+  try {
+    const token = localStorage.getItem('authToken');
+    await fetch(`${window.API_BASE_URL}/api/me/profile/visited/${destinationId}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    console.log('Visited destination saved to backend:', destinationId);
+  } catch (error) {
+    console.error('Failed to save visited destination:', error);
+  }
+};
+
+// Save login streak to backend
+window.saveLoginStreak = async function(loginStreak) {
+  if (!window.AuthAPI || !window.AuthAPI.isLoggedIn()) {
+    console.log('Not logged in, saving to localStorage only');
+    return;
+  }
+  
+  try {
+    const token = localStorage.getItem('authToken');
+    await fetch(`${window.API_BASE_URL}/api/me/profile/streak`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ loginStreak })
+    });
+    
+    console.log('Login streak saved to backend:', loginStreak);
+  } catch (error) {
+    console.error('Failed to save login streak:', error);
+  }
+};
+
+// Save profile image to backend
+window.saveProfileImage = async function(imageUrl) {
+  if (!window.AuthAPI || !window.AuthAPI.isLoggedIn()) {
+    console.log('Not logged in, saving to localStorage only');
+    return;
+  }
+  
+  try {
+    const token = localStorage.getItem('authToken');
+    await fetch(`${window.API_BASE_URL}/api/me/profile/image`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ imageUrl })
+    });
+    
+    console.log('Profile image saved to backend');
+  } catch (error) {
+    console.error('Failed to save profile image:', error);
+  }
+};
+
+// ============================================
 // AUTO-LOGIN ON PAGE LOAD
 // ============================================
 
@@ -301,10 +496,13 @@ window.checkAutoLogin = function() {
       document.getElementById('userWelcome').textContent = user.fullName;
       document.getElementById('userInitial').textContent = user.fullName.charAt(0).toUpperCase();
       
-      // Initialize app
-      if (typeof initApp === 'function') {
-        initApp();
-      }
+      // Load user profile data from backend
+      window.loadUserProfileData().then(() => {
+        // Initialize app after profile data is loaded
+        if (typeof initApp === 'function') {
+          initApp();
+        }
+      });
       
       // Load destinations from API
       loadDestinationsFromAPI();

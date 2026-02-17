@@ -109,52 +109,103 @@ function copyToClipboard(text) {
 // ============================================
 // FEATURE 3: FAVORITE/BOOKMARK DESTINATIONS
 // ============================================
-function toggleFavorite(destinationId) {
-  let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-  const index = favorites.indexOf(destinationId);
-  
-  if (index > -1) {
-    favorites.splice(index, 1);
-    if (window.showAchievementToast) {
-      showAchievementToast('Removed from Favorites', 'Destination unbookmarked');
+async function toggleFavorite(destinationId) {
+  try {
+    // Check if using API or localStorage
+    if (window.FavoritesAPI && window.AuthAPI && window.AuthAPI.isLoggedIn()) {
+      // Use API
+      const favorites = await window.FavoritesAPI.getAll();
+      const isFav = favorites.some(f => f.id === destinationId);
+      
+      if (isFav) {
+        await window.FavoritesAPI.remove(destinationId);
+        if (window.showAchievementToast) {
+          showAchievementToast('Removed from Favorites', 'Destination unbookmarked');
+        }
+      } else {
+        await window.FavoritesAPI.add(destinationId);
+        if (window.showAchievementToast) {
+          showAchievementToast('Added to Favorites!', '+5 XP for bookmarking');
+        }
+        if (window.addScore) addScore(5);
+      }
+    } else {
+      // Fallback to localStorage
+      let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      const index = favorites.indexOf(destinationId);
+      
+      if (index > -1) {
+        favorites.splice(index, 1);
+        if (window.showAchievementToast) {
+          showAchievementToast('Removed from Favorites', 'Destination unbookmarked');
+        }
+      } else {
+        favorites.push(destinationId);
+        if (window.showAchievementToast) {
+          showAchievementToast('Added to Favorites!', '+5 XP for bookmarking');
+        }
+        if (window.addScore) addScore(5);
+      }
+      
+      localStorage.setItem('favorites', JSON.stringify(favorites));
     }
-  } else {
-    favorites.push(destinationId);
-    if (window.showAchievementToast) {
-      showAchievementToast('Added to Favorites!', '+5 XP for bookmarking');
-    }
-    if (window.addScore) addScore(5);
+    
+    updateFavoriteButtons();
+  } catch (error) {
+    console.error('Error toggling favorite:', error);
+    alert('Failed to update favorites. Please try again.');
   }
-  
-  localStorage.setItem('favorites', JSON.stringify(favorites));
-  updateFavoriteButtons();
-  return favorites.includes(destinationId);
 }
 
-function isFavorite(destinationId) {
-  const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-  return favorites.includes(destinationId);
+async function isFavorite(destinationId) {
+  try {
+    if (window.FavoritesAPI && window.AuthAPI && window.AuthAPI.isLoggedIn()) {
+      const favorites = await window.FavoritesAPI.getAll();
+      return favorites.some(f => f.id === destinationId);
+    } else {
+      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      return favorites.includes(destinationId);
+    }
+  } catch (error) {
+    console.error('Error checking favorite:', error);
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+    return favorites.includes(destinationId);
+  }
 }
 
-function updateFavoriteButtons() {
+async function updateFavoriteButtons() {
   // Update all favorite button states
-  document.querySelectorAll('[data-favorite-btn]').forEach(btn => {
+  const buttons = document.querySelectorAll('[data-favorite-btn]');
+  for (const btn of buttons) {
     const destId = parseInt(btn.dataset.destinationId);
     const icon = btn.querySelector('i');
-    if (isFavorite(destId)) {
+    const isFav = await isFavorite(destId);
+    if (isFav) {
       icon.classList.remove('far');
       icon.classList.add('fas');
-      btn.style.color = '#EF4444';
+      icon.classList.add('text-red-500');
+      icon.classList.remove('text-gray-600');
     } else {
       icon.classList.remove('fas');
       icon.classList.add('far');
-      btn.style.color = '';
+      icon.classList.remove('text-red-500');
+      icon.classList.add('text-gray-600');
     }
-  });
+  }
 }
 
-function getFavorites() {
-  return JSON.parse(localStorage.getItem('favorites') || '[]');
+async function getFavorites() {
+  try {
+    if (window.FavoritesAPI && window.AuthAPI && window.AuthAPI.isLoggedIn()) {
+      const favorites = await window.FavoritesAPI.getAll();
+      return favorites.map(f => f.id);
+    } else {
+      return JSON.parse(localStorage.getItem('favorites') || '[]');
+    }
+  } catch (error) {
+    console.error('Error getting favorites:', error);
+    return JSON.parse(localStorage.getItem('favorites') || '[]');
+  }
 }
 
 // ============================================

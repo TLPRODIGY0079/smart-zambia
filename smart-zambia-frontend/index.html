@@ -42,7 +42,11 @@
   }
 </script>
   <style>
-    * { box-sizing: border-box; }
+    * { 
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
     
     :root {
       --bg-primary: #FFFBF5;
@@ -53,6 +57,16 @@
       --border-color: rgba(0,0,0,0.08);
       --glass-bg: rgba(255,255,255,0.85);
       --glass-border: rgba(255,255,255,0.5);
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+      --shadow-lg: 0 12px 32px rgba(0,0,0,0.12);
+      --shadow-xl: 0 20px 48px rgba(0,0,0,0.16);
+      --spacing-xs: 0.5rem;
+      --spacing-sm: 1rem;
+      --spacing-md: 1.5rem;
+      --spacing-lg: 2rem;
+      --spacing-xl: 3rem;
+      --spacing-2xl: 4rem;
     }
     
     .dark {
@@ -64,6 +78,10 @@
       --border-color: rgba(255,255,255,0.1);
       --glass-bg: rgba(30,41,59,0.9);
       --glass-border: rgba(255,255,255,0.1);
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.3);
+      --shadow-lg: 0 12px 32px rgba(0,0,0,0.4);
+      --shadow-xl: 0 20px 48px rgba(0,0,0,0.5);
     }
     
     body {
@@ -140,27 +158,91 @@
     
     /* Tabs */
     .tab-btn {
-      padding: 12px 24px;
-      border-radius: 16px;
+      padding: 8px 12px;
+      border-radius: 10px;
       font-weight: 600;
-      font-size: 14px;
+      font-size: 12px;
       color: var(--text-secondary);
-      transition: all 0.3s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       background: transparent;
       border: none;
       cursor: pointer;
       white-space: nowrap;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
     }
     
-    .tab-btn:hover {
-      color: #E85D04;
+    .tab-btn i {
+      font-size: 14px;
+    }
+    
+    .tab-btn span {
+      font-size: 12px;
+    }
+    
+    .tab-btn-icon {
+      padding: 10px;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      font-size: 16px;
+      color: var(--text-secondary);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .tab-btn::before,
+    .tab-btn-icon::before {
+      content: '';
+      position: absolute;
+      inset: 0;
       background: rgba(232,93,4,0.1);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease;
     }
     
-    .tab-btn.active {
+    .tab-btn:hover::before,
+    .tab-btn-icon:hover::before {
+      transform: scaleX(1);
+    }
+    
+    .tab-btn:hover,
+    .tab-btn-icon:hover {
+      color: #E85D04;
+    }
+    
+    .tab-btn.active,
+    .tab-btn-icon.active {
       background: linear-gradient(135deg, #E85D04 0%, #C45508 100%);
       color: white;
-      box-shadow: 0 8px 24px rgba(232,93,4,0.35);
+      box-shadow: 0 6px 20px rgba(232,93,4,0.35);
+      transform: translateY(-1px);
+    }
+    
+    .tab-btn.active::before,
+    .tab-btn-icon.active::before {
+      display: none;
+    }
+    
+    /* Tablet nav */
+    .tablet-nav {
+      max-width: 100%;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    
+    .tablet-nav::-webkit-scrollbar {
+      display: none;
     }
     
     /* Login Form */
@@ -294,8 +376,8 @@
     
     /* Compass */
     .compass {
-      width: 48px;
-      height: 48px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
       background: linear-gradient(135deg, #F59E0B 0%, #E85D04 100%);
       display: flex;
@@ -342,6 +424,50 @@
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-10px); }
     }
+    
+    @keyframes blob {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(20px, -50px) scale(1.1); }
+      50% { transform: translate(-20px, 20px) scale(0.9); }
+      75% { transform: translate(50px, 50px) scale(1.05); }
+    }
+    
+    .animate-blob {
+      animation: blob 7s infinite;
+    }
+    
+    .animation-delay-2000 {
+      animation-delay: 2s;
+    }
+    
+    .animation-delay-4000 {
+      animation-delay: 4s;
+    }
+    
+    /* Profile Hero Styles */
+    .profile-hero {
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    .stat-pill {
+      animation: fadeInUp 0.6s ease forwards;
+      opacity: 0;
+    }
+    
+    .stat-pill:nth-child(1) { animation-delay: 0.1s; }
+    .stat-pill:nth-child(2) { animation-delay: 0.2s; }
+    .stat-pill:nth-child(3) { animation-delay: 0.3s; }
+    
+    .stat-card {
+      animation: fadeInUp 0.6s ease forwards;
+      opacity: 0;
+    }
+    
+    .stat-card:nth-child(1) { animation-delay: 0.1s; }
+    .stat-card:nth-child(2) { animation-delay: 0.2s; }
+    .stat-card:nth-child(3) { animation-delay: 0.3s; }
+    .stat-card:nth-child(4) { animation-delay: 0.4s; }
     
     @keyframes pulse-glow {
       0%, 100% { box-shadow: 0 0 20px rgba(232,93,4,0.4); }
@@ -393,19 +519,34 @@
       display: none;
     }
     
+    .tablet-nav {
+      display: none;
+    }
+    
+    @media (max-width: 1024px) {
+      .desktop-nav { display: none !important; }
+      .tablet-nav { display: flex !important; }
+    }
+    
     @media (max-width: 768px) {
-      .desktop-nav { display: none; }
+      .desktop-nav { display: none !important; }
+      .tablet-nav { display: none !important; }
       .mobile-nav {
         display: flex;
         overflow-x: auto;
         gap: 8px;
-        padding: 8px;
+        padding: 10px;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
       }
       .mobile-nav::-webkit-scrollbar { display: none; }
-      .tab-btn { font-size: 12px; padding: 10px 16px; }
-      .adventure-badge { bottom: auto; top: auto; left: 12px; right: 12px; bottom: 12px; justify-content: center; }
+      .tab-btn { font-size: 12px; padding: 10px 14px; }
+      .adventure-badge { 
+        bottom: 12px; 
+        left: 12px; 
+        right: 12px; 
+        justify-content: center;
+      }
     }
     
     /* Leaflet fixes */
@@ -559,38 +700,45 @@
             </div>
             
             <!-- Desktop Nav -->
-            <div class="desktop-nav hidden md:flex items-center gap-2">
-              <button class="tab-btn active" data-tab="discover"><i class="fas fa-compass mr-2"></i>Discover</button>
-              <button class="tab-btn" data-tab="map"><i class="fas fa-map-marked-alt mr-2"></i>Map</button>
-              <button class="tab-btn" data-tab="community"><i class="fas fa-users mr-2"></i>Community</button>
-              <button class="tab-btn" data-tab="bookings"><i class="fas fa-calendar-check mr-2"></i>Book</button>
-              <button class="tab-btn" data-tab="planner"><i class="fas fa-route mr-2"></i>Plan Trip</button>
-              <button class="tab-btn" data-tab="safety"><i class="fas fa-shield-alt mr-2"></i>Safety</button>
-              <button class="tab-btn" data-tab="adventures"><i class="fas fa-trophy mr-2"></i>Adventures</button>
+            <div class="desktop-nav hidden lg:flex items-center gap-1">
+              <button class="tab-btn active" data-tab="discover"><i class="fas fa-compass"></i><span class="ml-1">Discover</span></button>
+              <button class="tab-btn" data-tab="map"><i class="fas fa-map-marked-alt"></i><span class="ml-1">Map</span></button>
+              <button class="tab-btn" data-tab="community"><i class="fas fa-users"></i><span class="ml-1">Community</span></button>
+              <button class="tab-btn" data-tab="bookings"><i class="fas fa-calendar-check"></i><span class="ml-1">Book</span></button>
+              <button class="tab-btn" data-tab="planner"><i class="fas fa-route"></i><span class="ml-1">Plan</span></button>
+              <button class="tab-btn" data-tab="safety"><i class="fas fa-shield-alt"></i><span class="ml-1">Safety</span></button>
+              <button class="tab-btn" data-tab="adventures"><i class="fas fa-trophy"></i><span class="ml-1">Adventures</span></button>
+              <button class="tab-btn" data-tab="profile"><i class="fas fa-user"></i><span class="ml-1">Profile</span></button>
             </div>
             
-            <div class="flex items-center gap-4">
+            <!-- Tablet Nav (icon only) -->
+            <div class="tablet-nav hidden md:flex lg:hidden items-center gap-1 overflow-x-auto">
+              <button class="tab-btn-icon active" data-tab="discover" title="Discover"><i class="fas fa-compass"></i></button>
+              <button class="tab-btn-icon" data-tab="map" title="Map"><i class="fas fa-map-marked-alt"></i></button>
+              <button class="tab-btn-icon" data-tab="community" title="Community"><i class="fas fa-users"></i></button>
+              <button class="tab-btn-icon" data-tab="bookings" title="Book"><i class="fas fa-calendar-check"></i></button>
+              <button class="tab-btn-icon" data-tab="planner" title="Plan Trip"><i class="fas fa-route"></i></button>
+              <button class="tab-btn-icon" data-tab="safety" title="Safety"><i class="fas fa-shield-alt"></i></button>
+              <button class="tab-btn-icon" data-tab="adventures" title="Adventures"><i class="fas fa-trophy"></i></button>
+              <button class="tab-btn-icon" data-tab="profile" title="Profile"><i class="fas fa-user"></i></button>
+            </div>
+            
+            <div class="flex items-center gap-1">
               <!-- Dark Mode Toggle -->
-              <button id="darkModeToggle" onclick="toggleDarkMode()" class="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:bg-gray-100 dark:hover:bg-gray-800" title="Toggle dark mode" style="color: var(--text-primary)">
-                <i class="fas fa-moon dark-mode-icon"></i>
-                <i class="fas fa-sun light-mode-icon hidden"></i>
+              <button id="darkModeToggle" onclick="toggleDarkMode()" class="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:bg-gray-100 dark:hover:bg-gray-800" title="Toggle dark mode" style="color: var(--text-primary)">
+                <i class="fas fa-moon dark-mode-icon text-xs"></i>
+                <i class="fas fa-sun light-mode-icon hidden text-xs"></i>
               </button>
               
-              <!-- Currency Converter -->
-              <button onclick="showCurrencyConverter()" class="hidden sm:flex w-10 h-10 rounded-full items-center justify-center transition-all hover:bg-gray-100 dark:hover:bg-gray-800" title="Currency converter" style="color: var(--text-primary)">
-                <i class="fas fa-exchange-alt"></i>
-              </button>
-              
-              <div class="hidden sm:flex items-center gap-2 text-sm">
-                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-zambia-orange to-zambia-copper flex items-center justify-center text-white font-bold text-sm">
+              <div class="hidden lg:flex items-center gap-1 text-sm ml-1">
+                <div class="w-7 h-7 rounded-full bg-gradient-to-br from-zambia-orange to-zambia-copper flex items-center justify-center text-white font-bold text-xs">
                   <span id="userInitial">D</span>
                 </div>
-                <span id="userWelcome" class="font-medium" style="color: var(--text-primary)">User</span>
-                <button onclick="logoutAPI()" class="text-red-500 hover:text-red-600 ml-1 p-2" title="Logout">
-                  <i class="fas fa-sign-out-alt"></i>
+                <span id="userWelcome" class="font-medium text-xs" style="color: var(--text-primary)">User</span>
+                <button onclick="logoutAPI()" class="text-red-500 hover:text-red-600 p-1" title="Logout">
+                  <i class="fas fa-sign-out-alt text-xs"></i>
                 </button>
               </div>
-              <div class="compass" onclick="showRandomDestination()" title="Random destination"></div>
             </div>
           </div>
         </div>
@@ -604,6 +752,7 @@
           <button class="tab-btn" data-tab="planner"><i class="fas fa-route mr-1"></i>Plan</button>
           <button class="tab-btn" data-tab="safety"><i class="fas fa-shield-alt mr-1"></i>Safety</button>
           <button class="tab-btn" data-tab="adventures"><i class="fas fa-trophy mr-1"></i>Adventures</button>
+          <button class="tab-btn" data-tab="profile"><i class="fas fa-user mr-1"></i>Profile</button>
           <button class="tab-btn" onclick="logoutAPI()" style="color: #EF4444;"><i class="fas fa-sign-out-alt mr-1"></i>Logout</button>
         </div>
       </nav>
@@ -1072,6 +1221,274 @@
             </div>
           </div>
         </div>
+        
+        <!-- Profile Tab -->
+        <div id="profileTab" class="tab-content hidden">
+          <!-- Profile Header - Redesigned -->
+          <div class="profile-hero rounded-3xl overflow-hidden mb-8 relative">
+            <!-- Animated Background -->
+            <div class="absolute inset-0 bg-gradient-to-br from-orange-500 via-red-500 to-purple-600"></div>
+            <div class="absolute inset-0 opacity-30">
+              <div class="absolute top-0 left-0 w-72 h-72 bg-yellow-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
+              <div class="absolute top-0 right-0 w-72 h-72 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
+              <div class="absolute bottom-0 left-1/2 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
+            </div>
+            
+            <!-- Content -->
+            <div class="relative p-8 md:p-12 text-white">
+              <div class="flex flex-col md:flex-row items-center md:items-start gap-8">
+                <!-- Profile Image with Level Ring -->
+                <div class="relative">
+                  <!-- SVG Level Progress Ring -->
+                  <svg class="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 140 140">
+                    <circle cx="70" cy="70" r="65" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="6"/>
+                    <circle id="profileLevelRing" cx="70" cy="70" r="65" fill="none" stroke="#FFF" stroke-width="6" 
+                            stroke-dasharray="408" stroke-dashoffset="408" stroke-linecap="round"
+                            style="transition: stroke-dashoffset 1s ease;"/>
+                  </svg>
+                  
+                  <div class="relative group">
+                    <div id="profileImageContainer" class="w-28 h-28 md:w-32 md:h-32 rounded-full bg-white/20 backdrop-blur-lg flex items-center justify-center text-white font-bold text-5xl border-4 border-white/40 overflow-hidden shadow-2xl">
+                      <img id="profileImage" src="" alt="Profile" class="w-full h-full object-cover hidden">
+                      <span id="profileInitial">U</span>
+                    </div>
+                    <button onclick="triggerImageUpload()" class="absolute bottom-0 right-0 w-11 h-11 bg-white text-orange-500 rounded-full flex items-center justify-center shadow-xl hover:scale-110 transition-all group-hover:animate-bounce" title="Change profile picture">
+                      <i class="fas fa-camera text-lg"></i>
+                    </button>
+                    <input type="file" id="profileImageInput" accept="image/*" class="hidden" onchange="handleProfileImageUpload(event)">
+                  </div>
+                  
+                  <!-- Level Badge -->
+                  <div class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg border-2 border-white">
+                    Level <span id="profileLevelBadge">1</span>
+                  </div>
+                </div>
+                
+                <!-- Profile Info -->
+                <div class="flex-1 text-center md:text-left">
+                  <div class="mb-4">
+                    <h1 id="profileName" class="text-4xl md:text-5xl font-display font-bold mb-2 drop-shadow-lg">User Name</h1>
+                    <p id="profileEmail" class="text-white/90 text-lg mb-1">user@email.com</p>
+                    <p class="text-white/70 text-sm">Member since 2024</p>
+                  </div>
+                  
+                  <!-- Stats Pills -->
+                  <div class="flex flex-wrap justify-center md:justify-start gap-3 mb-4">
+                    <div class="stat-pill bg-white/25 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/30 hover:bg-white/35 transition-all">
+                      <div class="flex items-center gap-2">
+                        <i class="fas fa-trophy text-yellow-300 text-xl"></i>
+                        <div class="text-left">
+                          <div class="text-2xl font-bold" id="profileXP">0</div>
+                          <div class="text-xs opacity-90">XP Points</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="stat-pill bg-white/25 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/30 hover:bg-white/35 transition-all">
+                      <div class="flex items-center gap-2">
+                        <i class="fas fa-star text-yellow-200 text-xl"></i>
+                        <div class="text-left">
+                          <div class="text-2xl font-bold" id="profileLevel">1</div>
+                          <div class="text-xs opacity-90">Level</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="stat-pill bg-white/25 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/30 hover:bg-white/35 transition-all">
+                      <div class="flex items-center gap-2">
+                        <i class="fas fa-money-bill-wave text-green-300 text-xl"></i>
+                        <div class="text-left">
+                          <div class="text-2xl font-bold">K<span id="profileCash">0</span></div>
+                          <div class="text-xs opacity-90">Earned</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Progress Bar -->
+                  <div class="max-w-md mx-auto md:mx-0">
+                    <div class="flex justify-between text-sm mb-2 opacity-90">
+                      <span id="profileCurrentXPLabel">0 XP</span>
+                      <span id="profileNextLevelLabel">100 XP to next level</span>
+                    </div>
+                    <div class="h-3 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
+                      <div id="profileLevelBar" class="h-full bg-gradient-to-r from-yellow-300 to-orange-400 rounded-full transition-all duration-1000 ease-out shadow-lg" style="width: 0%"></div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Edit Button -->
+                <button onclick="editProfile()" class="bg-white/20 hover:bg-white/30 backdrop-blur-lg px-6 py-3 rounded-xl font-semibold transition-all border border-white/30 hover:scale-105 shadow-lg">
+                  <i class="fas fa-edit mr-2"></i>Edit Profile
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column - Stats & Achievements -->
+            <div class="lg:col-span-2 space-y-8">
+              <!-- Quick Stats - Redesigned -->
+              <div class="rounded-3xl p-6 md:p-8 shadow-lg" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h2 class="text-2xl font-bold mb-6 flex items-center" style="color: var(--text-primary)">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center mr-3">
+                    <i class="fas fa-chart-line text-white"></i>
+                  </div>
+                  Your Statistics
+                </h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div class="stat-card group text-center p-5 rounded-2xl cursor-pointer transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(249,115,22,0.1), rgba(251,146,60,0.05)); border: 2px solid rgba(249,115,22,0.2);">
+                    <div class="text-4xl font-bold bg-gradient-to-br from-orange-500 to-orange-600 bg-clip-text text-transparent mb-2 transition-all group-hover:scale-110" id="statsDestinations">0</div>
+                    <div class="text-sm font-semibold" style="color: var(--text-secondary)">Destinations</div>
+                    <div class="mt-2 h-1 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+                  </div>
+                  
+                  <div class="stat-card group text-center p-5 rounded-2xl cursor-pointer transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(96,165,250,0.05)); border: 2px solid rgba(59,130,246,0.2);">
+                    <div class="text-4xl font-bold bg-gradient-to-br from-blue-500 to-blue-600 bg-clip-text text-transparent mb-2 transition-all group-hover:scale-110" id="statsFavorites">0</div>
+                    <div class="text-sm font-semibold" style="color: var(--text-secondary)">Favorites</div>
+                    <div class="mt-2 h-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+                  </div>
+                  
+                  <div class="stat-card group text-center p-5 rounded-2xl cursor-pointer transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(74,222,128,0.05)); border: 2px solid rgba(34,197,94,0.2);">
+                    <div class="text-4xl font-bold bg-gradient-to-br from-green-500 to-green-600 bg-clip-text text-transparent mb-2 transition-all group-hover:scale-110" id="statsReviews">0</div>
+                    <div class="text-sm font-semibold" style="color: var(--text-secondary)">Reviews</div>
+                    <div class="mt-2 h-1 bg-gradient-to-r from-green-500 to-green-600 rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+                  </div>
+                  
+                  <div class="stat-card group text-center p-5 rounded-2xl cursor-pointer transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(168,85,247,0.1), rgba(192,132,252,0.05)); border: 2px solid rgba(168,85,247,0.2);">
+                    <div class="text-4xl font-bold bg-gradient-to-br from-purple-500 to-purple-600 bg-clip-text text-transparent mb-2 transition-all group-hover:scale-110" id="statsStreak">0</div>
+                    <div class="text-sm font-semibold" style="color: var(--text-secondary)">Day Streak</div>
+                    <div class="mt-2 h-1 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Recent Activity - Enhanced -->
+              <div class="rounded-3xl p-6 md:p-8 shadow-lg" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h2 class="text-2xl font-bold mb-6 flex items-center" style="color: var(--text-primary)">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center mr-3">
+                    <i class="fas fa-clock text-white"></i>
+                  </div>
+                  Recent Activity
+                </h2>
+                <div id="recentActivity" class="relative">
+                  <!-- Timeline line -->
+                  <div class="absolute left-5 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500 opacity-20"></div>
+                  
+                  <div class="text-center py-8" style="color: var(--text-secondary)">
+                    <i class="fas fa-history text-4xl mb-3 opacity-30"></i>
+                    <p>No recent activity yet</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Achievements - Enhanced -->
+              <div class="rounded-3xl p-6 md:p-8 shadow-lg" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h2 class="text-2xl font-bold mb-6 flex items-center" style="color: var(--text-primary)">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center mr-3">
+                    <i class="fas fa-trophy text-white"></i>
+                  </div>
+                  Achievements
+                </h2>
+                <div id="profileAchievements" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <!-- Achievements will be loaded here -->
+                </div>
+              </div>
+
+              <!-- Favorite Destinations - Enhanced -->
+              <div class="rounded-3xl p-6 md:p-8 shadow-lg" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h2 class="text-2xl font-bold mb-6 flex items-center" style="color: var(--text-primary)">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center mr-3">
+                    <i class="fas fa-heart text-white"></i>
+                  </div>
+                  Favorite Destinations
+                </h2>
+                <div id="profileFavorites" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="text-center py-8" style="color: var(--text-secondary)">
+                    <i class="fas fa-heart text-4xl mb-3 opacity-30"></i>
+                    <p>No favorites yet</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column - Progress & Rewards -->
+            <div class="space-y-8">
+              <!-- Level Progress - Enhanced -->
+              <div class="rounded-3xl p-6 shadow-xl relative overflow-hidden" style="background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);">
+                <!-- Animated background circles -->
+                <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+                <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"></div>
+                
+                <div class="relative text-white">
+                  <h3 class="text-xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-star mr-2"></i>Level Progress
+                  </h3>
+                  <div class="text-center mb-4">
+                    <div class="text-6xl font-bold mb-2 animate-pulse" id="profileLevelBig">1</div>
+                    <div class="text-sm opacity-90">Explorer Level</div>
+                  </div>
+                  <div class="bg-white/20 rounded-full h-3 mb-2 overflow-hidden">
+                    <div id="profileLevelBar" class="bg-white rounded-full h-3 transition-all duration-1000" style="width: 0%; box-shadow: 0 0 10px rgba(255,255,255,0.5);"></div>
+                  </div>
+                  <div class="flex justify-between text-sm opacity-90">
+                    <span id="profileCurrentXP">0 XP</span>
+                    <span id="profileNextLevel">100 XP</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Cash Rewards -->
+              <div class="rounded-3xl p-6" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);">
+                <div class="text-white">
+                  <h3 class="text-xl font-bold mb-4">
+                    <i class="fas fa-money-bill-wave mr-2"></i>Cash Earned
+                  </h3>
+                  <div class="text-center mb-4">
+                    <div class="text-5xl font-bold mb-2">K<span id="profileCashBig">0</span></div>
+                    <div class="text-sm opacity-90">Total Kwacha Earned</div>
+                  </div>
+                  <div class="space-y-2 text-sm">
+                    <div class="flex justify-between items-center p-3 bg-white/20 rounded-lg">
+                      <span>500 XP Milestone</span>
+                      <span id="reward500" class="font-bold">K50</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-white/20 rounded-lg">
+                      <span>1000 XP Milestone</span>
+                      <span id="reward1000" class="font-bold">K100</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-white/20 rounded-lg">
+                      <span>2000 XP Milestone</span>
+                      <span id="reward2000" class="font-bold">K250</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Login Streak -->
+              <div class="rounded-3xl p-6" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h3 class="text-xl font-bold mb-4" style="color: var(--text-primary)">
+                  <i class="fas fa-fire text-orange-500 mr-2"></i>Login Streak
+                </h3>
+                <div class="text-center mb-4">
+                  <div class="text-5xl font-bold mb-2 text-orange-500" id="profileStreakBig">0</div>
+                  <div class="text-sm" style="color: var(--text-secondary)">Days in a row</div>
+                </div>
+                <div class="flex justify-center gap-2 mb-4">
+                  <div id="streakDay1" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs">1</div>
+                  <div id="streakDay2" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs">2</div>
+                  <div id="streakDay3" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs">3</div>
+                  <div id="streakDay4" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs">4</div>
+                  <div id="streakDay5" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs">5</div>
+                  <div id="streakDay6" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs">6</div>
+                  <div id="streakDay7" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs">7</div>
+                </div>
+                <p class="text-xs text-center" style="color: var(--text-secondary)">Keep logging in daily to maintain your streak!</p>
+              </div>
+
+            </div>
+          </div>
+        </div>
       </main>
     </div>
     
@@ -1303,6 +1720,9 @@
       renderLeaderboard();
       setupEventListeners();
       updateUI();
+      
+      // Load profile image if exists
+      loadProfileImage();
     }
 
     // ============================================
@@ -1384,6 +1804,11 @@
       if (!state.visitedDestinations.includes(id)) {
         state.visitedDestinations.push(id);
         addScore(5);
+        
+        // Sync visited destination to backend
+        if (window.saveVisitedDestination) {
+          window.saveVisitedDestination(id);
+        }
         
         if (state.visitedDestinations.length === 1) {
           unlockAchievement('first_visit');
@@ -1596,6 +2021,11 @@
       state.score += points;
       updateLevel();
       updateUI();
+      
+      // Sync XP to backend
+      if (window.saveUserXP) {
+        window.saveUserXP(state.score, state.level, state.cashEarned);
+      }
     }
 
     function updateLevel() {
@@ -1603,6 +2033,11 @@
       if (newLevel > state.level) {
         state.level = newLevel;
         showAchievementToast('Level Up!', `You reached level ${newLevel}!`);
+        
+        // Sync level to backend
+        if (window.saveUserXP) {
+          window.saveUserXP(state.score, state.level, state.cashEarned);
+        }
       }
     }
 
@@ -1616,6 +2051,11 @@
       addScore(ach.xp);
       showAchievementToast(ach.name, ach.desc);
       renderAchievements();
+      
+      // Sync achievement to backend
+      if (window.saveUserAchievement) {
+        window.saveUserAchievement(ach);
+      }
     }
 
     function showAchievementToast(title, desc) {
@@ -2008,6 +2448,10 @@
               else mainMap.invalidateSize();
             }, 100);
           }
+          
+          if (btn.dataset.tab === 'profile') {
+            loadProfileData();
+          }
         });
       });
 
@@ -2260,6 +2704,433 @@
     window.generateItinerary = generateItinerary;
     window.handleMediaUpload = handleMediaUpload;
     window.removeMedia = removeMedia;
+    
+    // ============================================
+    // PROFILE FUNCTIONS
+    // ============================================
+    
+    async function loadProfileData() {
+      try {
+        // Get user data from state or API
+        const user = window.state?.user || window.AuthAPI?.getCurrentUser();
+        
+        if (!user) {
+          console.error('No user data available');
+          return;
+        }
+        
+        console.log('Loading profile data...');
+        console.log('Current state:', {
+          score: window.state?.score,
+          level: window.state?.level,
+          cashEarned: window.state?.cashEarned,
+          visitedDestinations: window.state?.visitedDestinations?.length
+        });
+        
+        // Update profile header
+        document.getElementById('profileName').textContent = user.name || user.fullName || 'User';
+        document.getElementById('profileEmail').textContent = user.email || '';
+        document.getElementById('profileInitial').textContent = (user.name || user.fullName || 'U').charAt(0).toUpperCase();
+        
+        // Load profile image
+        loadProfileImage();
+        
+        // Update XP and Level - prioritize window.state over user object
+        const xp = window.state?.score || 0;
+        const level = window.state?.level || 1;
+        const cash = window.state?.cashEarned || user.cashEarned || 0;
+        
+        console.log('Displaying values:', { xp, level, cash });
+        
+        // Animate counters
+        setTimeout(() => {
+          animateCounter(document.getElementById('profileXP'), xp, 800);
+          animateCounter(document.getElementById('profileLevel'), level, 600);
+          animateCounter(document.getElementById('profileCash'), cash, 800);
+          animateCounter(document.getElementById('profileLevelBig'), level, 600);
+          animateCounter(document.getElementById('profileCashBig'), cash, 800);
+        }, 200);
+        
+        // Calculate level progress
+        const nextLevelXP = level * 100;
+        const currentLevelXP = (level - 1) * 100;
+        const progress = ((xp - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100;
+        
+        // Animate progress bar
+        setTimeout(() => {
+          document.getElementById('profileLevelBar').style.width = `${Math.min(progress, 100)}%`;
+        }, 300);
+        
+        // Update level ring (SVG circle)
+        const circumference = 2 * Math.PI * 65; // radius = 65
+        const offset = circumference - (progress / 100) * circumference;
+        const ring = document.getElementById('profileLevelRing');
+        if (ring) {
+          setTimeout(() => {
+            ring.style.strokeDashoffset = offset;
+          }, 300);
+        }
+        
+        // Update level badge
+        const levelBadge = document.getElementById('profileLevelBadge');
+        if (levelBadge) {
+          levelBadge.textContent = level;
+        }
+        
+        // Update progress labels
+        document.getElementById('profileCurrentXPLabel').textContent = `${xp} XP`;
+        document.getElementById('profileNextLevelLabel').textContent = `${nextLevelXP - xp} XP to next level`;
+        
+        // Update stats
+        const destCount = window.state?.visitedDestinations?.length || 0;
+        const reviewsCount = Object.keys(window.state?.userReviews || {}).length;
+        const streakCount = window.state?.loginStreak || 0;
+        
+        // Animate stat counters
+        setTimeout(() => {
+          animateCounter(document.getElementById('statsDestinations'), destCount, 600);
+          animateCounter(document.getElementById('statsReviews'), reviewsCount, 600);
+          animateCounter(document.getElementById('statsStreak'), streakCount, 600);
+          animateCounter(document.getElementById('profileStreakBig'), streakCount, 600);
+        }, 400);
+        
+        // Update streak visualization
+        const streak = window.state?.loginStreak || 0;
+        for (let i = 1; i <= 7; i++) {
+          const dayEl = document.getElementById(`streakDay${i}`);
+          if (i <= streak) {
+            dayEl.style.background = 'linear-gradient(135deg, #F59E0B, #EF4444)';
+            dayEl.style.color = 'white';
+            dayEl.innerHTML = '<i class="fas fa-fire text-xs"></i>';
+          } else {
+            dayEl.style.background = '#E5E7EB';
+            dayEl.style.color = '#9CA3AF';
+            dayEl.textContent = i;
+          }
+        }
+        
+        // Update cash rewards
+        document.getElementById('reward500').textContent = xp >= 500 ? '✅ K50' : 'K50';
+        document.getElementById('reward1000').textContent = xp >= 1000 ? '✅ K100' : 'K100';
+        document.getElementById('reward2000').textContent = xp >= 2000 ? '✅ K250' : 'K250';
+        
+        // Load favorites
+        await loadProfileFavorites();
+        
+        // Load achievements
+        loadProfileAchievements();
+        
+        // Load recent activity
+        loadRecentActivity();
+        
+        // Update UI (adventure badge, etc.)
+        updateUI();
+        
+        console.log('Profile data loaded successfully');
+        
+      } catch (error) {
+        console.error('Error loading profile data:', error);
+      }
+    }
+    
+    async function loadProfileFavorites() {
+      try {
+        const favorites = await window.getFavorites();
+        document.getElementById('statsFavorites').textContent = favorites.length;
+        
+        const container = document.getElementById('profileFavorites');
+        
+        if (favorites.length === 0) {
+          container.innerHTML = `
+            <div class="col-span-2 text-center py-8" style="color: var(--text-secondary)">
+              <i class="fas fa-heart text-4xl mb-3 opacity-30"></i>
+              <p>No favorites yet</p>
+            </div>
+          `;
+          return;
+        }
+        
+        // Get favorite destinations
+        const favDestinations = destinations.filter(d => favorites.includes(d.id)).slice(0, 6);
+        
+        container.innerHTML = favDestinations.map((dest, index) => `
+          <div class="rounded-xl overflow-hidden cursor-pointer hover:scale-105 hover:shadow-xl transition-all animate-fadeInUp" style="border: 1px solid var(--border-color); animation-delay: ${index * 0.1}s; opacity: 0;" onclick="openDestination(${dest.id})">
+            <div class="relative">
+              <img src="${dest.image_url}" alt="${dest.name}" class="w-full h-32 object-cover" onerror="this.src='https://via.placeholder.com/300x200/E85D04/FFFFFF?text=${encodeURIComponent(dest.name)}'">
+              <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+              <div class="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white shadow-lg">
+                <i class="fas fa-heart text-sm"></i>
+              </div>
+            </div>
+            <div class="p-3" style="background: var(--bg-card);">
+              <h4 class="font-bold text-sm mb-1" style="color: var(--text-primary)">${dest.name}</h4>
+              <p class="text-xs flex items-center" style="color: var(--text-secondary)">
+                <i class="fas fa-map-marker-alt text-orange-500 mr-1"></i>${dest.province}
+              </p>
+            </div>
+          </div>
+        `).join('');
+        
+        // Trigger animations
+        setTimeout(() => {
+          container.querySelectorAll('.animate-fadeInUp').forEach(el => {
+            el.style.opacity = '1';
+          });
+        }, 100);
+        
+      } catch (error) {
+        console.error('Error loading favorites:', error);
+      }
+    }
+    
+    function loadProfileAchievements() {
+      const achievements = window.state?.achievements || [];
+      const container = document.getElementById('profileAchievements');
+      
+      if (achievements.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-2 text-center py-8" style="color: var(--text-secondary)">
+            <i class="fas fa-trophy text-4xl mb-3 opacity-30"></i>
+            <p>No achievements yet. Start exploring!</p>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = achievements.map((ach, index) => `
+        <div class="p-4 rounded-xl hover:scale-105 transition-all cursor-pointer animate-fadeInUp" style="background: var(--bg-primary); border: 1px solid var(--border-color); animation-delay: ${index * 0.1}s; opacity: 0;">
+          <div class="flex items-center gap-3">
+            <div class="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white shadow-lg">
+              <i class="fas ${ach.icon || 'fa-trophy'} text-xl"></i>
+            </div>
+            <div class="flex-1">
+              <h4 class="font-bold text-sm mb-1" style="color: var(--text-primary)">${ach.name}</h4>
+              <p class="text-xs mb-1" style="color: var(--text-secondary)">${ach.desc}</p>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold px-2 py-1 rounded-full bg-green-100 text-green-700">+${ach.xp} XP</span>
+                ${ach.cash ? `<span class="text-xs font-bold px-2 py-1 rounded-full bg-blue-100 text-blue-700">K${ach.cash}</span>` : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+      
+      // Trigger animations
+      setTimeout(() => {
+        container.querySelectorAll('.animate-fadeInUp').forEach(el => {
+          el.style.opacity = '1';
+        });
+      }, 100);
+    }
+    
+    function loadRecentActivity() {
+      const container = document.getElementById('recentActivity');
+      const activities = [];
+      
+      // Add visited destinations
+      if (window.state?.visitedDestinations) {
+        window.state.visitedDestinations.slice(-5).forEach(destId => {
+          const dest = destinations.find(d => d.id === destId);
+          if (dest) {
+            activities.push({
+              icon: 'fa-map-marker-alt',
+              color: 'text-orange-500',
+              bgColor: 'bg-orange-100',
+              text: `Visited ${dest.name}`,
+              time: 'Recently'
+            });
+          }
+        });
+      }
+      
+      // Add achievements
+      if (window.state?.achievements) {
+        window.state.achievements.slice(-3).forEach(ach => {
+          activities.push({
+            icon: 'fa-trophy',
+            color: 'text-yellow-500',
+            bgColor: 'bg-yellow-100',
+            text: `Unlocked "${ach.name}"`,
+            time: 'Recently'
+          });
+        });
+      }
+      
+      // Add reviews
+      if (window.state?.userReviews && Object.keys(window.state.userReviews).length > 0) {
+        Object.entries(window.state.userReviews).slice(-3).forEach(([destId, review]) => {
+          const dest = destinations.find(d => d.id == destId);
+          activities.push({
+            icon: 'fa-star',
+            color: 'text-purple-500',
+            bgColor: 'bg-purple-100',
+            text: `Reviewed ${dest?.name || 'a destination'}`,
+            time: 'Recently'
+          });
+        });
+      }
+      
+      if (activities.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8" style="color: var(--text-secondary)">
+            <i class="fas fa-history text-4xl mb-3 opacity-30"></i>
+            <p>No recent activity yet</p>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = `
+        <!-- Timeline line -->
+        <div class="absolute left-5 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500 opacity-20"></div>
+        
+        ${activities.slice(0, 10).map((activity, index) => `
+          <div class="relative flex items-start gap-4 p-3 rounded-xl mb-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all animate-fadeInUp" style="animation-delay: ${index * 0.1}s; opacity: 0;">
+            <!-- Timeline dot -->
+            <div class="absolute left-5 w-3 h-3 rounded-full ${activity.bgColor} border-2 border-white dark:border-gray-900 z-10" style="transform: translateX(-50%);"></div>
+            
+            <div class="w-10 h-10 rounded-full ${activity.bgColor} flex items-center justify-center flex-shrink-0 ml-6">
+              <i class="fas ${activity.icon} ${activity.color}"></i>
+            </div>
+            <div class="flex-1 pt-1">
+              <p class="text-sm font-medium" style="color: var(--text-primary)">${activity.text}</p>
+              <p class="text-xs" style="color: var(--text-secondary)">${activity.time}</p>
+            </div>
+          </div>
+        `).join('')}
+      `;
+      
+      // Trigger animations
+      setTimeout(() => {
+        container.querySelectorAll('.animate-fadeInUp').forEach(el => {
+          el.style.opacity = '1';
+        });
+      }, 100);
+    }
+    
+    function editProfile() {
+      alert('Profile editing coming soon! You can update your name, avatar, and preferences.');
+    }
+    
+    // ============================================
+    // PROFILE IMAGE UPLOAD
+    // ============================================
+    
+    // Animated counter function
+    function animateCounter(element, target, duration = 1000) {
+      const start = parseInt(element.textContent) || 0;
+      const increment = (target - start) / (duration / 16);
+      let current = start;
+      
+      const timer = setInterval(() => {
+        current += increment;
+        if ((increment > 0 && current >= target) || (increment < 0 && current <= target)) {
+          element.textContent = target;
+          clearInterval(timer);
+        } else {
+          element.textContent = Math.floor(current);
+        }
+      }, 16);
+    }
+    
+    function triggerImageUpload() {
+      document.getElementById('profileImageInput').click();
+    }
+    
+    function handleProfileImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size must be less than 5MB');
+        return;
+      }
+      
+      // Read and display the image
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const imageUrl = e.target.result;
+        
+        // Update profile image
+        const profileImage = document.getElementById('profileImage');
+        const profileInitial = document.getElementById('profileInitial');
+        
+        profileImage.src = imageUrl;
+        profileImage.classList.remove('hidden');
+        profileInitial.classList.add('hidden');
+        
+        // Save to localStorage
+        localStorage.setItem('profileImage', imageUrl);
+        
+        // Sync to backend
+        if (window.saveProfileImage) {
+          window.saveProfileImage(imageUrl);
+        }
+        
+        // Update user avatar in navbar
+        const userInitial = document.getElementById('userInitial');
+        if (userInitial && userInitial.parentElement) {
+          userInitial.parentElement.style.backgroundImage = `url(${imageUrl})`;
+          userInitial.parentElement.style.backgroundSize = 'cover';
+          userInitial.parentElement.style.backgroundPosition = 'center';
+          userInitial.textContent = '';
+        }
+        
+        // Show success message
+        if (window.showAchievementToast) {
+          showAchievementToast('Profile Updated!', 'Your profile picture has been changed');
+        }
+        
+        // Award XP for first profile picture
+        if (!localStorage.getItem('profileImageUploaded')) {
+          localStorage.setItem('profileImageUploaded', 'true');
+          if (window.addScore) {
+            addScore(10);
+          }
+          if (window.showAchievementToast) {
+            showAchievementToast('Bonus XP!', '+10 XP for adding a profile picture');
+          }
+        }
+      };
+      
+      reader.readAsDataURL(file);
+    }
+    
+    function loadProfileImage() {
+      const savedImage = localStorage.getItem('profileImage');
+      if (savedImage) {
+        const profileImage = document.getElementById('profileImage');
+        const profileInitial = document.getElementById('profileInitial');
+        
+        if (profileImage && profileInitial) {
+          profileImage.src = savedImage;
+          profileImage.classList.remove('hidden');
+          profileInitial.classList.add('hidden');
+        }
+        
+        // Update navbar avatar
+        const userInitial = document.getElementById('userInitial');
+        if (userInitial && userInitial.parentElement) {
+          userInitial.parentElement.style.backgroundImage = `url(${savedImage})`;
+          userInitial.parentElement.style.backgroundSize = 'cover';
+          userInitial.parentElement.style.backgroundPosition = 'center';
+          userInitial.textContent = '';
+        }
+      }
+    }
+    
+    window.loadProfileData = loadProfileData;
+    window.editProfile = editProfile;
+    window.triggerImageUpload = triggerImageUpload;
+    window.handleProfileImageUpload = handleProfileImageUpload;
+    window.loadProfileImage = loadProfileImage;
     window.removePendingMedia = removePendingMedia;
     window.publishPost = publishPost;
     window.likeStory = likeStory;
