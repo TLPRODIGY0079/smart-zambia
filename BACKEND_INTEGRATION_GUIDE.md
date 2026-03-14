@@ -123,8 +123,7 @@ node .\scripts\seed-admin.js admin@smartzambia.com Passw0rd! "Smart Zambia Admin
 npm run dev
 ```
 
-You should see:
-```
+You should see
 ✅ Smart Zambia API running on http://localhost:3001
 ```
 

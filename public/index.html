@@ -1,0 +1,2831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="manifest" href="/manifest.json">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Zambia - Discover the Real Africa</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script>
+    
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Playfair Display', 'serif'],
+            sans: ['DM Sans', 'sans-serif'],
+          },
+          colors: {
+            zambia: {
+              orange: '#E85D04',
+              copper: '#C45508',
+              gold: '#F59E0B',
+              forest: '#166534',
+              sky: '#0EA5E9',
+              earth: '#78350F',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <script>
+  // Register Service Worker for offline support
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('SW registered:', reg))
+      .catch(err => console.log('SW failed:', err));
+  }
+</script>
+  <style>
+    * { 
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    :root {
+      --bg-primary: #FFFBF5;
+      --bg-secondary: #FFFFFF;
+      --bg-card: #FFFFFF;
+      --text-primary: #1F2937;
+      --text-secondary: #6B7280;
+      --border-color: rgba(0,0,0,0.08);
+      --glass-bg: rgba(255,255,255,0.85);
+      --glass-border: rgba(255,255,255,0.5);
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+      --shadow-lg: 0 12px 32px rgba(0,0,0,0.12);
+      --shadow-xl: 0 20px 48px rgba(0,0,0,0.16);
+      --spacing-xs: 0.5rem;
+      --spacing-sm: 1rem;
+      --spacing-md: 1.5rem;
+      --spacing-lg: 2rem;
+      --spacing-xl: 3rem;
+      --spacing-2xl: 4rem;
+    }
+    
+    .dark {
+      --bg-primary: #0F172A;
+      --bg-secondary: #1E293B;
+      --bg-card: #1E293B;
+      --text-primary: #F1F5F9;
+      --text-secondary: #94A3B8;
+      --border-color: rgba(255,255,255,0.1);
+      --glass-bg: rgba(30,41,59,0.9);
+      --glass-border: rgba(255,255,255,0.1);
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.3);
+      --shadow-lg: 0 12px 32px rgba(0,0,0,0.4);
+      --shadow-xl: 0 20px 48px rgba(0,0,0,0.5);
+    }
+    
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    .font-display { font-family: 'Playfair Display', serif; }
+    
+    /* Hero Background */
+    .hero-bg {
+      background: linear-gradient(135deg, rgba(232,93,4,0.85) 0%, rgba(220,47,2,0.75) 25%, rgba(157,2,8,0.65) 50%, rgba(106,4,15,0.75) 75%, rgba(55,6,23,0.85) 100%),
+                  url('assets/BG.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      position: relative;
+    }
+    
+    .dark .hero-bg {
+      background: linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(30,41,59,0.85) 50%, rgba(15,23,42,0.9) 100%),
+                  url('assets/BG.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+    
+    /* Glass morphism */
+    .glass {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+    }
+    
+    /* Gradient text */
+    .gradient-text {
+      background: linear-gradient(135deg, #E85D04 0%, #F59E0B 50%, #C45508 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .dark .gradient-text {
+      background: linear-gradient(135deg, #F59E0B 0%, #FBBF24 50%, #F97316 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    /* Destination Cards */
+    .destination-card {
+      background: var(--bg-card);
+      border-radius: 24px;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+    }
+    
+    .destination-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 25px 50px -12px rgba(232,93,4,0.25);
+    }
+    
+    .destination-card:hover .card-image {
+      transform: scale(1.1);
+    }
+    
+    .card-image {
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Tabs */
+    .tab-btn {
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--text-secondary);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+    }
+    
+    .tab-btn i {
+      font-size: 14px;
+    }
+    
+    .tab-btn span {
+      font-size: 12px;
+    }
+    
+    .tab-btn-icon {
+      padding: 10px;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      font-size: 16px;
+      color: var(--text-secondary);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .tab-btn::before,
+    .tab-btn-icon::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(232,93,4,0.1);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease;
+    }
+    
+    .tab-btn:hover::before,
+    .tab-btn-icon:hover::before {
+      transform: scaleX(1);
+    }
+    
+    .tab-btn:hover,
+    .tab-btn-icon:hover {
+      color: #E85D04;
+    }
+    
+    .tab-btn.active,
+    .tab-btn-icon.active {
+      background: linear-gradient(135deg, #E85D04 0%, #C45508 100%);
+      color: white;
+      box-shadow: 0 6px 20px rgba(232,93,4,0.35);
+      transform: translateY(-1px);
+    }
+    
+    .tab-btn.active::before,
+    .tab-btn-icon.active::before {
+      display: none;
+    }
+    
+    /* Tablet nav */
+    .tablet-nav {
+      max-width: 100%;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    
+    .tablet-nav::-webkit-scrollbar {
+      display: none;
+    }
+    
+    /* Login Form */
+    .login-card {
+      background: var(--bg-card);
+      border-radius: 32px;
+      box-shadow: 0 25px 80px -20px rgba(0,0,0,0.3);
+      border: 1px solid var(--border-color);
+    }
+    
+    .input-field {
+      background: var(--bg-primary);
+      border: 2px solid var(--border-color);
+      border-radius: 16px;
+      padding: 16px 20px;
+      font-size: 16px;
+      color: var(--text-primary);
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+    
+    .input-field:focus {
+      outline: none;
+      border-color: #E85D04;
+      box-shadow: 0 0 0 4px rgba(232,93,4,0.1);
+    }
+    
+    .input-field::placeholder {
+      color: var(--text-secondary);
+    }
+    
+    /* Primary Button */
+    .btn-primary {
+      background: linear-gradient(135deg, #E85D04 0%, #C45508 100%);
+      color: white;
+      font-weight: 700;
+      padding: 16px 32px;
+      border-radius: 16px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 16px;
+      width: 100%;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(232,93,4,0.4);
+    }
+    
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+    
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .modal-content {
+      background: var(--bg-card);
+      border-radius: 32px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: scale(0.9) translateY(20px);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 40px 100px -20px rgba(0,0,0,0.5);
+    }
+    
+    .modal-overlay.active .modal-content {
+      transform: scale(1) translateY(0);
+    }
+    
+    /* Achievement Toast */
+    .achievement-toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: linear-gradient(135deg, #166534 0%, #15803D 100%);
+      color: white;
+      padding: 20px 28px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      z-index: 200;
+      transform: translateX(150%);
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 16px 48px rgba(22,101,52,0.4);
+    }
+    
+    .achievement-toast.show {
+      transform: translateX(0);
+    }
+    
+    /* Global Toast System */
+    .toast-container {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 400px;
+    }
+    
+    .toast {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transform: translateX(450px);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-left: 4px solid;
+    }
+    
+    .toast.show {
+      transform: translateX(0);
+    }
+    
+    .toast.success {
+      border-left-color: #10b981;
+    }
+    
+    .toast.error {
+      border-left-color: #ef4444;
+    }
+    
+    .toast.warning {
+      border-left-color: #f59e0b;
+    }
+    
+    .toast.info {
+      border-left-color: #3b82f6;
+    }
+    
+    .toast-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    
+    .toast.success .toast-icon {
+      color: #10b981;
+    }
+    
+    .toast.error .toast-icon {
+      color: #ef4444;
+    }
+    
+    .toast.warning .toast-icon {
+      color: #f59e0b;
+    }
+    
+    .toast.info .toast-icon {
+      color: #3b82f6;
+    }
+    
+    .toast-content {
+      flex: 1;
+      color: var(--text-primary);
+    }
+    
+    .toast-close {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    
+    .toast-close:hover {
+      background: var(--glass-bg);
+      color: var(--text-primary);
+    }
+    
+    /* Skeleton Loaders */
+    .skeleton {
+      background: linear-gradient(90deg, var(--glass-bg) 25%, var(--glass-border) 50%, var(--glass-bg) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 8px;
+    }
+    
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    
+    .skeleton-card {
+      background: var(--bg-card);
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+    
+    .skeleton-image {
+      width: 100%;
+      height: 200px;
+    }
+    
+    .skeleton-text {
+      height: 16px;
+      margin: 8px 0;
+    }
+    
+    .skeleton-title {
+      height: 24px;
+      width: 70%;
+      margin: 12px 0;
+    }
+    
+    /* Adventure Badge */
+    .adventure-badge {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      background: linear-gradient(135deg, #E85D04 0%, #F59E0B 100%);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 50px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 50;
+      box-shadow: 0 8px 32px rgba(232,93,4,0.4);
+      font-weight: 700;
+      font-size: 14px;
+    }
+    
+    /* Compass */
+    .compass {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #F59E0B 0%, #E85D04 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 16px rgba(232,93,4,0.3);
+      position: relative;
+    }
+    
+    .compass:hover {
+      transform: rotate(45deg) scale(1.1);
+    }
+    
+    .compass::before {
+      content: '↑';
+      font-size: 20px;
+      font-weight: 900;
+      color: white;
+    }
+    
+    /* Progress bars */
+    .treasure-progress {
+      height: 8px;
+      background: rgba(0,0,0,0.1);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    
+    .dark .treasure-progress {
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .treasure-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #F59E0B 0%, #E85D04 100%);
+      border-radius: 999px;
+      transition: width 0.5s ease;
+    }
+    
+    /* Animations */
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    @keyframes blob {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(20px, -50px) scale(1.1); }
+      50% { transform: translate(-20px, 20px) scale(0.9); }
+      75% { transform: translate(50px, 50px) scale(1.05); }
+    }
+    
+    .animate-blob {
+      animation: blob 7s infinite;
+    }
+    
+    .animation-delay-2000 {
+      animation-delay: 2s;
+    }
+    
+    .animation-delay-4000 {
+      animation-delay: 4s;
+    }
+    
+    /* Profile Hero Styles */
+    .profile-hero {
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    .stat-pill {
+      animation: fadeInUp 0.6s ease forwards;
+      opacity: 0;
+    }
+    
+    .stat-pill:nth-child(1) { animation-delay: 0.1s; }
+    .stat-pill:nth-child(2) { animation-delay: 0.2s; }
+    .stat-pill:nth-child(3) { animation-delay: 0.3s; }
+    
+    .stat-card {
+      animation: fadeInUp 0.6s ease forwards;
+      opacity: 0;
+    }
+    
+    .stat-card:nth-child(1) { animation-delay: 0.1s; }
+    .stat-card:nth-child(2) { animation-delay: 0.2s; }
+    .stat-card:nth-child(3) { animation-delay: 0.3s; }
+    .stat-card:nth-child(4) { animation-delay: 0.4s; }
+    
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(232,93,4,0.4); }
+      50% { box-shadow: 0 0 40px rgba(232,93,4,0.6); }
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .animate-float { animation: float 3s ease-in-out infinite; }
+    .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+    .animate-fadeInUp { animation: fadeInUp 0.6s ease forwards; }
+    
+    .stagger-1 { animation-delay: 0.1s; opacity: 0; }
+    .stagger-2 { animation-delay: 0.2s; opacity: 0; }
+    .stagger-3 { animation-delay: 0.3s; opacity: 0; }
+    .stagger-4 { animation-delay: 0.4s; opacity: 0; }
+    
+    /* Map Container */
+    #fullMap, #destination-map {
+      border-radius: 24px;
+      overflow: hidden;
+    }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #E85D04, #C45508);
+      border-radius: 4px;
+    }
+    
+    /* Mobile nav */
+    .mobile-nav {
+      display: none;
+    }
+    
+    .tablet-nav {
+      display: none;
+    }
+    
+    @media (max-width: 1024px) {
+      .desktop-nav { display: none !important; }
+      .tablet-nav { display: flex !important; }
+    }
+    
+    @media (max-width: 768px) {
+      .desktop-nav { display: none !important; }
+      .tablet-nav { display: none !important; }
+      .mobile-nav {
+        display: flex;
+        overflow-x: auto;
+        gap: 8px;
+        padding: 10px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      .mobile-nav::-webkit-scrollbar { display: none; }
+      .tab-btn { font-size: 12px; padding: 10px 14px; }
+      .adventure-badge { 
+        bottom: 12px; 
+        left: 12px; 
+        right: 12px; 
+        justify-content: center;
+      }
+    }
+    
+    /* Leaflet fixes */
+    .leaflet-popup-content-wrapper {
+      border-radius: 16px !important;
+    }
+    
+    .leaflet-popup-content {
+      margin: 12px !important;
+    }
+    
+    /* Dark Mode Toggle */
+    .dark .dark-mode-icon {
+      display: none;
+    }
+    
+    .dark .light-mode-icon {
+      display: inline-block !important;
+    }
+    
+    #darkModeToggle {
+      transition: transform 0.3s ease;
+    }
+    
+    #darkModeToggle:hover {
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body>
+  <script>
+    // Dark mode detection
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark');
+    }
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+      if (event.matches) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    });
+  </script>
+
+  <!-- App Container -->
+  <div id="app">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen hero-bg flex items-center justify-center p-4">
+      <div class="max-w-md w-full">
+        <!-- Logo -->
+        <div class="text-center mb-10 animate-fadeInUp">
+          <div class="w-20 h-20 mx-auto mb-6 bg-white/20 backdrop-blur-xl rounded-3xl flex items-center justify-center animate-float">
+            <span class="text-4xl font-display font-black text-white">Z</span>
+          </div>
+          <h1 class="text-4xl md:text-5xl font-display font-bold text-white mb-3">Smart Zambia</h1>
+          <p class="text-white/80 text-lg">Discover the Real Africa</p>
+        </div>
+        
+        <!-- Login Card -->
+        <div class="login-card p-8 md:p-10 animate-fadeInUp stagger-1">
+          <div id="loginForm">
+            <h2 class="text-2xl font-bold text-center mb-8" style="color: var(--text-primary)">Welcome Back!</h2>
+            <form onsubmit="handleLogin(event)">
+              <div class="mb-5">
+                <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">
+                  <i class="fas fa-envelope mr-2 text-zambia-orange"></i>Email
+                </label>
+                <input type="email" id="loginEmail" required class="input-field" placeholder="your@email.com">
+              </div>
+              <div class="mb-8">
+                <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">
+                  <i class="fas fa-lock mr-2 text-zambia-orange"></i>Password
+                </label>
+                <input type="password" id="loginPassword" required class="input-field" placeholder="••••••••">
+              </div>
+              <button type="submit" class="btn-primary">
+                <i class="fas fa-sign-in-alt mr-2"></i>Explore Zambia
+              </button>
+            </form>
+            <div class="text-center mt-8">
+              <p style="color: var(--text-secondary)">New explorer? 
+                <button onclick="showRegister()" class="text-zambia-orange font-bold hover:underline">Create Account</button>
+              </p>
+            </div>
+          </div>
+          
+          <!-- Register Form (hidden) -->
+          <div id="registerForm" class="hidden">
+            <h2 class="text-2xl font-bold text-center mb-8" style="color: var(--text-primary)">Join the Adventure!</h2>
+            <form onsubmit="handleRegister(event)">
+              <div class="mb-5">
+                <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">
+                  <i class="fas fa-user mr-2 text-zambia-orange"></i>Full Name
+                </label>
+                <input type="text" id="registerName" required class="input-field" placeholder="Your Name">
+              </div>
+              <div class="mb-5">
+                <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">
+                  <i class="fas fa-envelope mr-2 text-zambia-orange"></i>Email
+                </label>
+                <input type="email" id="registerEmail" required class="input-field" placeholder="your@email.com">
+              </div>
+              <div class="mb-8">
+                <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">
+                  <i class="fas fa-lock mr-2 text-zambia-orange"></i>Password
+                </label>
+                <input type="password" id="registerPassword" required minlength="6" class="input-field" placeholder="••••••••">
+              </div>
+              <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, #166534 0%, #15803D 100%);">
+                <i class="fas fa-user-plus mr-2"></i>Create Account
+              </button>
+            </form>
+            <div class="text-center mt-8">
+              <p style="color: var(--text-secondary)">Already exploring? 
+                <button onclick="showLogin()" class="text-zambia-orange font-bold hover:underline">Sign In</button>
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Features -->
+        <div class="mt-10 grid grid-cols-3 gap-4 animate-fadeInUp stagger-2">
+          <div class="text-center p-4 rounded-2xl bg-white/10 backdrop-blur-lg">
+            <i class="fas fa-map-marked-alt text-2xl text-white mb-2"></i>
+            <p class="text-white/90 text-sm font-medium">Explore</p>
+          </div>
+          <div class="text-center p-4 rounded-2xl bg-white/10 backdrop-blur-lg">
+            <i class="fas fa-shield-alt text-2xl text-white mb-2"></i>
+            <p class="text-white/90 text-sm font-medium">Report</p>
+          </div>
+          <div class="text-center p-4 rounded-2xl bg-white/10 backdrop-blur-lg">
+            <i class="fas fa-coins text-2xl text-white mb-2"></i>
+            <p class="text-white/90 text-sm font-medium">Earn XP</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Main App (hidden initially) -->
+    <div id="mainApp" class="hidden">
+      <!-- Navigation -->
+      <nav class="glass sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between h-16 md:h-20">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 bg-gradient-to-br from-zambia-orange to-zambia-copper rounded-xl flex items-center justify-center text-white font-display font-bold text-xl shadow-lg">Z</div>
+              <div class="hidden sm:block">
+                <span class="text-xl font-display font-bold gradient-text">Smart Zambia</span>
+                <p class="text-xs" style="color: var(--text-secondary)">Discover the Real Africa</p>
+              </div>
+            </div>
+            
+            <!-- Desktop Nav -->
+            <div class="desktop-nav hidden lg:flex items-center gap-1">
+              <button class="tab-btn active" data-tab="discover"><i class="fas fa-compass"></i><span class="ml-1">Discover</span></button>
+              <button class="tab-btn" data-tab="map"><i class="fas fa-map-marked-alt"></i><span class="ml-1">Map</span></button>
+              <button class="tab-btn" data-tab="community"><i class="fas fa-users"></i><span class="ml-1">Community</span></button>
+              <button class="tab-btn" data-tab="bookings"><i class="fas fa-calendar-check"></i><span class="ml-1">Book</span></button>
+              <button class="tab-btn" data-tab="planner"><i class="fas fa-route"></i><span class="ml-1">Plan</span></button>
+              <button class="tab-btn" data-tab="adventures"><i class="fas fa-trophy"></i><span class="ml-1">Adventures</span></button>
+              <button class="tab-btn" data-tab="profile"><i class="fas fa-user"></i><span class="ml-1">Profile</span></button>
+            </div>
+            
+            <!-- Tablet Nav (icon only) -->
+            <div class="tablet-nav hidden md:flex lg:hidden items-center gap-1 overflow-x-auto">
+              <button class="tab-btn-icon active" data-tab="discover" title="Discover"><i class="fas fa-compass"></i></button>
+              <button class="tab-btn-icon" data-tab="map" title="Map"><i class="fas fa-map-marked-alt"></i></button>
+              <button class="tab-btn-icon" data-tab="community" title="Community"><i class="fas fa-users"></i></button>
+              <button class="tab-btn-icon" data-tab="bookings" title="Book"><i class="fas fa-calendar-check"></i></button>
+              <button class="tab-btn-icon" data-tab="planner" title="Plan Trip"><i class="fas fa-route"></i></button>
+              <button class="tab-btn-icon" data-tab="adventures" title="Adventures"><i class="fas fa-trophy"></i></button>
+              <button class="tab-btn-icon" data-tab="profile" title="Profile"><i class="fas fa-user"></i></button>
+            </div>
+            
+            <div class="flex items-center gap-1">
+              <!-- Dark Mode Toggle -->
+              <button id="darkModeToggle" onclick="toggleDarkMode()" class="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:bg-gray-100 dark:hover:bg-gray-800" title="Toggle dark mode" style="color: var(--text-primary)">
+                <i class="fas fa-moon dark-mode-icon text-xs"></i>
+                <i class="fas fa-sun light-mode-icon hidden text-xs"></i>
+              </button>
+              
+              <div class="hidden lg:flex items-center gap-1 text-sm ml-1">
+                <div class="w-7 h-7 rounded-full bg-gradient-to-br from-zambia-orange to-zambia-copper flex items-center justify-center text-white font-bold text-xs">
+                  <span id="userInitial">D</span>
+                </div>
+                <span id="userWelcome" class="font-medium text-xs" style="color: var(--text-primary)">User</span>
+                <button onclick="logoutAPI()" class="text-red-500 hover:text-red-600 p-1" title="Logout">
+                  <i class="fas fa-sign-out-alt text-xs"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Mobile Nav -->
+        <div class="mobile-nav md:hidden border-t" style="border-color: var(--border-color)">
+          <button class="tab-btn active" data-tab="discover"><i class="fas fa-compass mr-1"></i>Discover</button>
+          <button class="tab-btn" data-tab="map"><i class="fas fa-map mr-1"></i>Map</button>
+          <button class="tab-btn" data-tab="community"><i class="fas fa-users mr-1"></i>Community</button>
+          <button class="tab-btn" data-tab="bookings"><i class="fas fa-calendar mr-1"></i>Book</button>
+          <button class="tab-btn" data-tab="planner"><i class="fas fa-route mr-1"></i>Plan</button>
+          <button class="tab-btn" data-tab="adventures"><i class="fas fa-trophy mr-1"></i>Adventures</button>
+          <button class="tab-btn" data-tab="profile"><i class="fas fa-user mr-1"></i>Profile</button>
+          <button class="tab-btn" onclick="logoutAPI()" style="color: #EF4444;"><i class="fas fa-sign-out-alt mr-1"></i>Logout</button>
+        </div>
+      </nav>
+      
+      <!-- Adventure Badge -->
+      <div class="adventure-badge">
+        <i class="fas fa-trophy"></i>
+        <span id="adventureScore">0</span> XP
+        <span class="opacity-70">| Level <span id="adventureLevel">1</span></span>
+      </div>
+      
+      <!-- Main Content -->
+      <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10 pb-24">
+        <!-- Discover Tab -->
+        <div id="discoverTab" class="tab-content">
+          <!-- Hero Section -->
+          <div class="mb-10 rounded-3xl hero-bg p-8 md:p-12 text-white relative overflow-hidden">
+            <div class="relative z-10">
+              <h1 class="text-3xl md:text-5xl font-display font-bold mb-4 animate-fadeInUp">Explore Zambia's<br>Hidden Treasures</h1>
+              <p class="text-lg md:text-xl opacity-90 mb-6 max-w-xl animate-fadeInUp stagger-1">From thundering Victoria Falls to untouched wilderness — discover 21+ amazing destinations</p>
+              <div class="flex flex-wrap gap-4 animate-fadeInUp stagger-2">
+                <div class="flex items-center gap-2 bg-white/20 backdrop-blur-lg px-4 py-2 rounded-full text-sm font-medium">
+                  <i class="fas fa-map-marker-alt"></i> 21 Destinations
+                </div>
+                <div class="flex items-center gap-2 bg-white/20 backdrop-blur-lg px-4 py-2 rounded-full text-sm font-medium">
+                  <i class="fas fa-paw"></i> Wildlife Safari
+                </div>
+                <div class="flex items-center gap-2 bg-white/20 backdrop-blur-lg px-4 py-2 rounded-full text-sm font-medium">
+                  <i class="fas fa-water"></i> Waterfalls
+                </div>
+              </div>
+            </div>
+            <div class="absolute right-0 bottom-0 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
+          </div>
+          
+          <!-- Search & Filters -->
+          <div class="mb-8 space-y-4">
+            <div class="relative">
+              <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2" style="color: var(--text-secondary)"></i>
+              <input type="text" id="searchInput" placeholder="Search destinations..." class="input-field pl-14 text-lg" style="border-radius: 20px;">
+            </div>
+            <div class="flex flex-wrap gap-3">
+              <select id="provinceFilter" class="input-field" style="width: auto; padding: 12px 20px;">
+                <option value="All">All Provinces</option>
+                <option value="Southern">Southern Province</option>
+                <option value="Eastern">Eastern Province</option>
+                <option value="Northern">Northern Province</option>
+                <option value="Central">Central Province</option>
+                <option value="Western">Western Province</option>
+              </select>
+              <select id="categoryFilter" class="input-field" style="width: auto; padding: 12px 20px;">
+                <option value="All">All Categories</option>
+                <option value="Nature">🌿 Nature</option>
+                <option value="Wildlife">🦁 Wildlife</option>
+                <option value="Heritage">🏛️ Heritage</option>
+                <option value="Adventure">🎢 Adventure</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- Destinations Grid -->
+          <div id="destinationsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"></div>
+        </div>
+        
+        <!-- Map Tab -->
+        <div id="mapTab" class="tab-content hidden">
+          <div class="rounded-3xl overflow-hidden" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+            <div class="p-6 md:p-8 border-b" style="border-color: var(--border-color)">
+              <h2 class="text-2xl md:text-3xl font-display font-bold gradient-text">Explore Zambia</h2>
+              <p class="mt-2" style="color: var(--text-secondary)">Click markers to discover destinations</p>
+            </div>
+            <div id="fullMap" style="height: 500px;"></div>
+          </div>
+        </div>
+        
+        <!-- Community Tab -->
+        <div id="communityTab" class="tab-content hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Photo Upload -->
+            <div class="lg:col-span-2">
+              <div class="rounded-3xl p-6 md:p-8 mb-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h2 class="text-2xl font-bold mb-6 gradient-text">Share Your Adventure</h2>
+                <div class="mb-4">
+                  <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">Caption</label>
+                  <textarea id="mediaCaption" rows="3" class="input-field" placeholder="Share your story... Where did you go? What did you experience?"></textarea>
+                </div>
+                <div class="border-2 border-dashed rounded-2xl p-8 text-center mb-6" style="border-color: var(--border-color)">
+                  <i class="fas fa-camera text-4xl mb-4" style="color: var(--text-secondary)"></i>
+                  <p class="text-lg font-semibold mb-2" style="color: var(--text-primary)">Upload Your Photos & Videos</p>
+                  <p class="text-sm mb-4" style="color: var(--text-secondary)">Share your amazing Zambian experiences</p>
+                  <input type="file" id="photoUpload" multiple accept="image/*,video/*" class="hidden" onchange="handleMediaUpload(event)">
+                  <button onclick="document.getElementById('photoUpload').click()" class="btn-primary" style="width: auto; padding: 12px 24px;">
+                    <i class="fas fa-upload mr-2"></i>Choose Photos/Videos
+                  </button>
+                  <p class="text-xs mt-3" style="color: var(--text-secondary)">Supports: JPG, PNG, MP4, MOV (Max 50MB)</p>
+                </div>
+                <div id="mediaPreview" class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4"></div>
+                <button onclick="publishPost()" id="publishBtn" class="btn-primary hidden" style="width: auto; padding: 12px 24px;">
+                  <i class="fas fa-paper-plane mr-2"></i>Publish Post
+                </button>
+              </div>
+              
+              <!-- Travel Stories -->
+              <div class="rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h2 class="text-2xl font-bold mb-6 gradient-text">Travel Stories</h2>
+                <div id="travelStories" class="space-y-6"></div>
+              </div>
+            </div>
+            
+            <!-- Travel Buddy Matching -->
+            <div>
+              <div class="rounded-3xl p-6 text-white mb-6" style="background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);">
+                <h3 class="text-xl font-bold mb-4"><i class="fas fa-users mr-2"></i>Find Travel Buddies</h3>
+                <p class="text-sm opacity-90 mb-4">Connect with fellow adventurers</p>
+                <button onclick="findTravelBuddies()" class="w-full bg-white text-purple-600 font-bold py-3 rounded-xl">Find Buddies</button>
+              </div>
+              
+              <div class="rounded-3xl p-6" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h3 class="text-lg font-bold mb-4" style="color: var(--text-primary)">Active Travelers</h3>
+                <div id="activeTravelers" class="space-y-3">
+                  <p class="text-center py-4" style="color: var(--text-secondary)">Click "Find Buddies" to connect with travelers!</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Bookings Tab -->
+        <div id="bookingsTab" class="tab-content hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Tour Guides -->
+            <div class="rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+              <h2 class="text-2xl font-bold mb-6 gradient-text">Book Tour Guides</h2>
+              <div id="tourGuides" class="space-y-4"></div>
+            </div>
+            
+            <!-- Transportation -->
+            <div class="rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+              <h2 class="text-2xl font-bold mb-6 gradient-text">Transportation</h2>
+              <div class="grid grid-cols-1 gap-4">
+                <div class="p-4 rounded-xl border cursor-pointer hover:bg-gray-50" style="border-color: var(--border-color)" onclick="bookTransport('flight')">
+                  <div class="flex items-center gap-3">
+                    <i class="fas fa-plane text-2xl text-blue-500"></i>
+                    <div>
+                      <h3 class="font-bold" style="color: var(--text-primary)">Flights</h3>
+                      <p class="text-sm" style="color: var(--text-secondary)">Domestic & International</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="p-4 rounded-xl border cursor-pointer hover:bg-gray-50" style="border-color: var(--border-color)" onclick="bookTransport('bus')">
+                  <div class="flex items-center gap-3">
+                    <i class="fas fa-bus text-2xl text-green-500"></i>
+                    <div>
+                      <h3 class="font-bold" style="color: var(--text-primary)">Buses</h3>
+                      <p class="text-sm" style="color: var(--text-secondary)">Intercity Travel</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="p-4 rounded-xl border cursor-pointer hover:bg-gray-50" style="border-color: var(--border-color)" onclick="bookTransport('car')">
+                  <div class="flex items-center gap-3">
+                    <i class="fas fa-car text-2xl text-orange-500"></i>
+                    <div>
+                      <h3 class="font-bold" style="color: var(--text-primary)">Car Rental</h3>
+                      <p class="text-sm" style="color: var(--text-secondary)">Self-drive Adventures</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Activity Reservations -->
+            <div class="lg:col-span-2 rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+              <h2 class="text-2xl font-bold mb-6 gradient-text">Activity Reservations</h2>
+              <div id="activityReservations" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Trip Planner Tab -->
+        <div id="plannerTab" class="tab-content hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Trip Builder -->
+            <div class="lg:col-span-2">
+              <div class="rounded-3xl p-6 md:p-8 mb-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h2 class="text-2xl font-bold mb-6 gradient-text">Plan Your Trip</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">Trip Duration</label>
+                    <div class="grid grid-cols-4 gap-2">
+                      <button type="button" class="duration-btn border-2 rounded-lg py-2 text-sm font-semibold transition-all" data-days="3" style="border-color: var(--border-color); color: var(--text-primary);" onclick="selectDuration(3)">3 Days</button>
+                      <button type="button" class="duration-btn border-2 rounded-lg py-2 text-sm font-semibold transition-all" data-days="7" style="border-color: var(--border-color); color: var(--text-primary);" onclick="selectDuration(7)">1 Week</button>
+                      <button type="button" class="duration-btn border-2 rounded-lg py-2 text-sm font-semibold transition-all" data-days="14" style="border-color: var(--border-color); color: var(--text-primary);" onclick="selectDuration(14)">2 Weeks</button>
+                      <button type="button" class="duration-btn border-2 rounded-lg py-2 text-sm font-semibold transition-all" data-days="21" style="border-color: var(--border-color); color: var(--text-primary);" onclick="selectDuration(21)">3 Weeks</button>
+                    </div>
+                    <input type="hidden" id="tripDuration" value="3">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">Total Budget (USD)</label>
+                    <input type="number" id="tripBudget" class="input-field" placeholder="Enter your budget" min="100" step="50" value="1500">
+                    <p class="text-xs mt-1" style="color: var(--text-secondary)">Recommended: $500-$3000+</p>
+                  </div>
+                </div>
+                <button onclick="generateItinerary()" class="btn-primary" style="width: auto; padding: 12px 24px;">Generate Itinerary</button>
+                <div id="generatedItinerary" class="mt-6"></div>
+              </div>
+              
+              <!-- Cultural Events -->
+              <div class="rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h2 class="text-2xl font-bold mb-6 gradient-text">Cultural Events Calendar</h2>
+                <div id="culturalEvents" class="space-y-4">
+                  <p class="text-center py-4" style="color: var(--text-secondary)">Loading cultural events...</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Cost Calculator -->
+            <div>
+              <div class="rounded-3xl p-6 text-white mb-6" style="background: linear-gradient(135deg, #16A34A 0%, #15803D 100%);">
+                <h3 class="text-xl font-bold mb-4"><i class="fas fa-calculator mr-2"></i>Cost Calculator</h3>
+                <div class="space-y-3 text-sm">
+                  <!-- Editable Cost Inputs -->
+                  <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                      <label class="font-semibold">Accommodation:</label>
+                      <div class="flex items-center gap-2">
+                        <span class="text-white/70">$</span>
+                        <input type="number" id="inputAccommodation" class="w-24 px-2 py-1 rounded-lg text-right font-bold" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);" min="0" step="10" value="0" oninput="updateManualCosts()">
+                      </div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <label class="font-semibold">Transport:</label>
+                      <div class="flex items-center gap-2">
+                        <span class="text-white/70">$</span>
+                        <input type="number" id="inputTransport" class="w-24 px-2 py-1 rounded-lg text-right font-bold" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);" min="0" step="10" value="0" oninput="updateManualCosts()">
+                      </div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <label class="font-semibold">Activities:</label>
+                      <div class="flex items-center gap-2">
+                        <span class="text-white/70">$</span>
+                        <input type="number" id="inputActivities" class="w-24 px-2 py-1 rounded-lg text-right font-bold" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);" min="0" step="10" value="0" oninput="updateManualCosts()">
+                      </div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <label class="font-semibold">Food:</label>
+                      <div class="flex items-center gap-2">
+                        <span class="text-white/70">$</span>
+                        <input type="number" id="inputFood" class="w-24 px-2 py-1 rounded-lg text-right font-bold" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);" min="0" step="10" value="0" oninput="updateManualCosts()">
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <hr class="border-white/20 my-3">
+                  
+                  <!-- Totals -->
+                  <div class="grid grid-cols-2 gap-y-2 font-bold text-base">
+                    <div>Total USD:</div><div class="text-right" id="totalUSD">$0</div>
+                    <div class="text-xs font-normal">Total ZMW:</div><div class="text-right text-xs font-normal" id="totalZMW">K0</div>
+                  </div>
+                  
+                  <!-- Quick Actions -->
+                  <div class="flex gap-2 mt-4">
+                    <button onclick="resetCostCalculator()" class="flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all hover:bg-white/20" style="background: rgba(255,255,255,0.1);">
+                      <i class="fas fa-redo mr-1"></i>Reset
+                    </button>
+                    <button onclick="updateCostBreakdown()" class="flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all hover:bg-white/20" style="background: rgba(255,255,255,0.1);">
+                      <i class="fas fa-magic mr-1"></i>Auto-fill
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Payment Methods -->
+              <div class="rounded-3xl p-6" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h3 class="text-lg font-bold mb-4" style="color: var(--text-primary)">Payment Methods</h3>
+                <div class="space-y-3">
+                  <div class="flex items-center gap-3 p-3 rounded-xl" style="background: var(--bg-primary)">
+                    <i class="fas fa-mobile-alt text-orange-500"></i>
+                    <span class="font-medium" style="color: var(--text-primary)">MTN Mobile Money</span>
+                  </div>
+                  <div class="flex items-center gap-3 p-3 rounded-xl" style="background: var(--bg-primary)">
+                    <i class="fas fa-mobile-alt text-red-500"></i>
+                    <span class="font-medium" style="color: var(--text-primary)">Airtel Money</span>
+                  </div>
+                  <div class="flex items-center gap-3 p-3 rounded-xl" style="background: var(--bg-primary)">
+                    <i class="fas fa-credit-card text-blue-500"></i>
+                    <span class="font-medium" style="color: var(--text-primary)">Visa/Mastercard</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Adventures Tab -->
+        <div id="adventuresTab" class="tab-content hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Stats Card -->
+            <div class="rounded-3xl p-8 text-white" style="background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);">
+              <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                <i class="fas fa-chart-bar"></i> Your Stats
+              </h2>
+              <div class="space-y-4">
+                <div class="flex justify-between items-center p-4 bg-white/10 rounded-xl">
+                  <span><i class="fas fa-eye mr-2"></i>Places Viewed</span>
+                  <span class="font-bold text-xl" id="placesViewedCount">0</span>
+                </div>
+                <div class="flex justify-between items-center p-4 bg-white/10 rounded-xl">
+                  <span><i class="fas fa-coins mr-2"></i>Total XP</span>
+                  <span class="font-bold text-xl" id="totalXPCount">0</span>
+                </div>
+                <div class="flex justify-between items-center p-4 bg-white/10 rounded-xl">
+                  <span><i class="fas fa-medal mr-2"></i>Achievements</span>
+                  <span class="font-bold text-xl" id="achievementsCount">0</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Treasure Hunt -->
+            <div class="rounded-3xl p-8 text-white" style="background: linear-gradient(135deg, #F59E0B 0%, #E85D04 100%);">
+              <h2 class="text-2xl font-bold mb-4 flex items-center gap-3">
+                <i class="fas fa-gem"></i> Treasure Hunt
+              </h2>
+              <p class="mb-6 opacity-90">Find hidden treasures across Zambia's destinations!</p>
+              <div class="bg-white/20 backdrop-blur-sm rounded-2xl p-6 mb-6">
+                <p class="text-sm font-semibold mb-2 opacity-80">Current Clue:</p>
+                <p id="currentClue" class="text-lg font-bold">Click Start to begin!</p>
+              </div>
+              <div class="mb-6">
+                <div class="flex justify-between text-sm mb-2">
+                  <span id="treasureCount">0/5 Found</span>
+                  <span>+100 XP each</span>
+                </div>
+                <div class="treasure-progress" style="background: rgba(255,255,255,0.2);">
+                  <div id="treasureBar" class="treasure-progress-bar" style="width: 0%; background: white;"></div>
+                </div>
+              </div>
+              <button onclick="startTreasureHunt()" class="w-full bg-white text-zambia-orange font-bold py-4 rounded-xl hover:bg-orange-50 transition-all">
+                <i class="fas fa-play mr-2"></i>Start Treasure Hunt
+              </button>
+            </div>
+            
+            <!-- Achievements -->
+            <div class="rounded-3xl p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+              <h2 class="text-2xl font-bold mb-6 flex items-center gap-3" style="color: var(--text-primary)">
+                <i class="fas fa-trophy text-yellow-500"></i> Achievements
+              </h2>
+              <div id="achievementsList" class="space-y-3"></div>
+            </div>
+            
+            <!-- Leaderboard -->
+            <div class="rounded-3xl p-8 text-white" style="background: linear-gradient(135deg, #6366F1 0%, #3B82F6 100%);">
+              <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                <i class="fas fa-crown"></i> Leaderboard
+              </h2>
+              <div id="leaderboard" class="space-y-3"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Profile Tab -->
+        <div id="profileTab" class="tab-content hidden">
+          <!-- Profile Header - Redesigned -->
+          <div class="profile-hero rounded-3xl overflow-hidden mb-8 relative">
+            <!-- Animated Background -->
+            <div class="absolute inset-0 bg-gradient-to-br from-orange-500 via-red-500 to-purple-600"></div>
+            <div class="absolute inset-0 opacity-30">
+              <div class="absolute top-0 left-0 w-72 h-72 bg-yellow-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
+              <div class="absolute top-0 right-0 w-72 h-72 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
+              <div class="absolute bottom-0 left-1/2 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
+            </div>
+            
+            <!-- Content -->
+            <div class="relative p-8 md:p-12 text-white">
+              <div class="flex flex-col md:flex-row items-center md:items-start gap-8">
+                <!-- Profile Image with Level Ring -->
+                <div class="relative">
+                  <!-- SVG Level Progress Ring -->
+                  <svg class="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 140 140">
+                    <circle cx="70" cy="70" r="65" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="6"/>
+                    <circle id="profileLevelRing" cx="70" cy="70" r="65" fill="none" stroke="#FFF" stroke-width="6" 
+                            stroke-dasharray="408" stroke-dashoffset="408" stroke-linecap="round"
+                            style="transition: stroke-dashoffset 1s ease;"/>
+                  </svg>
+                  
+                  <div class="relative group">
+                    <div id="profileImageContainer" class="w-28 h-28 md:w-32 md:h-32 rounded-full bg-white/20 backdrop-blur-lg flex items-center justify-center text-white font-bold text-5xl border-4 border-white/40 overflow-hidden shadow-2xl">
+                      <img id="profileImage" src="" alt="Profile" class="w-full h-full object-cover hidden">
+                      <span id="profileInitial">U</span>
+                    </div>
+                    <button onclick="triggerImageUpload()" class="absolute bottom-0 right-0 w-11 h-11 bg-white text-orange-500 rounded-full flex items-center justify-center shadow-xl hover:scale-110 transition-all group-hover:animate-bounce" title="Change profile picture">
+                      <i class="fas fa-camera text-lg"></i>
+                    </button>
+                    <input type="file" id="profileImageInput" accept="image/*" class="hidden" onchange="handleProfileImageUpload(event)">
+                  </div>
+                  
+                  <!-- Level Badge -->
+                  <div class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg border-2 border-white">
+                    Level <span id="profileLevelBadge">1</span>
+                  </div>
+                </div>
+                
+                <!-- Profile Info -->
+                <div class="flex-1 text-center md:text-left">
+                  <div class="mb-4">
+                    <h1 id="profileName" class="text-4xl md:text-5xl font-display font-bold mb-2 drop-shadow-lg">User Name</h1>
+                    <p id="profileEmail" class="text-white/90 text-lg mb-1">user@email.com</p>
+                    <p class="text-white/70 text-sm">Member since 2024</p>
+                  </div>
+                  
+                  <!-- Stats Pills -->
+                  <div class="flex flex-wrap justify-center md:justify-start gap-3 mb-4">
+                    <div class="stat-pill bg-white/25 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/30 hover:bg-white/35 transition-all">
+                      <div class="flex items-center gap-2">
+                        <i class="fas fa-trophy text-yellow-300 text-xl"></i>
+                        <div class="text-left">
+                          <div class="text-2xl font-bold" id="profileXP">0</div>
+                          <div class="text-xs opacity-90">XP Points</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="stat-pill bg-white/25 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/30 hover:bg-white/35 transition-all">
+                      <div class="flex items-center gap-2">
+                        <i class="fas fa-star text-yellow-200 text-xl"></i>
+                        <div class="text-left">
+                          <div class="text-2xl font-bold" id="profileLevel">1</div>
+                          <div class="text-xs opacity-90">Level</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="stat-pill bg-white/25 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/30 hover:bg-white/35 transition-all">
+                      <div class="flex items-center gap-2">
+                        <i class="fas fa-money-bill-wave text-green-300 text-xl"></i>
+                        <div class="text-left">
+                          <div class="text-2xl font-bold">K<span id="profileCash">0</span></div>
+                          <div class="text-xs opacity-90">Earned</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Progress Bar -->
+                  <div class="max-w-md mx-auto md:mx-0">
+                    <div class="flex justify-between text-sm mb-2 opacity-90">
+                      <span id="profileCurrentXPLabel">0 XP</span>
+                      <span id="profileNextLevelLabel">100 XP to next level</span>
+                    </div>
+                    <div class="h-3 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
+                      <div id="profileLevelBar" class="h-full bg-gradient-to-r from-yellow-300 to-orange-400 rounded-full transition-all duration-1000 ease-out shadow-lg" style="width: 0%"></div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Edit Button -->
+                <button onclick="editProfile()" class="bg-white/20 hover:bg-white/30 backdrop-blur-lg px-6 py-3 rounded-xl font-semibold transition-all border border-white/30 hover:scale-105 shadow-lg">
+                  <i class="fas fa-edit mr-2"></i>Edit Profile
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column - Stats & Achievements -->
+            <div class="lg:col-span-2 space-y-8">
+              <!-- Quick Stats - Redesigned -->
+              <div class="rounded-3xl p-6 md:p-8 shadow-lg" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h2 class="text-2xl font-bold mb-6 flex items-center" style="color: var(--text-primary)">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center mr-3">
+                    <i class="fas fa-chart-line text-white"></i>
+                  </div>
+                  Your Statistics
+                </h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div class="stat-card group text-center p-5 rounded-2xl cursor-pointer transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(249,115,22,0.1), rgba(251,146,60,0.05)); border: 2px solid rgba(249,115,22,0.2);">
+                    <div class="text-4xl font-bold bg-gradient-to-br from-orange-500 to-orange-600 bg-clip-text text-transparent mb-2 transition-all group-hover:scale-110" id="statsDestinations">0</div>
+                    <div class="text-sm font-semibold" style="color: var(--text-secondary)">Destinations</div>
+                    <div class="mt-2 h-1 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+                  </div>
+                  
+                  <div class="stat-card group text-center p-5 rounded-2xl cursor-pointer transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(96,165,250,0.05)); border: 2px solid rgba(59,130,246,0.2);">
+                    <div class="text-4xl font-bold bg-gradient-to-br from-blue-500 to-blue-600 bg-clip-text text-transparent mb-2 transition-all group-hover:scale-110" id="statsFavorites">0</div>
+                    <div class="text-sm font-semibold" style="color: var(--text-secondary)">Favorites</div>
+                    <div class="mt-2 h-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+                  </div>
+                  
+                  <div class="stat-card group text-center p-5 rounded-2xl cursor-pointer transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(74,222,128,0.05)); border: 2px solid rgba(34,197,94,0.2);">
+                    <div class="text-4xl font-bold bg-gradient-to-br from-green-500 to-green-600 bg-clip-text text-transparent mb-2 transition-all group-hover:scale-110" id="statsReviews">0</div>
+                    <div class="text-sm font-semibold" style="color: var(--text-secondary)">Reviews</div>
+                    <div class="mt-2 h-1 bg-gradient-to-r from-green-500 to-green-600 rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+                  </div>
+                  
+                  <div class="stat-card group text-center p-5 rounded-2xl cursor-pointer transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(168,85,247,0.1), rgba(192,132,252,0.05)); border: 2px solid rgba(168,85,247,0.2);">
+                    <div class="text-4xl font-bold bg-gradient-to-br from-purple-500 to-purple-600 bg-clip-text text-transparent mb-2 transition-all group-hover:scale-110" id="statsStreak">0</div>
+                    <div class="text-sm font-semibold" style="color: var(--text-secondary)">Day Streak</div>
+                    <div class="mt-2 h-1 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Recent Activity - Enhanced -->
+              <div class="rounded-3xl p-6 md:p-8 shadow-lg" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h2 class="text-2xl font-bold mb-6 flex items-center" style="color: var(--text-primary)">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center mr-3">
+                    <i class="fas fa-clock text-white"></i>
+                  </div>
+                  Recent Activity
+                </h2>
+                <div id="recentActivity" class="relative">
+                  <!-- Timeline line -->
+                  <div class="absolute left-5 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500 opacity-20"></div>
+                  
+                  <div class="text-center py-8" style="color: var(--text-secondary)">
+                    <i class="fas fa-history text-4xl mb-3 opacity-30"></i>
+                    <p>No recent activity yet</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Achievements - Enhanced -->
+              <div class="rounded-3xl p-6 md:p-8 shadow-lg" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h2 class="text-2xl font-bold mb-6 flex items-center" style="color: var(--text-primary)">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center mr-3">
+                    <i class="fas fa-trophy text-white"></i>
+                  </div>
+                  Achievements
+                </h2>
+                <div id="profileAchievements" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <!-- Achievements will be loaded here -->
+                </div>
+              </div>
+
+              <!-- Favorite Destinations - Enhanced -->
+              <div class="rounded-3xl p-6 md:p-8 shadow-lg" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h2 class="text-2xl font-bold mb-6 flex items-center" style="color: var(--text-primary)">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center mr-3">
+                    <i class="fas fa-heart text-white"></i>
+                  </div>
+                  Favorite Destinations
+                </h2>
+                <div id="profileFavorites" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="text-center py-8" style="color: var(--text-secondary)">
+                    <i class="fas fa-heart text-4xl mb-3 opacity-30"></i>
+                    <p>No favorites yet</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column - Progress & Rewards -->
+            <div class="space-y-8">
+              <!-- Level Progress - Enhanced -->
+              <div class="rounded-3xl p-6 shadow-xl relative overflow-hidden" style="background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);">
+                <!-- Animated background circles -->
+                <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+                <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"></div>
+                
+                <div class="relative text-white">
+                  <h3 class="text-xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-star mr-2"></i>Level Progress
+                  </h3>
+                  <div class="text-center mb-4">
+                    <div class="text-6xl font-bold mb-2 animate-pulse" id="profileLevelBig">1</div>
+                    <div class="text-sm opacity-90">Explorer Level</div>
+                  </div>
+                  <div class="bg-white/20 rounded-full h-3 mb-2 overflow-hidden">
+                    <div id="profileLevelBar" class="bg-white rounded-full h-3 transition-all duration-1000" style="width: 0%; box-shadow: 0 0 10px rgba(255,255,255,0.5);"></div>
+                  </div>
+                  <div class="flex justify-between text-sm opacity-90">
+                    <span id="profileCurrentXP">0 XP</span>
+                    <span id="profileNextLevel">100 XP</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Cash Rewards -->
+              <div class="rounded-3xl p-6" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);">
+                <div class="text-white">
+                  <h3 class="text-xl font-bold mb-4">
+                    <i class="fas fa-money-bill-wave mr-2"></i>Cash Earned
+                  </h3>
+                  <div class="text-center mb-4">
+                    <div class="text-5xl font-bold mb-2">K<span id="profileCashBig">0</span></div>
+                    <div class="text-sm opacity-90">Total Kwacha Earned</div>
+                  </div>
+                  <div class="space-y-2 text-sm">
+                    <div class="flex justify-between items-center p-3 bg-white/20 rounded-lg">
+                      <span>500 XP Milestone</span>
+                      <span id="reward500" class="font-bold">K50</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-white/20 rounded-lg">
+                      <span>1000 XP Milestone</span>
+                      <span id="reward1000" class="font-bold">K100</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-white/20 rounded-lg">
+                      <span>2000 XP Milestone</span>
+                      <span id="reward2000" class="font-bold">K250</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Login Streak -->
+              <div class="rounded-3xl p-6" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h3 class="text-xl font-bold mb-4" style="color: var(--text-primary)">
+                  <i class="fas fa-fire text-orange-500 mr-2"></i>Login Streak
+                </h3>
+                <div class="text-center mb-4">
+                  <div class="text-5xl font-bold mb-2 text-orange-500" id="profileStreakBig">0</div>
+                  <div class="text-sm" style="color: var(--text-secondary)">Days in a row</div>
+                </div>
+                <div class="flex justify-center gap-2 mb-4">
+                  <div id="streakDay1" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs">1</div>
+                  <div id="streakDay2" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs">2</div>
+                  <div id="streakDay3" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs">3</div>
+                  <div id="streakDay4" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs">4</div>
+                  <div id="streakDay5" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs">5</div>
+                  <div id="streakDay6" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs">6</div>
+                  <div id="streakDay7" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs">7</div>
+                </div>
+                <p class="text-xs text-center" style="color: var(--text-secondary)">Keep logging in daily to maintain your streak!</p>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+    
+    <!-- Destination Modal -->
+    <div class="modal-overlay" id="destinationModal">
+      <div class="modal-content relative">
+        <button onclick="closeModal()" class="absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center z-10 transition-all hover:scale-110" style="background: var(--bg-card); color: var(--text-primary); box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+          <i class="fas fa-times"></i>
+        </button>
+        <div class="relative h-64 md:h-80 overflow-hidden">
+          <img id="modalImage" class="w-full h-full object-cover" src="assets/images/destination.jpg" alt="">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+          <div class="absolute bottom-6 left-6 right-6 text-white">
+            <div id="modalFeatured" class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold mb-3 hidden" style="background: linear-gradient(135deg, #E85D04, #F59E0B);">
+              <i class="fas fa-fire"></i> Featured
+            </div>
+            <h2 id="modalName" class="text-2xl md:text-3xl font-display font-bold mb-2"></h2>
+            <p id="modalProvince" class="flex items-center gap-2 opacity-90">
+              <i class="fas fa-map-marker-alt text-zambia-gold"></i>
+              <span></span>
+            </p>
+          </div>
+        </div>
+        <div class="p-6 md:p-8">
+          <div class="flex flex-wrap gap-3 mb-6">
+            <span id="modalCategory" class="px-4 py-2 rounded-full text-sm font-semibold" style="background: rgba(232,93,4,0.1); color: #E85D04;"></span>
+            <div id="modalRating" class="flex items-center gap-1 px-4 py-2 rounded-full text-sm font-semibold" style="background: rgba(245,158,11,0.1); color: #F59E0B;"></div>
+            <span id="modalPrice" class="px-4 py-2 rounded-full text-sm font-bold" style="background: rgba(22,163,74,0.1); color: #16A34A;"></span>
+          </div>
+          <p id="modalDescription" class="text-lg leading-relaxed mb-8" style="color: var(--text-secondary)"></p>
+          
+          <div id="destination-map" class="mb-8 h-48 rounded-2xl overflow-hidden"></div>
+          
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button onclick="addToWishlistAPI()" class="flex-1 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2" style="background: linear-gradient(135deg, #E85D04, #C45508); color: white;">
+              <i class="fas fa-heart"></i> Add to Wishlist
+            </button>
+            <button onclick="getDirections()" class="flex-1 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2" style="background: linear-gradient(135deg, #16A34A, #15803D); color: white;">
+              <i class="fas fa-directions"></i> Get Directions
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Achievement Toast -->
+    <div class="achievement-toast" id="achievementToast">
+      <i class="fas fa-trophy text-3xl"></i>
+      <div>
+        <h3 id="achievementTitle" class="font-bold text-lg"></h3>
+        <p id="achievementDesc" class="text-sm opacity-90"></p>
+      </div>
+    </div>
+    
+    <!-- Global Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+    
+    <!-- Report Modal -->
+    <div class="modal-overlay" id="reportModal">
+      <div class="modal-content p-8" style="max-width: 480px;">
+        <div class="text-center mb-6">
+          <div id="reportIcon" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"></div>
+          <h2 id="reportTitle" class="text-2xl font-bold" style="color: var(--text-primary)"></h2>
+          <p id="reportDesc" style="color: var(--text-secondary)"></p>
+        </div>
+        <form id="reportForm">
+          <div class="mb-4">
+            <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">Report Title</label>
+            <input type="text" id="reportTitleInput" required class="input-field" placeholder="Brief title for this issue">
+          </div>
+          <div class="mb-6">
+            <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">Description</label>
+            <textarea id="reportDescInput" required rows="3" class="input-field" placeholder="Describe the issue..."></textarea>
+          </div>
+          <div class="flex gap-3">
+            <button type="button" onclick="closeReportModal()" class="flex-1 py-3 rounded-xl font-semibold transition-all" style="background: var(--bg-primary); color: var(--text-primary); border: 2px solid var(--border-color);">Cancel</button>
+            <button type="submit" class="flex-1 py-3 rounded-xl font-semibold text-white transition-all" style="background: linear-gradient(135deg, #3B82F6, #8B5CF6);">Submit Report</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/ui-utils.js"></script>
+  <script src="js/profile.js"></script>
+  <script src="js/api-config.js"></script>
+  <script src="js/api-integration.js"></script>
+  <script src="js/quick-wins.js"></script>
+  <script src="js/enhanced-features.js"></script>
+  <script>
+    // ============================================
+    // DESTINATION DATA (Embedded for standalone use)
+    // ============================================
+    const destinations = [
+      { id: 1, name: "Victoria Falls", province: "Southern Province", category: "Nature", rating: 4.9, description: "One of the Seven Natural Wonders of the World. Known locally as 'Mosi-oa-Tunya' - The Smoke That Thunders. Experience the world's largest sheet of falling water.", image_url: "https://images.unsplash.com/photo-1568625502763-2a5ec6a94c47?w=800", entry_fee_foreign: 30, featured: true, lat: -17.9243, lng: 25.8572 },
+      { id: 2, name: "South Luangwa National Park", province: "Eastern Province", category: "Wildlife", rating: 4.8, description: "One of Africa's greatest wildlife sanctuaries. Famous for walking safaris and leopard sightings. Home to over 60 mammal species and 400 bird species.", image_url: "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800", entry_fee_foreign: 25, featured: true, lat: -13.0833, lng: 31.7500 },
+      { id: 3, name: "Lower Zambezi National Park", province: "Southern Province", category: "Wildlife", rating: 4.7, description: "Pristine wilderness along the mighty Zambezi River. Perfect for canoe safaris, fishing, and game viewing. Elephants frequently swim across the river.", image_url: "https://images.unsplash.com/photo-1549366021-9f761d450615?w=800", entry_fee_foreign: 25, featured: true, lat: -15.6667, lng: 29.1667 },
+      { id: 4, name: "Mosi-oa-Tunya National Park", province: "Southern Province", category: "Wildlife", rating: 4.6, description: "A wildlife reserve with diverse species including rare rhinos and spectacular views of Victoria Falls.", image_url: "https://images.unsplash.com/photo-1612196808214-b7e239e5f6dc?w=800", entry_fee_foreign: 15, featured: false, lat: -17.9167, lng: 25.8667 },
+      { id: 5, name: "Gorge Swing", province: "Southern Province", category: "Adventure", rating: 4.8, description: "A thrilling adventure offering spectacular views of Victoria Falls with an adrenaline-pumping swing experience over the gorge.", image_url: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=800", entry_fee_foreign: 85, featured: true, lat: -17.9300, lng: 25.8600 },
+      { id: 6, name: "Kalambo Falls", province: "Northern Province", category: "Nature", rating: 4.7, description: "The second highest uninterrupted waterfall in Africa at 235m. An archaeological treasure trove with Stone Age artifacts.", image_url: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800", entry_fee_foreign: 18, featured: true, lat: -8.6000, lng: 31.2333 },
+      { id: 7, name: "Lake Tanganyika", province: "Northern Province", category: "Nature", rating: 4.5, description: "The world's longest freshwater lake and second deepest. Home to hundreds of endemic fish species found nowhere else on Earth.", image_url: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800", entry_fee_foreign: 10, featured: false, lat: -8.8000, lng: 31.0000 },
+      { id: 8, name: "Liuwa Plains National Park", province: "Western Province", category: "Wildlife", rating: 4.7, description: "Witness the second-largest wildebeest migration in Africa. Vast open plains teeming with wildlife and spectacular sunsets.", image_url: "https://images.unsplash.com/photo-1535941339077-2dd1c7963098?w=800", entry_fee_foreign: 25, featured: true, lat: -14.5000, lng: 22.7000 },
+      { id: 9, name: "Kafue National Park", province: "Central Province", category: "Wildlife", rating: 4.6, description: "Zambia's largest national park, roughly the size of Wales. Diverse ecosystems from miombo woodland to vast floodplains.", image_url: "https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800", entry_fee_foreign: 20, featured: false, lat: -15.5000, lng: 26.0000 },
+      { id: 10, name: "Devil's Pool", province: "Southern Province", category: "Adventure", rating: 4.9, description: "Swim on the very edge of Victoria Falls! A natural infinity pool that forms during low water season. Ultimate bucket list experience.", image_url: "https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?w=800", entry_fee_foreign: 100, featured: true, lat: -17.9247, lng: 25.8539 },
+      { id: 11, name: "Kuomboka Ceremony", province: "Western Province", category: "Heritage", rating: 4.8, description: "Experience the Lozi King's majestic barge gliding through the Zambezi floodplains. One of Africa's most colorful traditional ceremonies.", image_url: "https://images.unsplash.com/photo-1594736797933-d0401ba2fe65?w=800", entry_fee_foreign: 0, featured: true, lat: -15.2500, lng: 23.1500 },
+      { id: 12, name: "Nyika Plateau", province: "Eastern Province", category: "Nature", rating: 4.5, description: "Rolling grasslands at high altitude, perfect for hiking and horseback riding. Stunning orchid displays and unique wildlife.", image_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800", entry_fee_foreign: 15, featured: false, lat: -10.5000, lng: 33.7500 },
+      { id: 13, name: "Kundalila Falls", province: "Central Province", category: "Nature", rating: 4.4, description: "Stunning 75m waterfall offering breathtaking views across the Luangwa valley. Perfect for swimming and hiking.", image_url: "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?w=800", entry_fee_foreign: 10, featured: false, lat: -14.7000, lng: 28.7500 },
+      { id: 14, name: "Chishimba Falls", province: "Northern Province", category: "Nature", rating: 4.4, description: "Three spectacular waterfalls considered sacred by the local Bemba people. Lush rainforest setting.", image_url: "https://images.unsplash.com/photo-1541675154750-0444c7d51e8e?w=800", entry_fee_foreign: 12, featured: false, lat: -10.7500, lng: 29.1333 },
+      { id: 15, name: "Ngonye Falls", province: "Western Province", category: "Nature", rating: 4.3, description: "A series of horseshoe-shaped waterfalls on the Zambezi, less crowded than Victoria Falls but equally stunning.", image_url: "https://images.unsplash.com/photo-1475113548554-5a36f1f523d6?w=800", entry_fee_foreign: 12, featured: false, lat: -16.1000, lng: 23.1000 },
+      { id: 16, name: "Zambezi River Safari", province: "Western Province", category: "Adventure", rating: 4.6, description: "Cruise along Africa's fourth-longest river. Spot hippos, crocodiles, and elephants while enjoying spectacular sunsets.", image_url: "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800", entry_fee_foreign: 15, featured: false, lat: -15.5000, lng: 23.0000 },
+      { id: 17, name: "Kasanka National Park", province: "Central Province", category: "Wildlife", rating: 4.5, description: "Famous for hosting the world's largest mammal migration - 10 million fruit bats! Also home to rare sitatunga antelope.", image_url: "https://images.unsplash.com/photo-1504173010664-32509aeebb62?w=800", entry_fee_foreign: 15, featured: false, lat: -12.5500, lng: 30.2000 },
+      { id: 18, name: "Blue Lagoon National Park", province: "Central Province", category: "Wildlife", rating: 4.2, description: "Vast wetland paradise for birdwatchers. Home to Kafue lechwe and stunning floodplain scenery.", image_url: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800", entry_fee_foreign: 10, featured: false, lat: -15.0167, lng: 28.0500 },
+      { id: 19, name: "Lochinvar National Park", province: "Southern Province", category: "Wildlife", rating: 4.3, description: "Wetland wonderland with thousands of Kafue lechwe. Over 400 bird species make this a birder's paradise.", image_url: "https://images.unsplash.com/photo-1557456170-0cf4f4d0d362?w=800", entry_fee_foreign: 10, featured: false, lat: -15.9667, lng: 27.2500 },
+      { id: 20, name: "Shiwa Ng'andu", province: "Northern Province", category: "Heritage", rating: 4.4, description: "A stunning English manor house in the heart of Africa. Built by Sir Stewart Gore-Browne in the 1920s.", image_url: "https://images.unsplash.com/photo-1577282748124-3c8c8f98af8d?w=800", entry_fee_foreign: 15, featured: false, lat: -11.2000, lng: 31.7500 },
+      { id: 21, name: "Bangweulu Wetlands", province: "Northern Province", category: "Wildlife", rating: 4.5, description: "Vast floodplain system where you can see the rare shoebill stork. One of Africa's great wetland ecosystems.", image_url: "https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?w=800", entry_fee_foreign: 15, featured: false, lat: -11.5000, lng: 29.7500 }
+    ];
+
+    // ============================================
+    // STATE MANAGEMENT
+    // ============================================
+    const state = {
+      isLoggedIn: false,
+      user: null,
+      score: 0,
+      level: 1,
+      achievements: [],
+      wishlist: [],
+      currentDestination: null,
+      visitedDestinations: [],
+      treasureHuntActive: false,
+      foundTreasures: [],
+      currentTreasureIndex: 0,
+      treasureClues: [
+        { clue: "Where the smoke thunders and rainbows dance...", destination: 1 },
+        { clue: "Where leopards prowl at night...", destination: 2 },
+        { clue: "Swim on the edge of the world...", destination: 10 },
+        { clue: "Millions of bats darken the sky...", destination: 17 },
+        { clue: "The King's royal barge glides through waters...", destination: 11 }
+      ],
+      civicXP: 0,
+      civicLevel: 1,
+      civicReports: [],
+      uploadedMedia: [],
+      pendingMedia: [],
+      posts: []
+    };
+
+    // Civic Challenges
+    const civicChallenges = [
+      { id: 'flooded_area', name: 'Flooded Tourist Area', desc: 'Report flooded areas affecting tourists', icon: 'fa-water', xp: 40, cash: 5, color: 'bg-blue-500' },
+      { id: 'blocked_trail', name: 'Blocked Trail', desc: 'Report blocked hiking/walking trails', icon: 'fa-hiking', xp: 35, cash: 4, color: 'bg-green-500' },
+      { id: 'unsafe_viewpoint', name: 'Unsafe Viewpoint', desc: 'Report dangerous viewing areas', icon: 'fa-exclamation-triangle', xp: 45, cash: 6, color: 'bg-red-500' },
+      { id: 'damaged_facilities', name: 'Damaged Facilities', desc: 'Report broken tourist facilities', icon: 'fa-tools', xp: 30, cash: 3, color: 'bg-yellow-500' },
+      { id: 'wildlife_concern', name: 'Wildlife Safety', desc: 'Report wildlife-related issues', icon: 'fa-paw', xp: 50, cash: 7, color: 'bg-purple-500' },
+      { id: 'tourist_safety', name: 'Tourist Safety', desc: 'General tourist safety concerns', icon: 'fa-shield-alt', xp: 55, cash: 8, color: 'bg-indigo-500' }
+    ];
+
+    // Achievement Definitions
+    const achievementDefs = [
+      { id: 'first_visit', name: 'First Steps', desc: 'View your first destination', icon: 'fa-shoe-prints', xp: 10 },
+      { id: 'explorer', name: 'Explorer', desc: 'View 5 different destinations', icon: 'fa-compass', xp: 50 },
+      { id: 'treasure_hunter', name: 'Treasure Hunter', desc: 'Find your first treasure', icon: 'fa-gem', xp: 100 },
+      { id: 'wishlist_pro', name: 'Dream Collector', desc: 'Add 5 places to wishlist', icon: 'fa-heart', xp: 30 },
+      { id: 'civic_hero', name: 'Civic Hero', desc: 'Make your first safety report', icon: 'fa-shield-alt', xp: 50 }
+    ];
+
+    let mainMap = null;
+    let destinationMap = null;
+
+    // ============================================
+    // SESSION PERSISTENCE
+    // ============================================
+    
+    // Save session to localStorage
+    function saveSession() {
+      if (state.isLoggedIn && state.user) {
+        localStorage.setItem('smartZambiaSession', JSON.stringify({
+          isLoggedIn: state.isLoggedIn,
+          user: state.user,
+          score: state.score,
+          level: state.level,
+          achievements: state.achievements,
+          visitedDestinations: state.visitedDestinations,
+          loginStreak: state.loginStreak,
+          cashEarned: state.cashEarned
+        }));
+      }
+    }
+    
+    // Load session from localStorage
+    function loadSession() {
+      const savedSession = localStorage.getItem('smartZambiaSession');
+      if (savedSession) {
+        try {
+          const session = JSON.parse(savedSession);
+          if (session.isLoggedIn && session.user) {
+            // Restore state
+            state.isLoggedIn = session.isLoggedIn;
+            state.user = session.user;
+            state.score = session.score || 0;
+            state.level = session.level || 1;
+            state.achievements = session.achievements || [];
+            state.visitedDestinations = session.visitedDestinations || [];
+            state.loginStreak = session.loginStreak || 0;
+            state.cashEarned = session.cashEarned || 0;
+            
+            // Show main app instead of login screen
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            
+            // Update UI
+            document.getElementById('userWelcome').textContent = state.user.name;
+            document.getElementById('userInitial').textContent = state.user.name.charAt(0).toUpperCase();
+            
+            // Initialize app
+            initApp();
+            
+            return true;
+          }
+        } catch (error) {
+          console.error('Error loading session:', error);
+          localStorage.removeItem('smartZambiaSession');
+        }
+      }
+      return false;
+    }
+    
+    // Clear session
+    function clearSession() {
+      localStorage.removeItem('smartZambiaSession');
+    }
+    let currentReportChallenge = null;
+
+    // ============================================
+    // AUTHENTICATION
+    // ============================================
+    function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const name = email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
+      
+      state.isLoggedIn = true;
+      state.user = { name, email };
+      
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('mainApp').classList.remove('hidden');
+      document.getElementById('userWelcome').textContent = name;
+      document.getElementById('userInitial').textContent = name.charAt(0).toUpperCase();
+      
+      // Save session
+      saveSession();
+      
+      initApp();
+      showAchievementToast('Welcome!', `Hello ${name}, start exploring Zambia!`);
+    }
+
+    function handleRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById('registerName').value;
+      const email = document.getElementById('registerEmail').value;
+      
+      state.isLoggedIn = true;
+      state.user = { name, email };
+      
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('mainApp').classList.remove('hidden');
+      document.getElementById('userWelcome').textContent = name;
+      document.getElementById('userInitial').textContent = name.charAt(0).toUpperCase();
+      
+      // Save session
+      saveSession();
+      
+      initApp();
+      showAchievementToast('Account Created!', `Welcome ${name}! Your adventure begins.`);
+    }
+
+    function showRegister() {
+      document.getElementById('loginForm').classList.add('hidden');
+      document.getElementById('registerForm').classList.remove('hidden');
+    }
+
+    function showLogin() {
+      document.getElementById('registerForm').classList.add('hidden');
+      document.getElementById('loginForm').classList.remove('hidden');
+    }
+
+    function logout() {
+      state.isLoggedIn = false;
+      state.user = null;
+      
+      // Clear session
+      clearSession();
+      
+      document.getElementById('mainApp').classList.add('hidden');
+      document.getElementById('loginScreen').classList.remove('hidden');
+    }
+
+    // ============================================
+    // APP INITIALIZATION
+    // ============================================
+    function initApp() {
+      renderDestinations();
+      renderCivicChallenges();
+      renderAchievements();
+      renderLeaderboard();
+      setupEventListeners();
+      updateUI();
+      
+      // Load profile image if exists
+      loadProfileImage();
+    }
+
+    // ============================================
+    // DESTINATIONS
+    // ============================================
+    function renderDestinations() {
+      const grid = document.getElementById('destinationsGrid');
+      const searchTerm = document.getElementById('searchInput')?.value?.toLowerCase() || '';
+      const province = document.getElementById('provinceFilter')?.value || 'All';
+      const category = document.getElementById('categoryFilter')?.value || 'All';
+
+      const filtered = destinations.filter(dest => {
+        const matchesSearch = dest.name.toLowerCase().includes(searchTerm) || 
+                              dest.description.toLowerCase().includes(searchTerm);
+        const matchesProvince = province === 'All' || dest.province.includes(province);
+        const matchesCategory = category === 'All' || dest.category === category;
+        return matchesSearch && matchesProvince && matchesCategory;
+      });
+
+      grid.innerHTML = filtered.map((dest, index) => `
+        <div class="destination-card animate-fadeInUp" style="animation-delay: ${index * 0.05}s; opacity: 0;" onclick="openDestination(${dest.id})">
+          <div class="relative h-48 md:h-56 overflow-hidden">
+            <img src="${dest.image_url}" alt="${dest.name}" class="card-image w-full h-full object-cover" loading="lazy">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+            <div class="absolute top-3 right-3 flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-bold text-yellow-900" style="background: rgba(250,204,21,0.95);">
+              <i class="fas fa-star text-yellow-600"></i>
+              ${dest.rating}
+            </div>
+            ${dest.featured ? `
+              <div class="absolute top-3 left-3 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-white shadow-lg" style="background: linear-gradient(135deg, #E85D04, #F59E0B);">
+                <i class="fas fa-fire"></i> Featured
+              </div>
+            ` : ''}
+            ${state.treasureHuntActive && state.treasureClues[state.currentTreasureIndex]?.destination === dest.id ? `
+              <div class="absolute bottom-3 left-3 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold animate-pulse" style="background: rgba(250,204,21,0.95); color: #78350F;">
+                <i class="fas fa-gem"></i> Treasure Here!
+              </div>
+            ` : ''}
+          </div>
+          <div class="p-5">
+            <h3 class="text-lg font-bold mb-1" style="color: var(--text-primary)">${dest.name}</h3>
+            <p class="text-sm flex items-center gap-1.5 mb-3" style="color: var(--text-secondary)">
+              <i class="fas fa-map-marker-alt text-zambia-orange"></i>
+              ${dest.province}
+            </p>
+            <p class="text-sm line-clamp-2 mb-4" style="color: var(--text-secondary)">${dest.description}</p>
+            <div class="flex items-center justify-between pt-4" style="border-top: 1px solid var(--border-color)">
+              <span class="text-xs font-semibold px-3 py-1.5 rounded-full" style="background: rgba(232,93,4,0.1); color: #E85D04;">
+                ${dest.category}
+              </span>
+              <span class="text-sm font-bold" style="color: #16A34A;">
+                $${dest.entry_fee_foreign}
+              </span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full text-center py-16">
+            <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" style="background: var(--bg-primary)">
+              <i class="fas fa-search text-3xl" style="color: var(--text-secondary)"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2" style="color: var(--text-primary)">No destinations found</h3>
+            <p style="color: var(--text-secondary)">Try adjusting your search or filters</p>
+          </div>
+        `;
+      }
+    }
+
+    function openDestination(id) {
+      const dest = destinations.find(d => d.id === id);
+      if (!dest) return;
+      
+      state.currentDestination = dest;
+      
+      // Track visit
+      if (!state.visitedDestinations.includes(id)) {
+        state.visitedDestinations.push(id);
+        addScore(5);
+        
+        // Sync visited destination to backend
+        if (window.saveVisitedDestination) {
+          window.saveVisitedDestination(id);
+        }
+        
+        if (state.visitedDestinations.length === 1) {
+          unlockAchievement('first_visit');
+        }
+        if (state.visitedDestinations.length >= 5) {
+          unlockAchievement('explorer');
+        }
+      }
+
+      // Populate modal
+      const modalImg = document.getElementById('modalImage');
+      modalImg.src = dest.image_url;
+      modalImg.style.transform = 'perspective(1500px) rotateX(15deg) scale(1)';
+      modalImg.style.transition = 'transform 0.5s ease';
+      
+      document.getElementById('modalName').textContent = dest.name;
+      document.getElementById('modalProvince').querySelector('span').textContent = dest.province;
+      document.getElementById('modalDescription').textContent = dest.description;
+      document.getElementById('modalCategory').textContent = dest.category;
+      document.getElementById('modalPrice').textContent = dest.entry_fee_foreign > 0 ? `$${dest.entry_fee_foreign} entry` : 'Free';
+      document.getElementById('modalFeatured').classList.toggle('hidden', !dest.featured);
+      document.getElementById('modalRating').innerHTML = `<i class="fas fa-star"></i> ${dest.rating}`;
+
+      document.getElementById('destinationModal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+
+      // Drone view animation
+      setTimeout(() => {
+        modalImg.style.transform = 'perspective(1500px) rotateX(0deg) scale(1.05)';
+      }, 100);
+
+      // Initialize map
+      setTimeout(() => initDestinationMap(dest.lat, dest.lng, dest.name), 100);
+
+      // Check treasure
+      if (state.treasureHuntActive && state.treasureClues[state.currentTreasureIndex]?.destination === id) {
+        findTreasure();
+      }
+
+      updateUI();
+    }
+
+    function closeModal() {
+      document.getElementById('destinationModal').classList.remove('active');
+      document.body.style.overflow = '';
+      if (destinationMap) {
+        destinationMap.remove();
+        destinationMap = null;
+      }
+    }
+
+    function initDestinationMap(lat, lng, name) {
+      const container = document.getElementById('destination-map');
+      if (destinationMap) {
+        destinationMap.remove();
+      }
+
+      destinationMap = L.map('destination-map').setView([lat, lng], 12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+      }).addTo(destinationMap);
+
+      L.marker([lat, lng]).addTo(destinationMap).bindPopup(name).openPopup();
+    }
+
+    function initMainMap() {
+      if (mainMap) return;
+
+      mainMap = L.map('fullMap').setView([-14.5, 28], 6);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+      }).addTo(mainMap);
+
+      destinations.forEach(dest => {
+        const marker = L.marker([dest.lat, dest.lng]).addTo(mainMap);
+        marker.bindPopup(`
+          <div style="min-width: 180px; font-family: 'DM Sans', sans-serif;">
+            <img src="${dest.image_url}" alt="${dest.name}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 8px; margin-bottom: 8px;">
+            <h3 style="font-weight: bold; margin-bottom: 4px; font-size: 14px;">${dest.name}</h3>
+            <p style="color: #666; font-size: 11px; margin-bottom: 8px;">${dest.province}</p>
+            <button onclick="openDestination(${dest.id})" style="background: linear-gradient(135deg, #E85D04, #C45508); color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 12px; font-weight: 600;">
+              View Details
+            </button>
+          </div>
+        `);
+      });
+    }
+
+    // ============================================
+    // CIVIC REPORTS
+    // ============================================
+    function renderCivicChallenges() {
+      const container = document.getElementById('civicChallenges');
+      container.innerHTML = civicChallenges.map(challenge => `
+        <div class="rounded-2xl p-6 text-white cursor-pointer transition-all hover:scale-105 hover:shadow-xl ${challenge.color}" onclick="startCivicChallenge('${challenge.id}')">
+          <div class="flex items-center gap-4 mb-4">
+            <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+              <i class="fas ${challenge.icon} text-2xl"></i>
+            </div>
+            <div>
+              <h3 class="font-bold">${challenge.name}</h3>
+              <p class="text-sm opacity-90">${challenge.desc}</p>
+            </div>
+          </div>
+          <div class="flex justify-between text-sm font-semibold">
+            <span>+${challenge.xp} XP</span>
+            <span>+K${challenge.cash}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function startCivicChallenge(challengeId) {
+      const challenge = civicChallenges.find(c => c.id === challengeId);
+      if (!challenge) return;
+      
+      currentReportChallenge = challenge;
+      
+      document.getElementById('reportIcon').className = `w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl ${challenge.color}`;
+      document.getElementById('reportIcon').innerHTML = `<i class="fas ${challenge.icon}"></i>`;
+      document.getElementById('reportTitle').textContent = challenge.name;
+      document.getElementById('reportDesc').textContent = challenge.desc;
+      
+      document.getElementById('reportModal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeReportModal() {
+      document.getElementById('reportModal').classList.remove('active');
+      document.body.style.overflow = '';
+      document.getElementById('reportTitleInput').value = '';
+      document.getElementById('reportDescInput').value = '';
+    }
+
+    function submitReport(e) {
+      e.preventDefault();
+      
+      if (!currentReportChallenge) return;
+      
+      const title = document.getElementById('reportTitleInput').value;
+      const desc = document.getElementById('reportDescInput').value;
+      
+      // Add report
+      state.civicReports.push({
+        id: Date.now(),
+        type: currentReportChallenge.id,
+        title,
+        description: desc,
+        xp: currentReportChallenge.xp,
+        cash: currentReportChallenge.cash,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Award XP
+      state.civicXP += currentReportChallenge.xp;
+      addScore(currentReportChallenge.xp);
+      
+      // Check level up
+      const newLevel = Math.floor(state.civicXP / 100) + 1;
+      if (newLevel > state.civicLevel) {
+        state.civicLevel = newLevel;
+        showAchievementToast('Level Up!', `Safety Level ${state.civicLevel}!`);
+      }
+      
+      // First report achievement
+      if (state.civicReports.length === 1) {
+        unlockAchievement('civic_hero');
+      }
+      
+      closeReportModal();
+      updateCivicUI();
+      showAchievementToast('Report Submitted!', `+${currentReportChallenge.xp} XP, +K${currentReportChallenge.cash}`);
+    }
+
+    function updateCivicUI() {
+      document.getElementById('civicLevelDisplay').textContent = state.civicLevel;
+      document.getElementById('civicXPDisplay').textContent = state.civicXP;
+      document.getElementById('civicXPNeeded').textContent = (state.civicLevel * 100) - state.civicXP;
+      document.getElementById('civicProgressBar').style.width = `${(state.civicXP % 100)}%`;
+      
+      // Update reports list
+      const list = document.getElementById('civicReportsList');
+      if (state.civicReports.length > 0) {
+        list.innerHTML = state.civicReports.slice(-5).reverse().map(report => {
+          const challenge = civicChallenges.find(c => c.id === report.type);
+          return `
+            <div class="flex items-center gap-3 p-3 rounded-xl transition-all" style="background: var(--bg-primary)">
+              <div class="w-10 h-10 ${challenge?.color || 'bg-gray-500'} rounded-full flex items-center justify-center text-white">
+                <i class="fas ${challenge?.icon || 'fa-exclamation'}"></i>
+              </div>
+              <div class="flex-1">
+                <p class="font-semibold text-sm" style="color: var(--text-primary)">${report.title}</p>
+                <p class="text-xs" style="color: var(--text-secondary)">${new Date(report.timestamp).toLocaleDateString()}</p>
+              </div>
+              <div class="text-right">
+                <span class="text-xs font-bold text-green-600">+K${report.cash}</span>
+                <br>
+                <span class="text-xs" style="color: var(--text-secondary)">${report.xp} XP</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // ============================================
+    // GAMIFICATION
+    // ============================================
+    function addScore(points) {
+      state.score += points;
+      updateLevel();
+      updateUI();
+      
+      // Save session
+      saveSession();
+      
+      // Sync XP to backend
+      if (window.saveUserXP) {
+        window.saveUserXP(state.score, state.level, state.cashEarned);
+      }
+    }
+
+    function updateLevel() {
+      const newLevel = Math.floor(state.score / 100) + 1;
+      if (newLevel > state.level) {
+        state.level = newLevel;
+        showAchievementToast('Level Up!', `You reached level ${newLevel}!`);
+        
+        // Save session
+        saveSession();
+        
+        // Sync level to backend
+        if (window.saveUserXP) {
+          window.saveUserXP(state.score, state.level, state.cashEarned);
+        }
+      }
+    }
+
+    function unlockAchievement(id) {
+      if (state.achievements.includes(id)) return;
+      
+      const ach = achievementDefs.find(a => a.id === id);
+      if (!ach) return;
+      
+      state.achievements.push(id);
+      addScore(ach.xp);
+      showAchievementToast(ach.name, ach.desc);
+      renderAchievements();
+      
+      // Sync achievement to backend
+      if (window.saveUserAchievement) {
+        window.saveUserAchievement(ach);
+      }
+    }
+
+    function showAchievementToast(title, desc) {
+      const toast = document.getElementById('achievementToast');
+      document.getElementById('achievementTitle').textContent = title;
+      document.getElementById('achievementDesc').textContent = desc;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+
+    function startTreasureHunt() {
+      state.treasureHuntActive = true;
+      state.currentTreasureIndex = 0;
+      state.foundTreasures = [];
+      updateClue();
+      renderDestinations();
+      showAchievementToast('Treasure Hunt Started!', 'Find hidden treasures!');
+    }
+
+    function updateClue() {
+      if (state.currentTreasureIndex < state.treasureClues.length) {
+        document.getElementById('currentClue').textContent = state.treasureClues[state.currentTreasureIndex].clue;
+      } else {
+        document.getElementById('currentClue').textContent = '🎉 All treasures found!';
+        state.treasureHuntActive = false;
+      }
+      document.getElementById('treasureCount').textContent = `${state.foundTreasures.length}/5 Found`;
+      document.getElementById('treasureBar').style.width = `${(state.foundTreasures.length / 5) * 100}%`;
+    }
+
+    function findTreasure() {
+      const treasureId = state.treasureClues[state.currentTreasureIndex].destination;
+      if (!state.foundTreasures.includes(treasureId)) {
+        state.foundTreasures.push(treasureId);
+        addScore(100);
+        showAchievementToast('Treasure Found!', '+100 XP');
+        
+        if (state.foundTreasures.length === 1) {
+          unlockAchievement('treasure_hunter');
+        }
+        
+        state.currentTreasureIndex++;
+        updateClue();
+        renderDestinations();
+      }
+    }
+
+    function addToWishlist() {
+      if (!state.currentDestination) return;
+      if (!state.wishlist.includes(state.currentDestination.id)) {
+        state.wishlist.push(state.currentDestination.id);
+        showAchievementToast('Added to Wishlist!', state.currentDestination.name);
+        addScore(5);
+        
+        if (state.wishlist.length >= 5) {
+          unlockAchievement('wishlist_pro');
+        }
+      } else {
+        showAchievementToast('Already Saved', 'This is in your wishlist');
+      }
+    }
+
+    function getDirections() {
+      if (state.currentDestination) {
+        window.open(`https://www.google.com/maps/dir/?api=1&destination=${state.currentDestination.lat},${state.currentDestination.lng}`, '_blank');
+      }
+    }
+
+    function showRandomDestination() {
+      const randomDest = destinations[Math.floor(Math.random() * destinations.length)];
+      openDestination(randomDest.id);
+      addScore(10);
+    }
+
+    // ============================================
+    // UI UPDATES
+    // ============================================
+    function updateUI() {
+      document.getElementById('adventureScore').textContent = state.score;
+      document.getElementById('adventureLevel').textContent = state.level;
+      document.getElementById('placesViewedCount').textContent = state.visitedDestinations.length;
+      document.getElementById('totalXPCount').textContent = state.score;
+      document.getElementById('achievementsCount').textContent = state.achievements.length;
+      renderLeaderboard();
+    }
+
+    function renderAchievements() {
+      const list = document.getElementById('achievementsList');
+      list.innerHTML = achievementDefs.map(ach => {
+        const unlocked = state.achievements.includes(ach.id);
+        return `
+          <div class="flex items-center gap-4 p-4 rounded-xl" style="background: ${unlocked ? 'rgba(22,163,74,0.1)' : 'var(--bg-primary)'}">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background: ${unlocked ? 'linear-gradient(135deg, #16A34A, #15803D)' : 'var(--border-color)'}; color: ${unlocked ? 'white' : 'var(--text-secondary)'}">
+              <i class="fas ${ach.icon}"></i>
+            </div>
+            <div class="flex-1">
+              <h4 class="font-bold" style="color: ${unlocked ? '#16A34A' : 'var(--text-primary)'}">${ach.name}</h4>
+              <p class="text-sm" style="color: var(--text-secondary)">${ach.desc}</p>
+            </div>
+            <span class="font-bold" style="color: ${unlocked ? '#16A34A' : 'var(--text-secondary)'}">+${ach.xp} XP</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderLeaderboard() {
+      const leaderboard = document.getElementById('leaderboard');
+      const players = [
+        { name: state.user?.name || 'You', score: state.score, isYou: true },
+        { name: 'Safari Sam', score: 850 },
+        { name: 'WildlifeWatcher', score: 720 },
+        { name: 'ZambiaExplorer', score: 680 },
+        { name: 'NatureLover', score: 550 }
+      ].sort((a, b) => b.score - a.score);
+
+      leaderboard.innerHTML = players.map((p, i) => `
+        <div class="flex items-center gap-4 p-3 rounded-xl ${p.isYou ? 'bg-white/20' : 'bg-white/10'}">
+          <span class="w-8 h-8 flex items-center justify-center font-bold rounded-full ${i === 0 ? 'bg-yellow-400 text-yellow-900' : ''}">${i + 1}</span>
+          <span class="flex-1 font-medium">${p.name}</span>
+          <span class="font-bold">${p.score} XP</span>
+        </div>
+      `).join('');
+    }
+
+    // ============================================
+    // TRAVEL BUDDIES
+    // ============================================
+    function findTravelBuddies() {
+      const mockTravelers = [
+        { name: 'Sarah M.', interests: ['Wildlife', 'Nature'], destinations: [2, 8], match: 85, avatar: 'S' },
+        { name: 'John K.', interests: ['Adventure', 'Nature'], destinations: [1, 10], match: 78, avatar: 'J' },
+        { name: 'Amina L.', interests: ['Heritage', 'Nature'], destinations: [11, 6], match: 72, avatar: 'A' },
+        { name: 'David R.', interests: ['Wildlife', 'Adventure'], destinations: [3, 9], match: 68, avatar: 'D' },
+        { name: 'Lisa T.', interests: ['Nature', 'Heritage'], destinations: [1, 12], match: 65, avatar: 'L' }
+      ];
+
+      const container = document.getElementById('activeTravelers');
+      container.innerHTML = mockTravelers.map(traveler => `
+        <div class="p-3 rounded-xl transition-all hover:scale-105" style="background: var(--bg-primary); border: 1px solid var(--border-color);">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">
+              ${traveler.avatar}
+            </div>
+            <div class="flex-1">
+              <h4 class="font-bold text-sm" style="color: var(--text-primary)">${traveler.name}</h4>
+              <p class="text-xs" style="color: var(--text-secondary)">${traveler.match}% match</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-1 mb-2">
+            ${traveler.interests.map(int => `<span class="text-xs px-2 py-1 rounded-full" style="background: rgba(139,92,246,0.1); color: #8B5CF6;">${int}</span>`).join('')}
+          </div>
+          <button onclick="connectBuddy('${traveler.name}')" class="w-full py-2 rounded-lg text-xs font-bold text-white transition-all hover:opacity-90" style="background: linear-gradient(135deg, #8B5CF6, #EC4899);">
+            <i class="fas fa-user-plus mr-1"></i>Connect
+          </button>
+        </div>
+      `).join('');
+      
+      showAchievementToast('Buddies Found!', `${mockTravelers.length} travelers match your interests`);
+    }
+
+    function connectBuddy(name) {
+      showAchievementToast('Connection Sent!', `Request sent to ${name}`);
+      addScore(10);
+    }
+
+    // ============================================
+    // MEDIA UPLOAD
+    // ============================================
+    function handleMediaUpload(event) {
+      const files = Array.from(event.target.files);
+      const preview = document.getElementById('mediaPreview');
+      
+      files.forEach(file => {
+        if (file.size > 50 * 1024 * 1024) {
+          showAchievementToast('File Too Large', `${file.name} exceeds 50MB`);
+          return;
+        }
+        
+        const reader = new FileReader();
+        const isVideo = file.type.startsWith('video/');
+        
+        reader.onload = (e) => {
+          const mediaItem = {
+            id: Date.now() + Math.random(),
+            url: e.target.result,
+            type: isVideo ? 'video' : 'image',
+            name: file.name
+          };
+          
+          state.pendingMedia.push(mediaItem);
+          
+          const div = document.createElement('div');
+          div.className = 'relative rounded-xl overflow-hidden group';
+          div.innerHTML = isVideo ? `
+            <video src="${e.target.result}" class="w-full h-48 object-cover" controls></video>
+            <div class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-lg text-xs font-bold">
+              <i class="fas fa-video mr-1"></i>VIDEO
+            </div>
+            <button onclick="removePendingMedia(${mediaItem.id})" class="absolute top-2 left-2 w-8 h-8 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all">
+              <i class="fas fa-times"></i>
+            </button>
+          ` : `
+            <img src="${e.target.result}" class="w-full h-48 object-cover" alt="Upload">
+            <button onclick="removePendingMedia(${mediaItem.id})" class="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all">
+              <i class="fas fa-times"></i>
+            </button>
+          `;
+          preview.appendChild(div);
+          
+          document.getElementById('publishBtn').classList.remove('hidden');
+        };
+        
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function removePendingMedia(id) {
+      state.pendingMedia = state.pendingMedia.filter(m => m.id !== id);
+      renderPendingMedia();
+      if (state.pendingMedia.length === 0) {
+        document.getElementById('publishBtn').classList.add('hidden');
+      }
+    }
+
+    function renderPendingMedia() {
+      const preview = document.getElementById('mediaPreview');
+      preview.innerHTML = state.pendingMedia.map(media => {
+        const isVideo = media.type === 'video';
+        return `
+          <div class="relative rounded-xl overflow-hidden group">
+            ${isVideo ? `
+              <video src="${media.url}" class="w-full h-48 object-cover" controls></video>
+              <div class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-lg text-xs font-bold">
+                <i class="fas fa-video mr-1"></i>VIDEO
+              </div>
+            ` : `
+              <img src="${media.url}" class="w-full h-48 object-cover" alt="Upload">
+            `}
+            <button onclick="removePendingMedia(${media.id})" class="absolute top-2 left-2 w-8 h-8 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function publishPost() {
+      const caption = document.getElementById('mediaCaption').value.trim();
+      
+      if (state.pendingMedia.length === 0) {
+        showAchievementToast('No Media', 'Please upload at least one photo or video');
+        return;
+      }
+      
+      const post = {
+        id: Date.now(),
+        caption: caption || 'Exploring Zambia! 🇿🇲',
+        media: [...state.pendingMedia],
+        timestamp: new Date().toISOString(),
+        likes: 0
+      };
+      
+      state.posts.unshift(post);
+      state.pendingMedia = [];
+      
+      document.getElementById('mediaCaption').value = '';
+      document.getElementById('mediaPreview').innerHTML = '';
+      document.getElementById('publishBtn').classList.add('hidden');
+      document.getElementById('photoUpload').value = '';
+      
+      renderTravelStories();
+      addScore(20);
+      showAchievementToast('Post Published!', '+20 XP for sharing your adventure');
+    }
+
+    function removeMedia(id) {
+      state.uploadedMedia = state.uploadedMedia.filter(m => m.id !== id);
+      renderMediaPreview();
+      renderTravelStories();
+    }
+
+    function renderMediaPreview() {
+      const preview = document.getElementById('mediaPreview');
+      preview.innerHTML = state.uploadedMedia.map(media => {
+        const isVideo = media.type === 'video';
+        return `
+          <div class="relative rounded-xl overflow-hidden group">
+            ${isVideo ? `
+              <video src="${media.url}" class="w-full h-48 object-cover" controls></video>
+              <div class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-lg text-xs font-bold">
+                <i class="fas fa-video mr-1"></i>VIDEO
+              </div>
+            ` : `
+              <img src="${media.url}" class="w-full h-48 object-cover" alt="Upload">
+            `}
+            <button onclick="removeMedia(${media.id})" class="absolute top-2 left-2 w-8 h-8 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderTravelStories() {
+      const container = document.getElementById('travelStories');
+      if (state.posts.length === 0) {
+        container.innerHTML = '<p class="text-center py-8" style="color: var(--text-secondary)">Share your first photo to start your travel story!</p>';
+        return;
+      }
+      
+      container.innerHTML = state.posts.map(post => {
+        const date = new Date(post.timestamp).toLocaleDateString();
+        const mainMedia = post.media[0];
+        const isVideo = mainMedia.type === 'video';
+        
+        return `
+          <div class="rounded-xl overflow-hidden" style="background: var(--bg-primary); border: 1px solid var(--border-color);">
+            <div class="p-4 flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-zambia-orange to-zambia-copper flex items-center justify-center text-white font-bold">
+                ${state.user?.name?.charAt(0) || 'U'}
+              </div>
+              <div>
+                <p class="font-bold" style="color: var(--text-primary)">${state.user?.name || 'User'}</p>
+                <p class="text-xs" style="color: var(--text-secondary)">${date}</p>
+              </div>
+            </div>
+            ${isVideo ? `
+              <video src="${mainMedia.url}" class="w-full h-64 object-cover" controls></video>
+            ` : `
+              <img src="${mainMedia.url}" class="w-full h-64 object-cover" alt="Story">
+            `}
+            ${post.media.length > 1 ? `
+              <div class="px-4 py-2 flex gap-2 overflow-x-auto">
+                ${post.media.slice(1, 4).map(m => `
+                  <img src="${m.url}" class="w-16 h-16 rounded-lg object-cover" alt="More">
+                `).join('')}
+                ${post.media.length > 4 ? `<div class="w-16 h-16 rounded-lg bg-black/50 flex items-center justify-center text-white font-bold text-sm">+${post.media.length - 4}</div>` : ''}
+              </div>
+            ` : ''}
+            <div class="p-4">
+              <p class="mb-3" style="color: var(--text-primary)">${post.caption}</p>
+              <div class="flex gap-4 text-sm" style="color: var(--text-secondary)">
+                <button onclick="likeStory(${post.id})" class="flex items-center gap-1 hover:text-red-500 transition-colors">
+                  <i class="fas fa-heart"></i> <span id="likes-${post.id}">${post.likes}</span>
+                </button>
+                <button class="flex items-center gap-1 hover:text-blue-500 transition-colors">
+                  <i class="fas fa-comment"></i> Comment
+                </button>
+                <button class="flex items-center gap-1 hover:text-green-500 transition-colors">
+                  <i class="fas fa-share"></i> Share
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function likeStory(id) {
+      const post = state.posts.find(p => p.id === id);
+      if (post) {
+        post.likes++;
+        document.getElementById(`likes-${id}`).textContent = post.likes;
+        showAchievementToast('Liked!', 'You liked this story');
+        addScore(2);
+      }
+    }
+
+    // ============================================
+    // EVENT LISTENERS
+    // ============================================
+    function setupEventListeners() {
+      // Search and filters
+      document.getElementById('searchInput').addEventListener('input', renderDestinations);
+      document.getElementById('provinceFilter').addEventListener('change', renderDestinations);
+      document.getElementById('categoryFilter').addEventListener('change', renderDestinations);
+
+      // Tabs
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+          document.getElementById(`${btn.dataset.tab}Tab`).classList.remove('hidden');
+
+          if (btn.dataset.tab === 'map') {
+            setTimeout(() => {
+              if (!mainMap) initMainMap();
+              else mainMap.invalidateSize();
+            }, 100);
+          }
+          
+          if (btn.dataset.tab === 'profile') {
+            loadProfileData();
+          }
+        });
+      });
+
+      // Modal close
+      document.getElementById('destinationModal').addEventListener('click', (e) => {
+        if (e.target.id === 'destinationModal') closeModal();
+      });
+      
+      document.getElementById('reportModal').addEventListener('click', (e) => {
+        if (e.target.id === 'reportModal') closeReportModal();
+      });
+
+      // Report form
+      document.getElementById('reportForm').addEventListener('submit', submitReport);
+
+      // Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeModal();
+          closeReportModal();
+        }
+      });
+    }
+
+    // Load tour guides
+    function loadTourGuides() {
+      const guides = [
+        { name: 'John Mwale', rating: 4.9, tours: 150, price: 50, specialty: 'Wildlife Safari', img: 'https://i.pravatar.cc/150?img=12' },
+        { name: 'Sarah Banda', rating: 4.8, tours: 120, price: 45, specialty: 'Cultural Tours', img: 'https://i.pravatar.cc/150?img=47' },
+        { name: 'David Phiri', rating: 4.7, tours: 95, price: 40, specialty: 'Adventure Tours', img: 'https://i.pravatar.cc/150?img=33' }
+      ];
+      document.getElementById('tourGuides').innerHTML = guides.map(g => `
+        <div class="flex items-center gap-4 p-4 rounded-xl border cursor-pointer hover:bg-gray-50" style="border-color: var(--border-color)" onclick="bookGuide('${g.name}')">
+          <img src="${g.img}" class="w-16 h-16 rounded-full" alt="${g.name}">
+          <div class="flex-1">
+            <h3 class="font-bold" style="color: var(--text-primary)">${g.name}</h3>
+            <p class="text-sm" style="color: var(--text-secondary)">${g.specialty}</p>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-yellow-500 text-sm">⭐ ${g.rating}</span>
+              <span class="text-xs" style="color: var(--text-secondary)">${g.tours} tours</span>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="font-bold text-green-600">$${g.price}/day</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function bookGuide(name) {
+      showAchievementToast('Guide Booked!', `${name} will contact you soon`);
+      addScore(15);
+    }
+
+    function bookTransport(type) {
+      const types = { flight: 'Flight', bus: 'Bus', car: 'Car Rental' };
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay active';
+      modal.innerHTML = `
+        <div class="modal-content p-8" style="max-width: 500px;">
+          <h2 class="text-2xl font-bold mb-6" style="color: var(--text-primary)">Book ${types[type]}</h2>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">From</label>
+              <input type="text" class="input-field" placeholder="Departure city" value="Lusaka">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">To</label>
+              <input type="text" class="input-field" placeholder="Destination city">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">Date</label>
+              <input type="date" class="input-field">
+            </div>
+            <div class="flex gap-3 mt-6">
+              <button onclick="this.closest('.modal-overlay').remove()" class="flex-1 py-3 rounded-xl font-semibold" style="background: var(--bg-primary); color: var(--text-primary); border: 2px solid var(--border-color);">Cancel</button>
+              <button onclick="confirmTransport('${types[type]}')" class="flex-1 py-3 rounded-xl font-semibold text-white" style="background: linear-gradient(135deg, #16A34A, #15803D);">Search ${types[type]}</button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    function confirmTransport(type) {
+      document.querySelector('.modal-overlay').remove();
+      showAchievementToast('Searching...', `Finding best ${type} options`);
+      addScore(10);
+    }
+
+    function loadActivities() {
+      const activities = [
+        { name: 'Bungee Jumping', location: 'Victoria Falls', price: 160, duration: '2 hours', img: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=300' },
+        { name: 'White Water Rafting', location: 'Zambezi River', price: 120, duration: '4 hours', img: 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=300' },
+        { name: 'Walking Safari', location: 'South Luangwa', price: 80, duration: '3 hours', img: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=300' },
+        { name: 'Canoe Safari', location: 'Lower Zambezi', price: 95, duration: '5 hours', img: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=300' },
+        { name: 'Helicopter Tour', location: 'Victoria Falls', price: 250, duration: '30 min', img: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=300' },
+        { name: 'Night Game Drive', location: 'Kafue NP', price: 70, duration: '3 hours', img: 'https://images.unsplash.com/photo-1549366021-9f761d450615?w=300' }
+      ];
+      document.getElementById('activityReservations').innerHTML = activities.map(a => `
+        <div class="rounded-xl overflow-hidden border cursor-pointer hover:shadow-lg transition-all" style="border-color: var(--border-color)" onclick="bookActivity('${a.name}', ${a.price})">
+          <img src="${a.img}" class="w-full h-40 object-cover" alt="${a.name}">
+          <div class="p-4">
+            <h3 class="font-bold mb-1" style="color: var(--text-primary)">${a.name}</h3>
+            <p class="text-sm mb-2" style="color: var(--text-secondary)"><i class="fas fa-map-marker-alt mr-1"></i>${a.location}</p>
+            <div class="flex justify-between items-center">
+              <span class="text-sm" style="color: var(--text-secondary)"><i class="fas fa-clock mr-1"></i>${a.duration}</span>
+              <span class="font-bold text-green-600">$${a.price}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function bookActivity(name, price) {
+      showAchievementToast('Activity Booked!', `${name} - $${price}`);
+      addScore(20);
+    }
+
+    let selectedDuration = 3;
+    
+    function selectDuration(days) {
+      selectedDuration = days;
+      document.getElementById('tripDuration').value = days;
+      document.querySelectorAll('.duration-btn').forEach(btn => {
+        if (parseInt(btn.dataset.days) === days) {
+          btn.style.borderColor = '#E85D04';
+          btn.style.background = 'rgba(232,93,4,0.1)';
+          btn.style.color = '#E85D04';
+        } else {
+          btn.style.borderColor = 'var(--border-color)';
+          btn.style.background = 'transparent';
+          btn.style.color = 'var(--text-primary)';
+        }
+      });
+    }
+    
+    function generateItinerary() {
+      try {
+        console.log('Generate Itinerary clicked');
+        
+        const days = selectedDuration;
+        const budget = parseInt(document.getElementById('tripBudget').value);
+        
+        console.log('Days:', days, 'Budget:', budget);
+        
+        if (!budget || budget < 100) {
+          alert('Please enter a valid budget (minimum $100)');
+          return;
+        }
+        
+        const itinerary = [];
+        const destinations = ['Victoria Falls', 'South Luangwa NP', 'Lower Zambezi NP', 'Livingstone', 'Lusaka'];
+        
+        for (let i = 1; i <= days; i++) {
+          const dest = destinations[Math.floor(Math.random() * destinations.length)];
+          itinerary.push({
+            day: i,
+            destination: dest,
+            activities: ['Morning game drive', 'Lunch at lodge', 'Afternoon activity', 'Dinner'],
+            accommodation: budget > 1500 ? 'Luxury Lodge' : budget > 500 ? 'Mid-range Hotel' : 'Budget Hostel'
+          });
+        }
+        
+        const accommodation = Math.round(budget * 0.4);
+        const transport = Math.round(budget * 0.25);
+        const activities = Math.round(budget * 0.25);
+        const food = budget - accommodation - transport - activities;
+        
+        console.log('Breakdown:', { accommodation, transport, activities, food });
+        
+        // Update the cost calculator INPUT FIELDS
+        const inputAccommodation = document.getElementById('inputAccommodation');
+        const inputTransport = document.getElementById('inputTransport');
+        const inputActivities = document.getElementById('inputActivities');
+        const inputFood = document.getElementById('inputFood');
+        const totalUSD = document.getElementById('totalUSD');
+        const totalZMW = document.getElementById('totalZMW');
+        
+        if (inputAccommodation) inputAccommodation.value = accommodation;
+        if (inputTransport) inputTransport.value = transport;
+        if (inputActivities) inputActivities.value = activities;
+        if (inputFood) inputFood.value = food;
+        if (totalUSD) totalUSD.textContent = `${budget}`;
+        if (totalZMW) totalZMW.textContent = `K${Math.round(budget * 19)}`;
+        
+        console.log('Cost calculator updated');
+        
+        const itineraryContainer = document.getElementById('generatedItinerary');
+        if (itineraryContainer) {
+          itineraryContainer.innerHTML = `
+            <div class="mt-6 p-6 rounded-2xl" style="background: var(--bg-primary); border: 1px solid var(--border-color);">
+              <h3 class="text-xl font-bold mb-4" style="color: var(--text-primary)">Your ${days}-Day Itinerary</h3>
+              <div class="space-y-4">
+                ${itinerary.map(day => `
+                  <div class="p-4 rounded-xl" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                    <h4 class="font-bold mb-2" style="color: var(--text-primary)">Day ${day.day}: ${day.destination}</h4>
+                    <p class="text-sm mb-2" style="color: var(--text-secondary)"><i class="fas fa-bed mr-2"></i>${day.accommodation}</p>
+                    <ul class="text-sm space-y-1" style="color: var(--text-secondary)">
+                      ${day.activities.map(a => `<li><i class="fas fa-check text-green-500 mr-2"></i>${a}</li>`).join('')}
+                    </ul>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+          console.log('Itinerary displayed');
+        }
+        
+        if (typeof showAchievementToast === 'function') {
+          showAchievementToast('Itinerary Generated!', `${days}-day trip planned`);
+        }
+        if (typeof addScore === 'function') {
+          addScore(30);
+        }
+        
+        console.log('Generate Itinerary completed successfully');
+      } catch (error) {
+        console.error('Error in generateItinerary:', error);
+        alert('Error generating itinerary: ' + error.message);
+      }
+    }
+
+    // Initialize bookings tab
+    setTimeout(() => {
+      loadTourGuides();
+      loadActivities();
+    }, 500);
+
+    // Global functions
+    window.handleLogin = handleLogin;
+    window.handleRegister = handleRegister;
+    window.showRegister = showRegister;
+    window.showLogin = showLogin;
+    window.logout = logout;
+    window.openDestination = openDestination;
+    window.closeModal = closeModal;
+    window.addToWishlist = addToWishlist;
+    window.getDirections = getDirections;
+    window.showRandomDestination = showRandomDestination;
+    window.startTreasureHunt = startTreasureHunt;
+    window.startCivicChallenge = startCivicChallenge;
+    window.closeReportModal = closeReportModal;
+    window.findTravelBuddies = findTravelBuddies;
+    window.connectBuddy = connectBuddy;
+    window.bookGuide = bookGuide;
+    window.bookTransport = bookTransport;
+    window.confirmTransport = confirmTransport;
+    window.bookActivity = bookActivity;
+    window.generateItinerary = generateItinerary;
+    window.handleMediaUpload = handleMediaUpload;
+    window.removeMedia = removeMedia;
+    
+    // ============================================
+    // NOTE: Profile functions moved to js/profile.js
+    // NOTE: Toast, Cache, and Skeleton functions moved to js/ui-utils.js
+    // ============================================
+    
+    window.removePendingMedia = removePendingMedia;
+    window.publishPost = publishPost;
+    window.likeStory = likeStory;
+    
+    // Note: Toast, Cache, and Skeleton functions are now in js/ui-utils.js
+    // Note: Profile functions are now in js/profile.js
+    
+    // Initialize event listeners immediately when page loads
+    setupEventListeners();
+    
+    // Check for existing session on page load
+    loadSession();
+    
+  </script>
+</body>
+</html>

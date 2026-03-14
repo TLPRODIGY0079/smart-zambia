@@ -96,17 +96,20 @@
     
     /* Hero Background */
     .hero-bg {
-      background: linear-gradient(135deg, rgba(232,93,4,0.9) 0%, rgba(196,85,8,0.85) 50%, rgba(120,53,15,0.9) 100%),
-                  url('https://pfst.cf2.poecdn.net/base/image/de16b54bf009fecce7da5e49114b7c4cba7c18101d0d98dc2834361d9072a860?w=1280&h=720');
+      background: linear-gradient(135deg, rgba(232,93,4,0.85) 0%, rgba(220,47,2,0.75) 25%, rgba(157,2,8,0.65) 50%, rgba(106,4,15,0.75) 75%, rgba(55,6,23,0.85) 100%),
+                  url('assets/BG.jpg');
       background-size: cover;
       background-position: center;
+      background-attachment: fixed;
+      position: relative;
     }
     
     .dark .hero-bg {
-      background: linear-gradient(135deg, rgba(15,23,42,0.95) 0%, rgba(30,41,59,0.9) 50%, rgba(15,23,42,0.95) 100%),
-                  url('https://pfst.cf2.poecdn.net/base/image/de16b54bf009fecce7da5e49114b7c4cba7c18101d0d98dc2834361d9072a860?w=1280&h=720');
+      background: linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(30,41,59,0.85) 50%, rgba(15,23,42,0.9) 100%),
+                  url('assets/BG.jpg');
       background-size: cover;
       background-position: center;
+      background-attachment: fixed;
     }
     
     /* Glass morphism */
@@ -354,6 +357,134 @@
     
     .achievement-toast.show {
       transform: translateX(0);
+    }
+    
+    /* Global Toast System */
+    .toast-container {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 400px;
+    }
+    
+    .toast {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transform: translateX(450px);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-left: 4px solid;
+    }
+    
+    .toast.show {
+      transform: translateX(0);
+    }
+    
+    .toast.success {
+      border-left-color: #10b981;
+    }
+    
+    .toast.error {
+      border-left-color: #ef4444;
+    }
+    
+    .toast.warning {
+      border-left-color: #f59e0b;
+    }
+    
+    .toast.info {
+      border-left-color: #3b82f6;
+    }
+    
+    .toast-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    
+    .toast.success .toast-icon {
+      color: #10b981;
+    }
+    
+    .toast.error .toast-icon {
+      color: #ef4444;
+    }
+    
+    .toast.warning .toast-icon {
+      color: #f59e0b;
+    }
+    
+    .toast.info .toast-icon {
+      color: #3b82f6;
+    }
+    
+    .toast-content {
+      flex: 1;
+      color: var(--text-primary);
+    }
+    
+    .toast-close {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    
+    .toast-close:hover {
+      background: var(--glass-bg);
+      color: var(--text-primary);
+    }
+    
+    /* Skeleton Loaders */
+    .skeleton {
+      background: linear-gradient(90deg, var(--glass-bg) 25%, var(--glass-border) 50%, var(--glass-bg) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 8px;
+    }
+    
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    
+    .skeleton-card {
+      background: var(--bg-card);
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+    
+    .skeleton-image {
+      width: 100%;
+      height: 200px;
+    }
+    
+    .skeleton-text {
+      height: 16px;
+      margin: 8px 0;
+    }
+    
+    .skeleton-title {
+      height: 24px;
+      width: 70%;
+      margin: 12px 0;
     }
     
     /* Adventure Badge */
@@ -609,7 +740,7 @@
         <div class="login-card p-8 md:p-10 animate-fadeInUp stagger-1">
           <div id="loginForm">
             <h2 class="text-2xl font-bold text-center mb-8" style="color: var(--text-primary)">Welcome Back!</h2>
-            <form onsubmit="handleLoginAPI(event)">
+            <form onsubmit="handleLogin(event)">
               <div class="mb-5">
                 <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">
                   <i class="fas fa-envelope mr-2 text-zambia-orange"></i>Email
@@ -636,7 +767,7 @@
           <!-- Register Form (hidden) -->
           <div id="registerForm" class="hidden">
             <h2 class="text-2xl font-bold text-center mb-8" style="color: var(--text-primary)">Join the Adventure!</h2>
-            <form onsubmit="handleRegisterAPI(event)">
+            <form onsubmit="handleRegister(event)">
               <div class="mb-5">
                 <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">
                   <i class="fas fa-user mr-2 text-zambia-orange"></i>Full Name
@@ -706,7 +837,6 @@
               <button class="tab-btn" data-tab="community"><i class="fas fa-users"></i><span class="ml-1">Community</span></button>
               <button class="tab-btn" data-tab="bookings"><i class="fas fa-calendar-check"></i><span class="ml-1">Book</span></button>
               <button class="tab-btn" data-tab="planner"><i class="fas fa-route"></i><span class="ml-1">Plan</span></button>
-              <button class="tab-btn" data-tab="safety"><i class="fas fa-shield-alt"></i><span class="ml-1">Safety</span></button>
               <button class="tab-btn" data-tab="adventures"><i class="fas fa-trophy"></i><span class="ml-1">Adventures</span></button>
               <button class="tab-btn" data-tab="profile"><i class="fas fa-user"></i><span class="ml-1">Profile</span></button>
             </div>
@@ -718,7 +848,6 @@
               <button class="tab-btn-icon" data-tab="community" title="Community"><i class="fas fa-users"></i></button>
               <button class="tab-btn-icon" data-tab="bookings" title="Book"><i class="fas fa-calendar-check"></i></button>
               <button class="tab-btn-icon" data-tab="planner" title="Plan Trip"><i class="fas fa-route"></i></button>
-              <button class="tab-btn-icon" data-tab="safety" title="Safety"><i class="fas fa-shield-alt"></i></button>
               <button class="tab-btn-icon" data-tab="adventures" title="Adventures"><i class="fas fa-trophy"></i></button>
               <button class="tab-btn-icon" data-tab="profile" title="Profile"><i class="fas fa-user"></i></button>
             </div>
@@ -750,7 +879,6 @@
           <button class="tab-btn" data-tab="community"><i class="fas fa-users mr-1"></i>Community</button>
           <button class="tab-btn" data-tab="bookings"><i class="fas fa-calendar mr-1"></i>Book</button>
           <button class="tab-btn" data-tab="planner"><i class="fas fa-route mr-1"></i>Plan</button>
-          <button class="tab-btn" data-tab="safety"><i class="fas fa-shield-alt mr-1"></i>Safety</button>
           <button class="tab-btn" data-tab="adventures"><i class="fas fa-trophy mr-1"></i>Adventures</button>
           <button class="tab-btn" data-tab="profile"><i class="fas fa-user mr-1"></i>Profile</button>
           <button class="tab-btn" onclick="logoutAPI()" style="color: #EF4444;"><i class="fas fa-sign-out-alt mr-1"></i>Logout</button>
@@ -1041,115 +1169,6 @@
                     <i class="fas fa-credit-card text-blue-500"></i>
                     <span class="font-medium" style="color: var(--text-primary)">Visa/Mastercard</span>
                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Safety Tab -->
-        <div id="safetyTab" class="tab-content hidden">
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Emergency Contacts -->
-            <div class="rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
-              <h2 class="text-2xl font-bold mb-6 gradient-text">Emergency Contacts</h2>
-              <div class="space-y-4">
-                <a href="tel:999" class="flex items-center gap-4 p-4 rounded-xl hover:scale-105 transition-all" style="background: var(--bg-primary); text-decoration: none;">
-                  <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white">
-                    <i class="fas fa-phone"></i>
-                  </div>
-                  <div class="flex-1">
-                    <h3 class="font-bold" style="color: var(--text-primary)">Emergency Services</h3>
-                    <p class="text-sm" style="color: var(--text-secondary)">Police, Fire, Ambulance</p>
-                    <p class="font-bold text-red-500">999 / 991</p>
-                  </div>
-                  <i class="fas fa-phone-alt text-red-500"></i>
-                </a>
-                <a href="tel:+260211229087" class="flex items-center gap-4 p-4 rounded-xl hover:scale-105 transition-all" style="background: var(--bg-primary); text-decoration: none;">
-                  <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white">
-                    <i class="fas fa-hospital"></i>
-                  </div>
-                  <div class="flex-1">
-                    <h3 class="font-bold" style="color: var(--text-primary)">Tourist Helpline</h3>
-                    <p class="text-sm" style="color: var(--text-secondary)">24/7 Tourist Assistance</p>
-                    <p class="font-bold text-blue-500">+260-211-229087</p>
-                  </div>
-                  <i class="fas fa-phone-alt text-blue-500"></i>
-                </a>
-                <div class="flex items-center gap-4 p-4 rounded-xl" style="background: var(--bg-primary)">
-                  <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white">
-                    <i class="fas fa-flag"></i>
-                  </div>
-                  <div>
-                    <h3 class="font-bold" style="color: var(--text-primary)">Embassy Services</h3>
-                    <p class="text-sm" style="color: var(--text-secondary)">Consular Assistance</p>
-                    <button onclick="showEmbassies()" class="text-green-500 font-bold text-sm">View Embassies</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Medical Facilities -->
-            <div class="rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
-              <h2 class="text-2xl font-bold mb-6 gradient-text">Medical Facilities</h2>
-              <div id="medicalFacilities" class="space-y-4">
-                <p class="text-center py-4" style="color: var(--text-secondary)">Loading medical facilities...</p>
-              </div>
-            </div>
-            
-            <!-- Safety Alerts -->
-            <div class="lg:col-span-2 rounded-3xl p-6 md:p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
-              <h2 class="text-2xl font-bold mb-6 gradient-text">Safety Alerts & Updates</h2>
-              <div id="safetyAlerts" class="space-y-4">
-                <p class="text-center py-4" style="color: var(--text-secondary)">Loading safety alerts...</p>
-              </div>
-            </div>
-          </div>
-        </div>
-          <div class="rounded-3xl p-6 md:p-10 mb-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
-            <div class="flex items-center gap-4 mb-6">
-              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl">
-                <i class="fas fa-shield-alt"></i>
-              </div>
-              <div>
-                <h2 class="text-2xl md:text-3xl font-display font-bold gradient-text">Tourism Safety Reports</h2>
-                <p style="color: var(--text-secondary)">Help keep Zambia's destinations safe!</p>
-              </div>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="civicChallenges"></div>
-          </div>
-          
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Safety Level -->
-            <div class="rounded-3xl p-8 text-white" style="background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);">
-              <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
-                <i class="fas fa-shield-alt"></i> Your Safety Level
-              </h2>
-              <div class="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
-                <p class="text-5xl font-bold mb-2" id="civicLevelDisplay">1</p>
-                <p class="text-lg opacity-90">Safety Guardian</p>
-                <div class="mt-6">
-                  <div class="flex justify-between text-sm mb-2">
-                    <span>XP: <span id="civicXPDisplay">0</span></span>
-                    <span>Next: <span id="civicXPNeeded">100</span></span>
-                  </div>
-                  <div class="w-full bg-white/20 rounded-full h-3">
-                    <div id="civicProgressBar" class="bg-white rounded-full h-3 transition-all" style="width: 0%"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Reports List -->
-            <div class="rounded-3xl p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
-              <h2 class="text-2xl font-bold mb-6 flex items-center gap-3" style="color: var(--text-primary)">
-                <i class="fas fa-list-check text-blue-500"></i> Your Reports
-              </h2>
-              <div id="civicReportsList" class="space-y-3">
-                <div class="text-center py-8">
-                  <i class="fas fa-camera text-4xl mb-4" style="color: var(--text-secondary); opacity: 0.3"></i>
-                  <p style="color: var(--text-secondary)">No reports yet. Help keep tourists safe!</p>
                 </div>
               </div>
             </div>
@@ -1543,6 +1562,9 @@
       </div>
     </div>
     
+    <!-- Global Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+    
     <!-- Report Modal -->
     <div class="modal-overlay" id="reportModal">
       <div class="modal-content p-8" style="max-width: 480px;">
@@ -1571,6 +1593,8 @@
 
   <!-- Scripts -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/ui-utils.js"></script>
+  <script src="js/profile.js"></script>
   <script src="js/api-config.js"></script>
   <script src="js/api-integration.js"></script>
   <script src="js/quick-wins.js"></script>
@@ -1654,6 +1678,69 @@
 
     let mainMap = null;
     let destinationMap = null;
+
+    // ============================================
+    // SESSION PERSISTENCE
+    // ============================================
+    
+    // Save session to localStorage
+    function saveSession() {
+      if (state.isLoggedIn && state.user) {
+        localStorage.setItem('smartZambiaSession', JSON.stringify({
+          isLoggedIn: state.isLoggedIn,
+          user: state.user,
+          score: state.score,
+          level: state.level,
+          achievements: state.achievements,
+          visitedDestinations: state.visitedDestinations,
+          loginStreak: state.loginStreak,
+          cashEarned: state.cashEarned
+        }));
+      }
+    }
+    
+    // Load session from localStorage
+    function loadSession() {
+      const savedSession = localStorage.getItem('smartZambiaSession');
+      if (savedSession) {
+        try {
+          const session = JSON.parse(savedSession);
+          if (session.isLoggedIn && session.user) {
+            // Restore state
+            state.isLoggedIn = session.isLoggedIn;
+            state.user = session.user;
+            state.score = session.score || 0;
+            state.level = session.level || 1;
+            state.achievements = session.achievements || [];
+            state.visitedDestinations = session.visitedDestinations || [];
+            state.loginStreak = session.loginStreak || 0;
+            state.cashEarned = session.cashEarned || 0;
+            
+            // Show main app instead of login screen
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            
+            // Update UI
+            document.getElementById('userWelcome').textContent = state.user.name;
+            document.getElementById('userInitial').textContent = state.user.name.charAt(0).toUpperCase();
+            
+            // Initialize app
+            initApp();
+            
+            return true;
+          }
+        } catch (error) {
+          console.error('Error loading session:', error);
+          localStorage.removeItem('smartZambiaSession');
+        }
+      }
+      return false;
+    }
+    
+    // Clear session
+    function clearSession() {
+      localStorage.removeItem('smartZambiaSession');
+    }
     let currentReportChallenge = null;
 
     // ============================================
@@ -1672,6 +1759,9 @@
       document.getElementById('userWelcome').textContent = name;
       document.getElementById('userInitial').textContent = name.charAt(0).toUpperCase();
       
+      // Save session
+      saveSession();
+      
       initApp();
       showAchievementToast('Welcome!', `Hello ${name}, start exploring Zambia!`);
     }
@@ -1688,6 +1778,9 @@
       document.getElementById('mainApp').classList.remove('hidden');
       document.getElementById('userWelcome').textContent = name;
       document.getElementById('userInitial').textContent = name.charAt(0).toUpperCase();
+      
+      // Save session
+      saveSession();
       
       initApp();
       showAchievementToast('Account Created!', `Welcome ${name}! Your adventure begins.`);
@@ -1706,6 +1799,10 @@
     function logout() {
       state.isLoggedIn = false;
       state.user = null;
+      
+      // Clear session
+      clearSession();
+      
       document.getElementById('mainApp').classList.add('hidden');
       document.getElementById('loginScreen').classList.remove('hidden');
     }
@@ -2022,6 +2119,9 @@
       updateLevel();
       updateUI();
       
+      // Save session
+      saveSession();
+      
       // Sync XP to backend
       if (window.saveUserXP) {
         window.saveUserXP(state.score, state.level, state.cashEarned);
@@ -2033,6 +2133,9 @@
       if (newLevel > state.level) {
         state.level = newLevel;
         showAchievementToast('Level Up!', `You reached level ${newLevel}!`);
+        
+        // Save session
+        saveSession();
         
         // Sync level to backend
         if (window.saveUserXP) {
@@ -2706,434 +2809,23 @@
     window.removeMedia = removeMedia;
     
     // ============================================
-    // PROFILE FUNCTIONS
+    // NOTE: Profile functions moved to js/profile.js
+    // NOTE: Toast, Cache, and Skeleton functions moved to js/ui-utils.js
     // ============================================
     
-    async function loadProfileData() {
-      try {
-        // Get user data from state or API
-        const user = window.state?.user || window.AuthAPI?.getCurrentUser();
-        
-        if (!user) {
-          console.error('No user data available');
-          return;
-        }
-        
-        console.log('Loading profile data...');
-        console.log('Current state:', {
-          score: window.state?.score,
-          level: window.state?.level,
-          cashEarned: window.state?.cashEarned,
-          visitedDestinations: window.state?.visitedDestinations?.length
-        });
-        
-        // Update profile header
-        document.getElementById('profileName').textContent = user.name || user.fullName || 'User';
-        document.getElementById('profileEmail').textContent = user.email || '';
-        document.getElementById('profileInitial').textContent = (user.name || user.fullName || 'U').charAt(0).toUpperCase();
-        
-        // Load profile image
-        loadProfileImage();
-        
-        // Update XP and Level - prioritize window.state over user object
-        const xp = window.state?.score || 0;
-        const level = window.state?.level || 1;
-        const cash = window.state?.cashEarned || user.cashEarned || 0;
-        
-        console.log('Displaying values:', { xp, level, cash });
-        
-        // Animate counters
-        setTimeout(() => {
-          animateCounter(document.getElementById('profileXP'), xp, 800);
-          animateCounter(document.getElementById('profileLevel'), level, 600);
-          animateCounter(document.getElementById('profileCash'), cash, 800);
-          animateCounter(document.getElementById('profileLevelBig'), level, 600);
-          animateCounter(document.getElementById('profileCashBig'), cash, 800);
-        }, 200);
-        
-        // Calculate level progress
-        const nextLevelXP = level * 100;
-        const currentLevelXP = (level - 1) * 100;
-        const progress = ((xp - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100;
-        
-        // Animate progress bar
-        setTimeout(() => {
-          document.getElementById('profileLevelBar').style.width = `${Math.min(progress, 100)}%`;
-        }, 300);
-        
-        // Update level ring (SVG circle)
-        const circumference = 2 * Math.PI * 65; // radius = 65
-        const offset = circumference - (progress / 100) * circumference;
-        const ring = document.getElementById('profileLevelRing');
-        if (ring) {
-          setTimeout(() => {
-            ring.style.strokeDashoffset = offset;
-          }, 300);
-        }
-        
-        // Update level badge
-        const levelBadge = document.getElementById('profileLevelBadge');
-        if (levelBadge) {
-          levelBadge.textContent = level;
-        }
-        
-        // Update progress labels
-        document.getElementById('profileCurrentXPLabel').textContent = `${xp} XP`;
-        document.getElementById('profileNextLevelLabel').textContent = `${nextLevelXP - xp} XP to next level`;
-        
-        // Update stats
-        const destCount = window.state?.visitedDestinations?.length || 0;
-        const reviewsCount = Object.keys(window.state?.userReviews || {}).length;
-        const streakCount = window.state?.loginStreak || 0;
-        
-        // Animate stat counters
-        setTimeout(() => {
-          animateCounter(document.getElementById('statsDestinations'), destCount, 600);
-          animateCounter(document.getElementById('statsReviews'), reviewsCount, 600);
-          animateCounter(document.getElementById('statsStreak'), streakCount, 600);
-          animateCounter(document.getElementById('profileStreakBig'), streakCount, 600);
-        }, 400);
-        
-        // Update streak visualization
-        const streak = window.state?.loginStreak || 0;
-        for (let i = 1; i <= 7; i++) {
-          const dayEl = document.getElementById(`streakDay${i}`);
-          if (i <= streak) {
-            dayEl.style.background = 'linear-gradient(135deg, #F59E0B, #EF4444)';
-            dayEl.style.color = 'white';
-            dayEl.innerHTML = '<i class="fas fa-fire text-xs"></i>';
-          } else {
-            dayEl.style.background = '#E5E7EB';
-            dayEl.style.color = '#9CA3AF';
-            dayEl.textContent = i;
-          }
-        }
-        
-        // Update cash rewards
-        document.getElementById('reward500').textContent = xp >= 500 ? '✅ K50' : 'K50';
-        document.getElementById('reward1000').textContent = xp >= 1000 ? '✅ K100' : 'K100';
-        document.getElementById('reward2000').textContent = xp >= 2000 ? '✅ K250' : 'K250';
-        
-        // Load favorites
-        await loadProfileFavorites();
-        
-        // Load achievements
-        loadProfileAchievements();
-        
-        // Load recent activity
-        loadRecentActivity();
-        
-        // Update UI (adventure badge, etc.)
-        updateUI();
-        
-        console.log('Profile data loaded successfully');
-        
-      } catch (error) {
-        console.error('Error loading profile data:', error);
-      }
-    }
-    
-    async function loadProfileFavorites() {
-      try {
-        const favorites = await window.getFavorites();
-        document.getElementById('statsFavorites').textContent = favorites.length;
-        
-        const container = document.getElementById('profileFavorites');
-        
-        if (favorites.length === 0) {
-          container.innerHTML = `
-            <div class="col-span-2 text-center py-8" style="color: var(--text-secondary)">
-              <i class="fas fa-heart text-4xl mb-3 opacity-30"></i>
-              <p>No favorites yet</p>
-            </div>
-          `;
-          return;
-        }
-        
-        // Get favorite destinations
-        const favDestinations = destinations.filter(d => favorites.includes(d.id)).slice(0, 6);
-        
-        container.innerHTML = favDestinations.map((dest, index) => `
-          <div class="rounded-xl overflow-hidden cursor-pointer hover:scale-105 hover:shadow-xl transition-all animate-fadeInUp" style="border: 1px solid var(--border-color); animation-delay: ${index * 0.1}s; opacity: 0;" onclick="openDestination(${dest.id})">
-            <div class="relative">
-              <img src="${dest.image_url}" alt="${dest.name}" class="w-full h-32 object-cover" onerror="this.src='https://via.placeholder.com/300x200/E85D04/FFFFFF?text=${encodeURIComponent(dest.name)}'">
-              <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-              <div class="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white shadow-lg">
-                <i class="fas fa-heart text-sm"></i>
-              </div>
-            </div>
-            <div class="p-3" style="background: var(--bg-card);">
-              <h4 class="font-bold text-sm mb-1" style="color: var(--text-primary)">${dest.name}</h4>
-              <p class="text-xs flex items-center" style="color: var(--text-secondary)">
-                <i class="fas fa-map-marker-alt text-orange-500 mr-1"></i>${dest.province}
-              </p>
-            </div>
-          </div>
-        `).join('');
-        
-        // Trigger animations
-        setTimeout(() => {
-          container.querySelectorAll('.animate-fadeInUp').forEach(el => {
-            el.style.opacity = '1';
-          });
-        }, 100);
-        
-      } catch (error) {
-        console.error('Error loading favorites:', error);
-      }
-    }
-    
-    function loadProfileAchievements() {
-      const achievements = window.state?.achievements || [];
-      const container = document.getElementById('profileAchievements');
-      
-      if (achievements.length === 0) {
-        container.innerHTML = `
-          <div class="col-span-2 text-center py-8" style="color: var(--text-secondary)">
-            <i class="fas fa-trophy text-4xl mb-3 opacity-30"></i>
-            <p>No achievements yet. Start exploring!</p>
-          </div>
-        `;
-        return;
-      }
-      
-      container.innerHTML = achievements.map((ach, index) => `
-        <div class="p-4 rounded-xl hover:scale-105 transition-all cursor-pointer animate-fadeInUp" style="background: var(--bg-primary); border: 1px solid var(--border-color); animation-delay: ${index * 0.1}s; opacity: 0;">
-          <div class="flex items-center gap-3">
-            <div class="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white shadow-lg">
-              <i class="fas ${ach.icon || 'fa-trophy'} text-xl"></i>
-            </div>
-            <div class="flex-1">
-              <h4 class="font-bold text-sm mb-1" style="color: var(--text-primary)">${ach.name}</h4>
-              <p class="text-xs mb-1" style="color: var(--text-secondary)">${ach.desc}</p>
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-bold px-2 py-1 rounded-full bg-green-100 text-green-700">+${ach.xp} XP</span>
-                ${ach.cash ? `<span class="text-xs font-bold px-2 py-1 rounded-full bg-blue-100 text-blue-700">K${ach.cash}</span>` : ''}
-              </div>
-            </div>
-          </div>
-        </div>
-      `).join('');
-      
-      // Trigger animations
-      setTimeout(() => {
-        container.querySelectorAll('.animate-fadeInUp').forEach(el => {
-          el.style.opacity = '1';
-        });
-      }, 100);
-    }
-    
-    function loadRecentActivity() {
-      const container = document.getElementById('recentActivity');
-      const activities = [];
-      
-      // Add visited destinations
-      if (window.state?.visitedDestinations) {
-        window.state.visitedDestinations.slice(-5).forEach(destId => {
-          const dest = destinations.find(d => d.id === destId);
-          if (dest) {
-            activities.push({
-              icon: 'fa-map-marker-alt',
-              color: 'text-orange-500',
-              bgColor: 'bg-orange-100',
-              text: `Visited ${dest.name}`,
-              time: 'Recently'
-            });
-          }
-        });
-      }
-      
-      // Add achievements
-      if (window.state?.achievements) {
-        window.state.achievements.slice(-3).forEach(ach => {
-          activities.push({
-            icon: 'fa-trophy',
-            color: 'text-yellow-500',
-            bgColor: 'bg-yellow-100',
-            text: `Unlocked "${ach.name}"`,
-            time: 'Recently'
-          });
-        });
-      }
-      
-      // Add reviews
-      if (window.state?.userReviews && Object.keys(window.state.userReviews).length > 0) {
-        Object.entries(window.state.userReviews).slice(-3).forEach(([destId, review]) => {
-          const dest = destinations.find(d => d.id == destId);
-          activities.push({
-            icon: 'fa-star',
-            color: 'text-purple-500',
-            bgColor: 'bg-purple-100',
-            text: `Reviewed ${dest?.name || 'a destination'}`,
-            time: 'Recently'
-          });
-        });
-      }
-      
-      if (activities.length === 0) {
-        container.innerHTML = `
-          <div class="text-center py-8" style="color: var(--text-secondary)">
-            <i class="fas fa-history text-4xl mb-3 opacity-30"></i>
-            <p>No recent activity yet</p>
-          </div>
-        `;
-        return;
-      }
-      
-      container.innerHTML = `
-        <!-- Timeline line -->
-        <div class="absolute left-5 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500 opacity-20"></div>
-        
-        ${activities.slice(0, 10).map((activity, index) => `
-          <div class="relative flex items-start gap-4 p-3 rounded-xl mb-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all animate-fadeInUp" style="animation-delay: ${index * 0.1}s; opacity: 0;">
-            <!-- Timeline dot -->
-            <div class="absolute left-5 w-3 h-3 rounded-full ${activity.bgColor} border-2 border-white dark:border-gray-900 z-10" style="transform: translateX(-50%);"></div>
-            
-            <div class="w-10 h-10 rounded-full ${activity.bgColor} flex items-center justify-center flex-shrink-0 ml-6">
-              <i class="fas ${activity.icon} ${activity.color}"></i>
-            </div>
-            <div class="flex-1 pt-1">
-              <p class="text-sm font-medium" style="color: var(--text-primary)">${activity.text}</p>
-              <p class="text-xs" style="color: var(--text-secondary)">${activity.time}</p>
-            </div>
-          </div>
-        `).join('')}
-      `;
-      
-      // Trigger animations
-      setTimeout(() => {
-        container.querySelectorAll('.animate-fadeInUp').forEach(el => {
-          el.style.opacity = '1';
-        });
-      }, 100);
-    }
-    
-    function editProfile() {
-      alert('Profile editing coming soon! You can update your name, avatar, and preferences.');
-    }
-    
-    // ============================================
-    // PROFILE IMAGE UPLOAD
-    // ============================================
-    
-    // Animated counter function
-    function animateCounter(element, target, duration = 1000) {
-      const start = parseInt(element.textContent) || 0;
-      const increment = (target - start) / (duration / 16);
-      let current = start;
-      
-      const timer = setInterval(() => {
-        current += increment;
-        if ((increment > 0 && current >= target) || (increment < 0 && current <= target)) {
-          element.textContent = target;
-          clearInterval(timer);
-        } else {
-          element.textContent = Math.floor(current);
-        }
-      }, 16);
-    }
-    
-    function triggerImageUpload() {
-      document.getElementById('profileImageInput').click();
-    }
-    
-    function handleProfileImageUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
-        return;
-      }
-      
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Image size must be less than 5MB');
-        return;
-      }
-      
-      // Read and display the image
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const imageUrl = e.target.result;
-        
-        // Update profile image
-        const profileImage = document.getElementById('profileImage');
-        const profileInitial = document.getElementById('profileInitial');
-        
-        profileImage.src = imageUrl;
-        profileImage.classList.remove('hidden');
-        profileInitial.classList.add('hidden');
-        
-        // Save to localStorage
-        localStorage.setItem('profileImage', imageUrl);
-        
-        // Sync to backend
-        if (window.saveProfileImage) {
-          window.saveProfileImage(imageUrl);
-        }
-        
-        // Update user avatar in navbar
-        const userInitial = document.getElementById('userInitial');
-        if (userInitial && userInitial.parentElement) {
-          userInitial.parentElement.style.backgroundImage = `url(${imageUrl})`;
-          userInitial.parentElement.style.backgroundSize = 'cover';
-          userInitial.parentElement.style.backgroundPosition = 'center';
-          userInitial.textContent = '';
-        }
-        
-        // Show success message
-        if (window.showAchievementToast) {
-          showAchievementToast('Profile Updated!', 'Your profile picture has been changed');
-        }
-        
-        // Award XP for first profile picture
-        if (!localStorage.getItem('profileImageUploaded')) {
-          localStorage.setItem('profileImageUploaded', 'true');
-          if (window.addScore) {
-            addScore(10);
-          }
-          if (window.showAchievementToast) {
-            showAchievementToast('Bonus XP!', '+10 XP for adding a profile picture');
-          }
-        }
-      };
-      
-      reader.readAsDataURL(file);
-    }
-    
-    function loadProfileImage() {
-      const savedImage = localStorage.getItem('profileImage');
-      if (savedImage) {
-        const profileImage = document.getElementById('profileImage');
-        const profileInitial = document.getElementById('profileInitial');
-        
-        if (profileImage && profileInitial) {
-          profileImage.src = savedImage;
-          profileImage.classList.remove('hidden');
-          profileInitial.classList.add('hidden');
-        }
-        
-        // Update navbar avatar
-        const userInitial = document.getElementById('userInitial');
-        if (userInitial && userInitial.parentElement) {
-          userInitial.parentElement.style.backgroundImage = `url(${savedImage})`;
-          userInitial.parentElement.style.backgroundSize = 'cover';
-          userInitial.parentElement.style.backgroundPosition = 'center';
-          userInitial.textContent = '';
-        }
-      }
-    }
-    
-    window.loadProfileData = loadProfileData;
-    window.editProfile = editProfile;
-    window.triggerImageUpload = triggerImageUpload;
-    window.handleProfileImageUpload = handleProfileImageUpload;
-    window.loadProfileImage = loadProfileImage;
     window.removePendingMedia = removePendingMedia;
     window.publishPost = publishPost;
     window.likeStory = likeStory;
+    
+    // Note: Toast, Cache, and Skeleton functions are now in js/ui-utils.js
+    // Note: Profile functions are now in js/profile.js
+    
+    // Initialize event listeners immediately when page loads
+    setupEventListeners();
+    
+    // Check for existing session on page load
+    loadSession();
+    
   </script>
 </body>
 </html>
