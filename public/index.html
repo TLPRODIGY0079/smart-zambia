@@ -1512,6 +1512,55 @@
                   </div>
                 </div>
               </div>
+              
+              <!-- Daily Check-In Calendar -->
+              <div class="rounded-3xl p-6 md:p-8 shadow-lg" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h2 class="text-2xl font-bold mb-6 flex items-center" style="color: var(--text-primary)">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center mr-3">
+                    <i class="fas fa-calendar-check text-white"></i>
+                  </div>
+                  Check-In Calendar
+                </h2>
+                
+                <!-- Calendar Container -->
+                <div id="checkInCalendar" class="mb-4">
+                  <!-- Calendar will be rendered here by check-in.js -->
+                </div>
+                
+                <!-- Check-In Stats -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+                  <div class="text-center p-4 rounded-xl" style="background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(74,222,128,0.05)); border: 2px solid rgba(34,197,94,0.2);">
+                    <div class="text-3xl font-bold bg-gradient-to-br from-green-500 to-green-600 bg-clip-text text-transparent mb-1" id="checkInTotalDays">0</div>
+                    <div class="text-xs font-semibold" style="color: var(--text-secondary)">Total Check-Ins</div>
+                  </div>
+                  
+                  <div class="text-center p-4 rounded-xl" style="background: linear-gradient(135deg, rgba(168,85,247,0.1), rgba(192,132,252,0.05)); border: 2px solid rgba(168,85,247,0.2);">
+                    <div class="text-3xl font-bold bg-gradient-to-br from-purple-500 to-purple-600 bg-clip-text text-transparent mb-1" id="checkInCurrentStreak">0</div>
+                    <div class="text-xs font-semibold" style="color: var(--text-secondary)">Current Streak</div>
+                  </div>
+                  
+                  <div class="text-center p-4 rounded-xl" style="background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(251,191,36,0.05)); border: 2px solid rgba(245,158,11,0.2);">
+                    <div class="text-3xl font-bold bg-gradient-to-br from-yellow-500 to-yellow-600 bg-clip-text text-transparent mb-1" id="checkInLongestStreak">0</div>
+                    <div class="text-xs font-semibold" style="color: var(--text-secondary)">Longest Streak</div>
+                  </div>
+                  
+                  <div class="text-center p-4 rounded-xl" style="background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(96,165,250,0.05)); border: 2px solid rgba(59,130,246,0.2);">
+                    <div class="text-3xl font-bold bg-gradient-to-br from-blue-500 to-blue-600 bg-clip-text text-transparent mb-1" id="checkInTotalXP">0</div>
+                    <div class="text-xs font-semibold" style="color: var(--text-secondary)">XP Earned</div>
+                  </div>
+                </div>
+                
+                <!-- Freeze Status -->
+                <div id="freezeStatus" class="mt-6 p-4 rounded-xl hidden" style="background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(96,165,250,0.05)); border: 2px solid rgba(59,130,246,0.2);">
+                  <div class="flex items-center gap-3">
+                    <i class="fas fa-snowflake text-3xl text-blue-500"></i>
+                    <div>
+                      <div class="font-bold text-lg" style="color: var(--text-primary)">Streak Freeze Available</div>
+                      <div class="text-sm" style="color: var(--text-secondary)">Your streak is protected if you miss a day</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               <!-- Recent Activity - Enhanced -->
               <div class="rounded-3xl p-6 md:p-8 shadow-lg" style="background: var(--bg-card); border: 1px solid var(--border-color);">

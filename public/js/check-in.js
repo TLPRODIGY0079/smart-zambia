@@ -1436,6 +1436,80 @@ const UIController = {
       element.textContent = targetValue;
       return false;
     }
+  },
+  
+  /**
+   * Update profile check-in stats display
+   * Updates the check-in calendar stats in the profile tab
+   * 
+   * @returns {boolean} True if stats updated successfully, false otherwise
+   * Requirements: 7.1, 7.2
+   */
+  updateProfileCheckInStats: function() {
+    // Check if we're in browser environment
+    if (typeof document === 'undefined') {
+      return false;
+    }
+    
+    try {
+      // Get check-in state
+      const state = window.state?.checkIn || loadCheckInState();
+      
+      // Update total check-ins
+      const totalDaysEl = document.getElementById('checkInTotalDays');
+      if (totalDaysEl) {
+        this.animateCounter(totalDaysEl, state.checkInHistory.length, 800);
+      }
+      
+      // Update current streak
+      const currentStreakEl = document.getElementById('checkInCurrentStreak');
+      if (currentStreakEl) {
+        this.animateCounter(currentStreakEl, state.currentStreak, 600);
+      }
+      
+      // Update longest streak
+      const longestStreakEl = document.getElementById('checkInLongestStreak');
+      if (longestStreakEl) {
+        this.animateCounter(longestStreakEl, state.longestStreak, 600);
+      }
+      
+      // Calculate total XP earned from check-ins
+      let totalXP = 0;
+      for (let i = 0; i < state.checkInHistory.length; i++) {
+        const dayNumber = i + 1;
+        const baseXP = 10 + (dayNumber * 2);
+        totalXP += baseXP;
+        
+        // Add milestone bonuses
+        if (dayNumber === 7) totalXP += 50;
+        if (dayNumber === 30) totalXP += 200;
+        if (dayNumber === 100) totalXP += 1000;
+      }
+      
+      const totalXPEl = document.getElementById('checkInTotalXP');
+      if (totalXPEl) {
+        this.animateCounter(totalXPEl, totalXP, 800);
+      }
+      
+      // Update freeze status
+      const freezeStatusEl = document.getElementById('freezeStatus');
+      if (freezeStatusEl) {
+        if (state.freezeAvailable && state.currentStreak > 0) {
+          freezeStatusEl.classList.remove('hidden');
+        } else {
+          freezeStatusEl.classList.add('hidden');
+        }
+      }
+      
+      // Update calendar display
+      this.updateCalendar();
+      
+      console.log('Profile check-in stats updated');
+      return true;
+    } catch (error) {
+      console.error('Error updating profile check-in stats:', error);
+      return false;
+    }
   }
 };
 
@@ -1764,6 +1838,14 @@ const CheckInManager = {
     if (typeof document !== 'undefined' && typeof window.ReminderSystem === 'object') {
       window.ReminderSystem.init();
     }
+    
+    // Update profile check-in stats if on profile page
+    if (typeof document !== 'undefined' && typeof window.UIController === 'object') {
+      // Delay to ensure DOM is ready
+      setTimeout(() => {
+        window.UIController.updateProfileCheckInStats();
+      }, 500);
+    }
   },
   
   /**
@@ -1937,6 +2019,12 @@ const CheckInManager = {
     if (typeof window.ReminderSystem === 'object' && 
         typeof window.ReminderSystem.refresh === 'function') {
       window.ReminderSystem.refresh();
+    }
+    
+    // Step 10: Update profile check-in stats
+    if (typeof window.UIController === 'object' && 
+        typeof window.UIController.updateProfileCheckInStats === 'function') {
+      window.UIController.updateProfileCheckInStats();
     }
     
     console.log('Check-in completed successfully:', {
