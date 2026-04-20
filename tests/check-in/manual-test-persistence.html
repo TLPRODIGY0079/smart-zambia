@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check-In Persistence Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    .test-section {
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .test-section h3 {
+      margin-top: 0;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      cursor: pointer;
+      background: #4F46E5;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    button:hover {
+      background: #4338CA;
+    }
+    .result {
+      margin-top: 10px;
+      padding: 10px;
+      background: #f5f5f5;
+      border-radius: 3px;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+    .success {
+      color: green;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <h1>Check-In Persistence Layer Test</h1>
+  <p>Manual testing for Task 3.1: localStorage save and load functions</p>
+
+  <div class="test-section">
+    <h3>Test 1: Save and Load Valid State</h3>
+    <button onclick="testSaveLoad()">Run Test</button>
+    <div id="test1-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h3>Test 2: Handle Corrupted Data</h3>
+    <button onclick="testCorruptedData()">Run Test</button>
+    <div id="test2-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h3>Test 3: Validate Date Strings</h3>
+    <button onclick="testDateValidation()">Run Test</button>
+    <div id="test3-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h3>Test 4: Validate Check-In History Array</h3>
+    <button onclick="testHistoryValidation()">Run Test</button>
+    <div id="test4-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h3>Test 5: Handle Quota Exceeded (Simulated)</h3>
+    <button onclick="testQuotaHandling()">Run Test</button>
+    <div id="test5-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h3>Clear localStorage</h3>
+    <button onclick="clearStorage()">Clear All Data</button>
+    <div id="clear-result" class="result"></div>
+  </div>
+
+  <!-- Load the check-in.js file -->
+  <script>
+    // Mock window.state
+    window.state = {};
+  </script>
+  <script src="../../public/js/check-in.js"></script>
+
+  <script>
+    // Test 1: Save and Load Valid State
+    function testSaveLoad() {
+      const result = document.getElementById('test1-result');
+      try {
+        const testState = {
+          currentStreak: 5,
+          longestStreak: 10,
+          lastCheckInDate: '2024-01-15',
+          checkInHistory: ['2024-01-11', '2024-01-12', '2024-01-13', '2024-01-14', '2024-01-15'],
+          freezeAvailable: true,
+          totalCheckIns: 25,
+          milestonesAchieved: [7],
+          totalCheckInXP: 500
+        };
+
+        // Save state
+        const saveSuccess = saveCheckInState(testState);
+        
+        // Load state
+        const loadedState = loadCheckInState();
+        
+        // Compare
+        const match = JSON.stringify(testState) === JSON.stringify(loadedState);
+        
+        result.innerHTML = `Save Success: ${saveSuccess}\n` +
+                          `States Match: ${match}\n\n` +
+                          `Original:\n${JSON.stringify(testState, null, 2)}\n\n` +
+                          `Loaded:\n${JSON.stringify(loadedState, null, 2)}`;
+        result.className = match ? 'result success' : 'result error';
+      } catch (error) {
+        result.innerHTML = `Error: ${error.message}`;
+        result.className = 'result error';
+      }
+    }
+
+    // Test 2: Handle Corrupted Data
+    function testCorruptedData() {
+      const result = document.getElementById('test2-result');
+      try {
+        // Save corrupted data directly to localStorage
+        const corruptedData = {
+          currentStreak: 'not a number',
+          longestStreak: -5,
+          lastCheckInDate: 'invalid-date',
+          checkInHistory: ['2024-01-15', 123, null, 'invalid', '2024-02-30'],
+          freezeAvailable: 'yes',
+          totalCheckIns: 'many',
+          milestonesAchieved: [7, 'thirty', 999],
+          totalCheckInXP: -100
+        };
+        
+        localStorage.setItem('checkInState', JSON.stringify(corruptedData));
+        
+        // Load and validate
+        const loadedState = loadCheckInState();
+        
+        // Check if defaults were applied
+        const hasDefaults = 
+          loadedState.currentStreak === 0 &&
+          loadedState.longestStreak === 0 &&
+          loadedState.lastCheckInDate === null &&
+          Array.isArray(loadedState.checkInHistory) &&
+          loadedState.freezeAvailable === true;
+        
+        result.innerHTML = `Corrupted data handled: ${hasDefaults}\n\n` +
+                          `Loaded State:\n${JSON.stringify(loadedState, null, 2)}`;
+        result.className = hasDefaults ? 'result success' : 'result error';
+      } catch (error) {
+        result.innerHTML = `Error: ${error.message}`;
+        result.className = 'result error';
+      }
+    }
+
+    // Test 3: Validate Date Strings
+    function testDateValidation() {
+      const result = document.getElementById('test3-result');
+      try {
+        const tests = [
+          { input: '2024-01-15', expected: '2024-01-15', desc: 'Valid date' },
+          { input: 'invalid', expected: null, desc: 'Invalid format' },
+          { input: '2024-13-01', expected: null, desc: 'Invalid month' },
+          { input: '2024-02-30', expected: null, desc: 'Invalid day' },
+          { input: null, expected: null, desc: 'Null value' },
+          { input: 123, expected: null, desc: 'Number instead of string' }
+        ];
+
+        let output = '';
+        let allPassed = true;
+
+        tests.forEach(test => {
+          const result = validateDateString(test.input);
+          const passed = result === test.expected;
+          allPassed = allPassed && passed;
+          output += `${passed ? '✓' : '✗'} ${test.desc}: ${JSON.stringify(test.input)} → ${JSON.stringify(result)}\n`;
+        });
+
+        result.innerHTML = output;
+        result.className = allPassed ? 'result success' : 'result error';
+      } catch (error) {
+        result.innerHTML = `Error: ${error.message}`;
+        result.className = 'result error';
+      }
+    }
+
+    // Test 4: Validate Check-In History Array
+    function testHistoryValidation() {
+      const result = document.getElementById('test4-result');
+      try {
+        const tests = [
+          { 
+            input: ['2024-01-15', '2024-01-14', '2024-01-13'], 
+            expectedLength: 3,
+            desc: 'Valid array' 
+          },
+          { 
+            input: ['2024-01-15', 'invalid', 123, null, '2024-01-14'], 
+            expectedLength: 2,
+            desc: 'Mixed valid/invalid' 
+          },
+          { 
+            input: 'not an array', 
+            expectedLength: 0,
+            desc: 'Not an array' 
+          },
+          { 
+            input: ['2024-01-15', '2024-01-15', '2024-01-14'], 
+            expectedLength: 2,
+            desc: 'Duplicates removed' 
+          }
+        ];
+
+        let output = '';
+        let allPassed = true;
+
+        tests.forEach(test => {
+          const result = validateCheckInHistory(test.input);
+          const passed = Array.isArray(result) && result.length === test.expectedLength;
+          allPassed = allPassed && passed;
+          output += `${passed ? '✓' : '✗'} ${test.desc}: length=${result.length} (expected ${test.expectedLength})\n`;
+          output += `  Result: ${JSON.stringify(result)}\n`;
+        });
+
+        result.innerHTML = output;
+        result.className = allPassed ? 'result success' : 'result error';
+      } catch (error) {
+        result.innerHTML = `Error: ${error.message}`;
+        result.className = 'result error';
+      }
+    }
+
+    // Test 5: Handle Quota Exceeded
+    function testQuotaHandling() {
+      const result = document.getElementById('test5-result');
+      try {
+        // Create a large state with lots of history
+        const largeState = {
+          currentStreak: 365,
+          longestStreak: 365,
+          lastCheckInDate: '2024-12-31',
+          checkInHistory: [],
+          freezeAvailable: true,
+          totalCheckIns: 365,
+          milestonesAchieved: [7, 30, 100],
+          totalCheckInXP: 50000
+        };
+
+        // Generate 365 days of history
+        for (let i = 0; i < 365; i++) {
+          const date = new Date('2024-01-01');
+          date.setDate(date.getDate() + i);
+          largeState.checkInHistory.push(date.toISOString().split('T')[0]);
+        }
+
+        // Try to save
+        const saveSuccess = saveCheckInState(largeState);
+        
+        result.innerHTML = `Large state save: ${saveSuccess ? 'Success' : 'Failed'}\n` +
+                          `History entries: ${largeState.checkInHistory.length}\n` +
+                          `Data size: ~${JSON.stringify(largeState).length} bytes\n\n` +
+                          `Note: Quota exceeded handling is automatic and will trim history if needed.`;
+        result.className = 'result success';
+      } catch (error) {
+        result.innerHTML = `Error: ${error.message}`;
+        result.className = 'result error';
+      }
+    }
+
+    // Clear localStorage
+    function clearStorage() {
+      const result = document.getElementById('clear-result');
+      try {
+        localStorage.removeItem('checkInState');
+        result.innerHTML = 'localStorage cleared successfully';
+        result.className = 'result success';
+      } catch (error) {
+        result.innerHTML = `Error: ${error.message}`;
+        result.className = 'result error';
+      }
+    }
+  </script>
+</body>
+</html>

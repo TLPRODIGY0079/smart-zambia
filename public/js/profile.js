@@ -108,12 +108,26 @@ async function loadProfileData() {
     const reviewsCount = Object.keys(window.state?.userReviews || {}).length;
     const streakCount = window.state?.loginStreak || 0;
     
+    // Treasure hunt stats
+    const treasureStats = window.state?.treasureHuntStats || {
+      totalHunts: 0,
+      completedHunts: 0,
+      treasuresFound: 0,
+      totalRewards: 0
+    };
+    
     // Animate stat counters
     setTimeout(() => {
       animateCounter(document.getElementById('statsDestinations'), destCount, 600);
       animateCounter(document.getElementById('statsReviews'), reviewsCount, 600);
       animateCounter(document.getElementById('statsStreak'), streakCount, 600);
       animateCounter(document.getElementById('profileStreakBig'), streakCount, 600);
+      
+      // Animate treasure hunt stats
+      animateCounter(document.getElementById('statsTreasuresFound'), treasureStats.treasuresFound, 600);
+      animateCounter(document.getElementById('statsHuntsCompleted'), treasureStats.completedHunts, 600);
+      animateCounter(document.getElementById('statsTreasureRewards'), treasureStats.totalRewards, 600);
+      animateCounter(document.getElementById('statsTotalHunts'), treasureStats.totalHunts, 600);
     }, 400);
     
     // Update streak visualization
@@ -444,8 +458,10 @@ function saveProfileChanges(event) {
   window.state.user.location = location;
   window.state.user.bio = bio;
   
-  // Save to localStorage
-  if (window.saveSession) {
+  // Save to localStorage using the new system
+  if (window.saveUserData) {
+    window.saveUserData();
+  } else if (window.saveSession) {
     window.saveSession();
   }
   

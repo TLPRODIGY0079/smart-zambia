@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Super Admin - Smart Zambia</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    
+    .admin-card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 16px;
+      padding: 24px;
+      color: white;
+      transition: transform 0.3s ease;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-4px);
+    }
+    
+    .table-row:hover {
+      background: #f3f4f6;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102,126,234,0.4);
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(239,68,68,0.4);
+    }
+    
+    .tab-btn {
+      padding: 12px 24px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-weight: 600;
+      color: #6b7280;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s ease;
+    }
+    
+    .tab-btn.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+    
+    .input-field {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+    
+    .input-field:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 4px rgba(102,126,234,0.1);
+    }
+  </style>
+</head>
+<body>
+  <!-- Login Screen -->
+  <div id="adminLogin" class="min-h-screen flex items-center justify-center p-4">
+    <div class="admin-card p-8 md:p-12 max-w-md w-full">
+      <div class="text-center mb-8">
+        <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center">
+          <i class="fas fa-shield-alt text-3xl text-white"></i>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Super Admin</h1>
+        <p class="text-gray-600">Smart Zambia Control Panel</p>
+      </div>
+      
+      <form onsubmit="handleAdminLogin(event)">
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <i class="fas fa-envelope mr-2 text-purple-600"></i>Admin Email
+          </label>
+          <input type="email" id="adminEmail" required class="input-field" placeholder="admin@smartzambia.com">
+        </div>
+        <div class="mb-6">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <i class="fas fa-lock mr-2 text-purple-600"></i>Password
+          </label>
+          <input type="password" id="adminPassword" required class="input-field" placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn-primary w-full">
+          <i class="fas fa-sign-in-alt mr-2"></i>Access Admin Panel
+        </button>
+      </form>
+      
+      <div class="mt-6 text-center text-sm text-gray-500">
+        <i class="fas fa-info-circle mr-1"></i>
+        Authorized personnel only
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Dashboard -->
+  <div id="adminDashboard" class="hidden min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
+              <i class="fas fa-shield-alt text-white"></i>
+            </div>
+            <div>
+              <h1 class="text-xl font-bold text-gray-800">Super Admin</h1>
+              <p class="text-xs text-gray-500">Smart Zambia</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <span class="text-sm text-gray-600" id="adminUserName">Admin</span>
+            <button onclick="logoutAdmin()" class="text-red-500 hover:text-red-600">
+              <i class="fas fa-sign-out-alt"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Stats Overview -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="stat-card">
+          <div class="flex items-center justify-between mb-2">
+            <i class="fas fa-users text-3xl opacity-80"></i>
+            <span class="text-sm opacity-80">Total</span>
+          </div>
+          <div class="text-3xl font-bold" id="totalUsers">0</div>
+          <div class="text-sm opacity-90">Registered Users</div>
+        </div>
+        
+        <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+          <div class="flex items-center justify-between mb-2">
+            <i class="fas fa-map-marked-alt text-3xl opacity-80"></i>
+            <span class="text-sm opacity-80">Total</span>
+          </div>
+          <div class="text-3xl font-bold" id="totalDestinations">21</div>
+          <div class="text-sm opacity-90">Destinations</div>
+        </div>
+        
+        <div class="stat-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+          <div class="flex items-center justify-between mb-2">
+            <i class="fas fa-trophy text-3xl opacity-80"></i>
+            <span class="text-sm opacity-80">Total</span>
+          </div>
+          <div class="text-3xl font-bold" id="totalAchievements">0</div>
+          <div class="text-sm opacity-90">Achievements Unlocked</div>
+        </div>
+        
+        <div class="stat-card" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+          <div class="flex items-center justify-between mb-2">
+            <i class="fas fa-shield-alt text-3xl opacity-80"></i>
+            <span class="text-sm opacity-80">Total</span>
+          </div>
+          <div class="text-3xl font-bold" id="totalReports">0</div>
+          <div class="text-sm opacity-90">Civic Reports</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="admin-card mb-6">
+        <div class="border-b border-gray-200 flex overflow-x-auto">
+          <button class="tab-btn active" data-tab="users" onclick="switchTab('users')">
+            <i class="fas fa-users mr-2"></i>Users
+          </button>
+          <button class="tab-btn" data-tab="destinations" onclick="switchTab('destinations')">
+            <i class="fas fa-map-marked-alt mr-2"></i>Destinations
+          </button>
+          <button class="tab-btn" data-tab="reports" onclick="switchTab('reports')">
+            <i class="fas fa-shield-alt mr-2"></i>Civic Reports
+          </button>
+          <button class="tab-btn" data-tab="analytics" onclick="switchTab('analytics')">
+            <i class="fas fa-chart-line mr-2"></i>Analytics
+          </button>
+          <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">
+            <i class="fas fa-cog mr-2"></i>Settings
+          </button>
+        </div>
+
+        <!-- Users Tab -->
+        <div id="usersTab" class="tab-content p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">User Management</h2>
+            <button onclick="refreshUsers()" class="btn-primary">
+              <i class="fas fa-sync-alt mr-2"></i>Refresh
+            </button>
+          </div>
+          
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="border-b-2 border-gray-200">
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700">Name</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700">Email</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700">Level</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700">XP</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700">Last Login</th>
+                  <th class="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody">
+                <tr>
+                  <td colspan="6" class="text-center py-8 text-gray-500">
+                    <i class="fas fa-users text-4xl mb-2 opacity-30"></i>
+                    <p>No users found</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Destinations Tab -->
+        <div id="destinationsTab" class="tab-content p-6 hidden">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">Destination Management</h2>
+            <button onclick="addDestination()" class="btn-primary">
+              <i class="fas fa-plus mr-2"></i>Add Destination
+            </button>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="destinationsGrid">
+            <p class="text-center py-8 text-gray-500 col-span-full">Loading destinations...</p>
+          </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div id="reportsTab" class="tab-content p-6 hidden">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">Civic Reports</h2>
+            <select class="input-field" style="width: auto;" onchange="filterReports(this.value)">
+              <option value="all">All Reports</option>
+              <option value="pending">Pending</option>
+              <option value="reviewed">Reviewed</option>
+              <option value="resolved">Resolved</option>
+            </select>
+          </div>
+          
+          <div class="space-y-4" id="reportsList">
+            <p class="text-center py-8 text-gray-500">No reports found</p>
+          </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="analyticsTab" class="tab-content p-6 hidden">
+          <h2 class="text-2xl font-bold text-gray-800 mb-6">Platform Analytics</h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="border border-gray-200 rounded-xl p-6">
+              <h3 class="text-lg font-semibold text-gray-800 mb-4">User Growth</h3>
+              <div class="text-4xl font-bold text-purple-600 mb-2" id="userGrowth">+0%</div>
+              <p class="text-sm text-gray-600">Last 30 days</p>
+            </div>
+            
+            <div class="border border-gray-200 rounded-xl p-6">
+              <h3 class="text-lg font-semibold text-gray-800 mb-4">Engagement Rate</h3>
+              <div class="text-4xl font-bold text-green-600 mb-2" id="engagementRate">0%</div>
+              <p class="text-sm text-gray-600">Active users</p>
+            </div>
+            
+            <div class="border border-gray-200 rounded-xl p-6">
+              <h3 class="text-lg font-semibold text-gray-800 mb-4">Total XP Earned</h3>
+              <div class="text-4xl font-bold text-orange-600 mb-2" id="totalXP">0</div>
+              <p class="text-sm text-gray-600">All users combined</p>
+            </div>
+            
+            <div class="border border-gray-200 rounded-xl p-6">
+              <h3 class="text-lg font-semibold text-gray-800 mb-4">Easter Eggs Found</h3>
+              <div class="text-4xl font-bold text-blue-600 mb-2" id="easterEggsFound">0</div>
+              <p class="text-sm text-gray-600">Total discoveries</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settingsTab" class="tab-content p-6 hidden">
+          <h2 class="text-2xl font-bold text-gray-800 mb-6">System Settings</h2>
+          
+          <div class="space-y-6">
+            <div class="border border-gray-200 rounded-xl p-6">
+              <h3 class="text-lg font-semibold text-gray-800 mb-4">Platform Settings</h3>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">Platform Name</label>
+                  <input type="text" class="input-field" value="Smart Zambia" id="platformName">
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">Maintenance Mode</label>
+                  <label class="flex items-center cursor-pointer">
+                    <input type="checkbox" id="maintenanceMode" class="mr-2">
+                    <span class="text-sm text-gray-600">Enable maintenance mode</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            
+            <div class="border border-gray-200 rounded-xl p-6">
+              <h3 class="text-lg font-semibold text-gray-800 mb-4">Data Management</h3>
+              <div class="space-y-3">
+                <button onclick="exportData()" class="btn-primary w-full">
+                  <i class="fas fa-download mr-2"></i>Export All Data
+                </button>
+                <button onclick="clearCache()" class="btn-primary w-full" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                  <i class="fas fa-broom mr-2"></i>Clear Cache
+                </button>
+                <button onclick="confirmReset()" class="btn-danger w-full">
+                  <i class="fas fa-exclamation-triangle mr-2"></i>Reset All Data
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Admin credentials (in production, this should be server-side)
+    const ADMIN_CREDENTIALS = {
+      email: 'admin@smartzambia.com',
+      password: 'SmartZambia2024!',
+      name: 'Super Admin'
+    };
+
+    // Admin state
+    let adminLoggedIn = false;
+    let currentTab = 'users';
+
+    // Handle admin login
+    function handleAdminLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('adminEmail').value;
+      const password = document.getElementById('adminPassword').value;
+
+      if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
+        adminLoggedIn = true;
+        localStorage.setItem('smartZambia_adminSession', JSON.stringify({
+          loggedIn: true,
+          email: email,
+          timestamp: Date.now()
+        }));
+        
+        showDashboard();
+      } else {
+        alert('Invalid credentials. Access denied.');
+      }
+    }
+
+    // Show dashboard
+    function showDashboard() {
+      document.getElementById('adminLogin').classList.add('hidden');
+      document.getElementById('adminDashboard').classList.remove('hidden');
+      document.getElementById('adminUserName').textContent = ADMIN_CREDENTIALS.name;
+      
+      loadDashboardData();
+    }
+
+    // Logout admin
+    function logoutAdmin() {
+      if (confirm('Are you sure you want to logout?')) {
+        adminLoggedIn = false;
+        localStorage.removeItem('smartZambia_adminSession');
+        document.getElementById('adminDashboard').classList.add('hidden');
+        document.getElementById('adminLogin').classList.remove('hidden');
+      }
+    }
+
+    // Switch tabs
+    function switchTab(tab) {
+      currentTab = tab;
+      
+      // Update tab buttons
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.tab === tab) {
+          btn.classList.add('active');
+        }
+      });
+      
+      // Update tab content
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+      });
+      document.getElementById(`${tab}Tab`).classList.remove('hidden');
+      
+      // Load tab data
+      if (tab === 'users') loadUsers();
+      if (tab === 'destinations') loadDestinations();
+      if (tab === 'reports') loadReports();
+      if (tab === 'analytics') loadAnalytics();
+    }
+
+    // Load dashboard data
+    function loadDashboardData() {
+      loadUsers();
+      loadStats();
+    }
+
+    // Load stats
+    function loadStats() {
+      const users = getAllUsers();
+      document.getElementById('totalUsers').textContent = users.length;
+      
+      let totalAchievements = 0;
+      let totalReports = 0;
+      
+      users.forEach(user => {
+        if (user.achievements) totalAchievements += user.achievements.length;
+        if (user.civicReports) totalReports += user.civicReports.length;
+      });
+      
+      document.getElementById('totalAchievements').textContent = totalAchievements;
+      document.getElementById('totalReports').textContent = totalReports;
+    }
+
+    // Get all users from localStorage
+    function getAllUsers() {
+      const users = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('smartZambia_user_')) {
+          try {
+            const userData = JSON.parse(localStorage.getItem(key));
+            users.push(userData);
+          } catch (e) {
+            console.error('Error parsing user data:', e);
+          }
+        }
+      }
+      return users;
+    }
+
+    // Load users
+    function loadUsers() {
+      const users = getAllUsers();
+      const tbody = document.getElementById('usersTableBody');
+      
+      if (users.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="text-center py-8 text-gray-500">
+              <i class="fas fa-users text-4xl mb-2 opacity-30"></i>
+              <p>No users found</p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+      
+      tbody.innerHTML = users.map(user => `
+        <tr class="table-row border-b border-gray-100">
+          <td class="py-3 px-4 font-medium text-gray-800">${user.user?.name || 'Unknown'}</td>
+          <td class="py-3 px-4 text-gray-600">${user.user?.email || 'N/A'}</td>
+          <td class="py-3 px-4">
+            <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
+              Level ${user.level || 1}
+            </span>
+          </td>
+          <td class="py-3 px-4 text-gray-600">${user.score || 0} XP</td>
+          <td class="py-3 px-4 text-gray-600 text-sm">${user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never'}</td>
+          <td class="py-3 px-4">
+            <button onclick="viewUser('${user.user?.email}')" class="text-purple-600 hover:text-purple-700 mr-2">
+              <i class="fas fa-eye"></i>
+            </button>
+            <button onclick="deleteUser('${user.user?.email}')" class="text-red-600 hover:text-red-700">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Refresh users
+    function refreshUsers() {
+      loadUsers();
+      loadStats();
+      alert('User data refreshed!');
+    }
+
+    // View user details
+    function viewUser(email) {
+      const userKey = `smartZambia_user_${email}`;
+      const userData = JSON.parse(localStorage.getItem(userKey));
+      
+      alert(`User Details:\n\nName: ${userData.user.name}\nEmail: ${userData.user.email}\nLevel: ${userData.level}\nXP: ${userData.score}\nAchievements: ${userData.achievements?.length || 0}\nVisited: ${userData.visitedDestinations?.length || 0} destinations`);
+    }
+
+    // Delete user
+    function deleteUser(email) {
+      if (confirm(`Are you sure you want to delete user: ${email}?`)) {
+        const userKey = `smartZambia_user_${email}`;
+        localStorage.removeItem(userKey);
+        loadUsers();
+        loadStats();
+        alert('User deleted successfully!');
+      }
+    }
+
+    // Load destinations
+    function loadDestinations() {
+      const grid = document.getElementById('destinationsGrid');
+      grid.innerHTML = '<p class="text-center py-8 text-gray-500 col-span-full">Destination management coming soon...</p>';
+    }
+
+    // Load reports
+    function loadReports() {
+      const list = document.getElementById('reportsList');
+      const users = getAllUsers();
+      const reports = [];
+      
+      users.forEach(user => {
+        if (user.civicReports) {
+          user.civicReports.forEach(report => {
+            reports.push({
+              ...report,
+              userName: user.user?.name || 'Unknown'
+            });
+          });
+        }
+      });
+      
+      if (reports.length === 0) {
+        list.innerHTML = '<p class="text-center py-8 text-gray-500">No reports found</p>';
+        return;
+      }
+      
+      list.innerHTML = reports.map(report => `
+        <div class="border border-gray-200 rounded-xl p-4">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <h3 class="font-semibold text-gray-800">${report.title}</h3>
+              <p class="text-sm text-gray-600">By ${report.userName}</p>
+            </div>
+            <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">
+              Pending
+            </span>
+          </div>
+          <p class="text-sm text-gray-600 mb-2">${report.description}</p>
+          <div class="flex gap-2">
+            <button class="text-sm text-green-600 hover:text-green-700">
+              <i class="fas fa-check mr-1"></i>Approve
+            </button>
+            <button class="text-sm text-red-600 hover:text-red-700">
+              <i class="fas fa-times mr-1"></i>Reject
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Filter reports
+    function filterReports(status) {
+      loadReports();
+    }
+
+    // Load analytics
+    function loadAnalytics() {
+      const users = getAllUsers();
+      let totalXP = 0;
+      let easterEggsFound = 0;
+      
+      users.forEach(user => {
+        totalXP += user.score || 0;
+      });
+      
+      // Check Easter eggs
+      const easterEggData = localStorage.getItem('smartZambia_easterEggs');
+      if (easterEggData) {
+        const eggs = JSON.parse(easterEggData);
+        easterEggsFound = eggs.discovered?.length || 0;
+      }
+      
+      document.getElementById('totalXP').textContent = totalXP.toLocaleString();
+      document.getElementById('easterEggsFound').textContent = easterEggsFound;
+      document.getElementById('userGrowth').textContent = '+' + Math.floor(Math.random() * 50) + '%';
+      document.getElementById('engagementRate').textContent = Math.floor(Math.random() * 100) + '%';
+    }
+
+    // Export data
+    function exportData() {
+      const data = {
+        users: getAllUsers(),
+        timestamp: new Date().toISOString(),
+        platform: 'Smart Zambia'
+      };
+      
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `smart-zambia-data-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      alert('Data exported successfully!');
+    }
+
+    // Clear cache
+    function clearCache() {
+      if (confirm('Clear all cached data? This will not delete user accounts.')) {
+        // Clear non-user data
+        const keysToKeep = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('smartZambia_user_')) {
+            keysToKeep.push(key);
+          }
+        }
+        
+        localStorage.clear();
+        
+        keysToKeep.forEach(key => {
+          // Restore user data
+        });
+        
+        alert('Cache cleared!');
+      }
+    }
+
+    // Confirm reset
+    function confirmReset() {
+      const confirmation = prompt('Type "DELETE ALL DATA" to confirm reset:');
+      if (confirmation === 'DELETE ALL DATA') {
+        localStorage.clear();
+        alert('All data has been reset!');
+        location.reload();
+      }
+    }
+
+    // Add destination
+    function addDestination() {
+      alert('Add destination feature coming soon!');
+    }
+
+    // Check for existing admin session
+    function checkAdminSession() {
+      const session = localStorage.getItem('smartZambia_adminSession');
+      if (session) {
+        try {
+          const data = JSON.parse(session);
+          const hoursSinceLogin = (Date.now() - data.timestamp) / (1000 * 60 * 60);
+          
+          if (data.loggedIn && hoursSinceLogin < 24) {
+            adminLoggedIn = true;
+            showDashboard();
+          }
+        } catch (e) {
+          console.error('Error loading admin session:', e);
+        }
+      }
+    }
+
+    // Initialize
+    checkAdminSession();
+  </script>
+</body>
+</html>

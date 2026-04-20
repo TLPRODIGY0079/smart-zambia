@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UBZ Bus Services - Management System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700;800&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Karla,system-ui,sans-serif;background:#f3f4f6;color:#111827;height:100vh;overflow:hidden}
+    h1,h2,h3,h4{font-family:"Crimson Pro",Georgia,serif}
+    .view{display:none;height:100%}
+    .view.active{display:flex}
+    .panel{background:#fff;border:1px solid #e5e7eb;border-radius:18px;overflow:hidden}
+    .field{width:100%;padding:11px 14px;border:2px solid #e5e7eb;border-radius:12px;outline:none}
+    .field:focus{border-color:#D4900C}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 16px;border:none;border-radius:12px;font-weight:700;cursor:pointer}
+    .btn-primary{background:linear-gradient(135deg,#D4900C,#f5b83d);color:#0F1B33}
+    .btn-secondary{background:#1B2A4A;color:#fff}
+    .btn-soft{background:#eef2f7;color:#475569}
+    .sidebar-link{display:flex;align-items:center;gap:12px;padding:11px 16px;border-radius:12px;font-size:14px;font-weight:600;color:#94a3b8;cursor:pointer}
+    .sidebar-link:hover,.sidebar-link.active{background:rgba(212,144,12,.12);color:#f8cc72}
+    .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase}
+    .green{background:#dcfce7;color:#166534}.yellow{background:#fef3c7;color:#92400e}.blue{background:#dbeafe;color:#1d4ed8}.red{background:#fee2e2;color:#991b1b}.purple{background:#ede9fe;color:#6d28d9}.gray{background:#f3f4f6;color:#374151}
+    .toast-wrap{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+    .toast{background:#1B2A4A;color:#fff;padding:12px 18px;border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.3);border-left:4px solid #D4900C}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:18px;z-index:1000}
+    .modal.open{display:flex}
+    .modal-box{background:#fff;border-radius:18px;width:min(680px,100%);max-height:90vh;overflow:auto}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:11px 16px;border-bottom:1px solid #f3f4f6;text-align:left;font-size:13px}
+    th{font-size:11px;text-transform:uppercase;color:#6b7280}
+    .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px}
+    .stat{background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:18px}
+    .empty{padding:42px 24px;text-align:center;color:#94a3b8}
+    @media (max-width:767px){body{height:auto;overflow:auto}#sidebar{display:none;position:fixed!important;height:100vh;z-index:120}#mobileMenuBtn,#topMenuBtn{display:block!important}#mainContent{height:auto!important;min-height:100vh}#pageContent{padding:16px!important}}
+  </style>
+</head>
+<body>
+  <div id="toasts" class="toast-wrap"></div>
+  <div id="loginView" class="view active" style="align-items:center;justify-content:center;padding:24px;background:linear-gradient(135deg,#0F1B33 0%,#1B2A4A 52%,#0F1B33 100%)">
+    <div style="width:min(440px,100%)">
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="display:inline-flex;align-items:center;justify-content:center;width:72px;height:72px;border-radius:50%;background:#D4900C;color:#0F1B33;font-family:'Crimson Pro',serif;font-size:22px;font-weight:800;margin-bottom:16px">UBZ</div>
+        <h1 style="margin:0;color:#fff;font-size:30px">UBZ Bus Services</h1>
+        <p style="margin:6px 0 0;color:#94a3b8">Management System Sign In</p>
+      </div>
+      <div class="panel" style="padding:30px">
+        <div style="display:flex;gap:4px;margin-bottom:24px;background:#f3f4f6;border-radius:12px;padding:4px">
+          <button class="btn" id="roleAdmin" onclick="setLoginRole('admin')" style="flex:1;background:#D4900C;color:#fff">Admin</button>
+          <button class="btn" id="roleOperator" onclick="setLoginRole('operator')" style="flex:1;background:transparent;color:#6b7280">Operator</button>
+          <button class="btn" id="roleCustomer" onclick="setLoginRole('customer')" style="flex:1;background:transparent;color:#6b7280">Customer</button>
+        </div>
+        <form onsubmit="handleLogin(event)">
+          <div style="margin-bottom:14px"><div style="font-size:12px;font-weight:700;color:#6b7280;margin-bottom:6px">Email</div><input id="loginEmail" class="field" type="email" required placeholder="name@ubz.co.zm"></div>
+          <div style="margin-bottom:14px"><div style="font-size:12px;font-weight:700;color:#6b7280;margin-bottom:6px">Password</div><input id="loginPassword" class="field" type="password" required placeholder="••••••••"></div>
+          <div id="loginError" style="display:none;margin-bottom:12px;padding:10px 14px;background:#fee2e2;color:#991b1b;border-radius:10px;font-size:13px"></div>
+          <button class="btn btn-primary" style="width:100%;padding:14px 16px" type="submit"><i class="fas fa-sign-in-alt"></i>Sign In</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div id="appView" class="view" style="flex-direction:row">
+    <aside id="sidebar" style="width:270px;min-width:270px;background:#0F1B33;flex-direction:column;height:100vh;overflow-y:auto">
+      <div style="padding:20px 16px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px">
+        <div style="width:42px;height:42px;border-radius:14px;background:#D4900C;display:flex;align-items:center;justify-content:center;color:#0F1B33;font-family:'Crimson Pro',serif;font-weight:800">UBZ</div>
+        <div><div style="color:#fff;font-size:17px;font-weight:700;font-family:'Crimson Pro',serif">UBZ Bus</div><div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.12em">Services</div></div>
+      </div>
+      <div style="padding:16px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px">
+        <div id="sidebarAvatar" style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#D4900C,#f5b83d);display:flex;align-items:center;justify-content:center;color:#0F1B33;font-weight:800">A</div>
+        <div><div id="sidebarName" style="color:#fff;font-size:13px;font-weight:700">Admin</div><div id="sidebarRole" style="color:#D4900C;font-size:11px;font-weight:700">ADMIN</div></div>
+      </div>
+      <nav id="sidebarNav" style="padding:12px 8px;flex:1"></nav>
+      <div style="padding:12px 8px;border-top:1px solid rgba(255,255,255,.08)">
+        <div class="sidebar-link" onclick="handleLogout()" style="color:#ef4444"><i class="fas fa-sign-out-alt"></i><span>Sign Out</span></div>
+      </div>
+    </aside>
+    <button id="mobileMenuBtn" onclick="toggleSidebar()" style="display:none;position:fixed;bottom:20px;right:20px;z-index:200;width:52px;height:52px;border-radius:50%;background:#D4900C;color:#0F1B33;border:none;font-size:20px"><i class="fas fa-bars"></i></button>
+    <main id="mainContent" style="flex:1;overflow-y:auto;height:100vh;background:#f3f4f6">
+      <header style="background:#fff;border-bottom:1px solid #e5e7eb;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50">
+        <div><h2 id="pageTitle" style="margin:0;font-size:24px;color:#1B2A4A">Dashboard</h2><p id="pageSubtitle" style="margin:3px 0 0;color:#94a3b8;font-size:12px">Overview of your system</p></div>
+        <div style="display:flex;align-items:center;gap:12px"><span id="topBarDate" style="font-size:12px;color:#94a3b8"></span><button id="topMenuBtn" onclick="toggleSidebar()" style="display:none;background:none;border:none;color:#64748b;font-size:18px"><i class="fas fa-bars"></i></button></div>
+      </header>
+      <div id="pageContent" style="padding:20px 24px;max-width:1440px;margin:0 auto"></div>
+    </main>
+  </div>
+  <div id="modalBg" class="modal" onclick="if(event.target===this)closeModal()"><div id="modalBox" class="modal-box"></div></div>
+  <script>
+    const DB = {
+      users: [
+        { id:"u1", name:"System Administrator", email:"admin@ubz.co.zm", password:"admin123", phone:"+260-211-123456", nrc:"100200/30/1", address:"UBZ Head Office, Lusaka", role:"admin", isActive:true, createdAt:"2024-01-15T08:00:00Z" },
+        { id:"u2", name:"James Mulenga", email:"operator@ubz.co.zm", password:"op123", phone:"+260-977-654321", nrc:"200300/40/2", address:"UBZ Intercity Terminal, Lusaka", role:"operator", isActive:true, createdAt:"2024-03-01T10:00:00Z" },
+        { id:"u4", name:"John Phiri", email:"john@email.com", password:"cust123", phone:"+260-977-123456", nrc:"400500/60/1", address:"Plot 123, Kabulonga, Lusaka", role:"customer", isActive:true, createdAt:"2025-01-10T14:00:00Z" },
+        { id:"u5", name:"Mary Tembo", email:"mary@email.com", password:"cust123", phone:"+260-966-789012", nrc:"500600/70/2", address:"15 Chipata Road, Chipata", role:"customer", isActive:true, createdAt:"2025-02-20T11:00:00Z" },
+        { id:"u6", name:"David Zimba", email:"david@email.com", password:"cust123", phone:"+260-955-345678", nrc:"600700/80/3", address:"Flat 5, Ndola Town Centre", role:"customer", isActive:true, createdAt:"2025-06-15T08:30:00Z" }
+      ],
+      routes: [
+        { id:"r1", from:"Lusaka", to:"Ndola", duration:"5h 30m", price:{ economy:250, business:400, vip:600 }, days:"Daily", departures:["05:30","12:30","20:00"], status:"active" },
+        { id:"r2", from:"Lusaka", to:"Kitwe", duration:"6h 10m", price:{ economy:260, business:420, vip:640 }, days:"Daily", departures:["06:00","13:00","19:00"], status:"active" },
+        { id:"r3", from:"Lusaka", to:"Livingstone", duration:"7h 20m", price:{ economy:280, business:450, vip:680 }, days:"Daily", departures:["05:00","11:00","18:00"], status:"active" },
+        { id:"r4", from:"Lusaka", to:"Chipata", duration:"8h 10m", price:{ economy:300, business:480, vip:720 }, days:"Daily", departures:["05:30","14:00"], status:"active" }
+      ],
+      bookings: [
+        { id:"b1", ref:"UBZ-7F3KQ2", customerId:"u4", customerName:"John Phiri", customerPhone:"+260-977-123456", customerEmail:"john@email.com", customerNrc:"400500/60/1", routeId:"r1", from:"Lusaka", to:"Ndola", travelDate:"2026-03-25", departure:"05:30", travelClass:"business", passengers:2, seatNumbers:["12A","12B"], totalCost:800, status:"confirmed", paymentMethod:"Mobile Money", createdAt:"2026-03-18T10:00:00Z" },
+        { id:"b2", ref:"UBZ-9HXNP5", customerId:"u5", customerName:"Mary Tembo", customerPhone:"+260-966-789012", customerEmail:"mary@email.com", customerNrc:"500600/70/2", routeId:"r4", from:"Lusaka", to:"Chipata", travelDate:"2026-03-22", departure:"05:30", travelClass:"economy", passengers:1, seatNumbers:["5C"], totalCost:300, status:"completed", paymentMethod:"Cash", createdAt:"2026-03-15T14:00:00Z" },
+        { id:"b3", ref:"UBZ-KL2M8W", customerId:"u4", customerName:"John Phiri", customerPhone:"+260-977-123456", customerEmail:"john@email.com", customerNrc:"400500/60/1", routeId:"r3", from:"Lusaka", to:"Livingstone", travelDate:"2026-04-10", departure:"11:00", travelClass:"vip", passengers:1, seatNumbers:["1A"], totalCost:680, status:"pending", paymentMethod:"Visa Card", createdAt:"2026-03-20T09:00:00Z" }
+      ],
+      activities: [
+        { id:"a1", userId:"u1", userName:"System Administrator", userRole:"admin", action:"login", details:"Logged in from desktop", device:"Chrome / Windows", screenRes:"1920x1080", timestamp:"2026-03-21T07:30:00Z" },
+        { id:"a2", userId:"u4", userName:"John Phiri", userRole:"customer", action:"booking", details:"Booked Lusaka to Livingstone - Ref UBZ-KL2M8W", device:"Safari / iPhone", screenRes:"393x852", timestamp:"2026-03-20T09:05:00Z" }
+      ],
+      buses: [
+        { id:"bus1", number:"UBZ-001", type:"Scania K410 Luxury", capacity:52, status:"active", lastService:"2026-03-01" },
+        { id:"bus2", number:"UBZ-002", type:"Scania K360 Standard", capacity:60, status:"active", lastService:"2026-02-15" },
+        { id:"bus3", number:"UBZ-003", type:"Scania K410 Luxury", capacity:52, status:"maintenance", lastService:"2026-03-10" }
+      ]
+    };
+
+    let currentUser = null;
+    let selectedLoginRole = "admin";
+    let currentPage = "dashboard";
+    let sidebarOpen = true;
+
+    const CITIES = ["Lusaka","Ndola","Kitwe","Livingstone","Chipata","Kasama","Solwezi","Kabwe","Mongu"];
+    const PAYMENTS = ["Cash","Mobile Money","Visa Card","Bank Transfer"];
+
+    const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (m) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
+    const fmtDate = (d) => d ? new Date(d).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" }) : "—";
+    const fmtDateTime = (d) => d ? new Date(d).toLocaleString("en-GB", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }) : "—";
+    const zmw = (n) => "K" + Number(n || 0).toLocaleString();
+    const todayISO = () => new Date().toISOString().slice(0, 10);
+    const genId = (prefix) => prefix + "-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const genRef = () => { const chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; let out = "UBZ-"; for (let i=0;i<6;i++) out += chars[Math.floor(Math.random()*chars.length)]; return out; };
+    const roleBadge = (role) => role === "admin" ? '<span class="badge red">Admin</span>' : role === "operator" ? '<span class="badge blue">Operator</span>' : '<span class="badge green">Customer</span>';
+
+    function badge(value) {
+      const map = {
+        pending:['yellow','Pending'], confirmed:['blue','Confirmed'], 'checked-in':['purple','Checked In'],
+        completed:['green','Completed'], cancelled:['red','Cancelled'], active:['green','Active'],
+        inactive:['red','Inactive'], maintenance:['yellow','Maintenance'], economy:['gray','Economy'],
+        business:['blue','Business'], vip:['purple','VIP']
+      };
+      const item = map[value] || ['gray', value];
+      return `<span class="badge ${item[0]}">${esc(item[1])}</span>`;
+    }
+
+    function toast(message, type="info") {
+      const el = document.createElement("div");
+      el.className = "toast";
+      el.style.borderLeftColor = type === "error" ? "#ef4444" : type === "success" ? "#22c55e" : "#D4900C";
+      el.textContent = message;
+      toasts.appendChild(el);
+      setTimeout(() => el.remove(), 3200);
+    }
+
+    function openModal(html) { modalBox.innerHTML = html; modalBg.classList.add("open"); }
+    function closeModal() { modalBg.classList.remove("open"); }
+    function log(action, details) {
+      if (!currentUser) return;
+      DB.activities.unshift({ id:genId("a"), userId:currentUser.id, userName:currentUser.name, userRole:currentUser.role, action, details, device:"Browser Session", screenRes:screen.width + "x" + screen.height, timestamp:new Date().toISOString() });
+    }
+
+    function setLoginRole(role) {
+      selectedLoginRole = role;
+      [["Admin","admin"],["Operator","operator"],["Customer","customer"]].forEach(([label, key]) => {
+        const btn = document.getElementById("role" + label);
+        btn.style.background = key === role ? "#D4900C" : "transparent";
+        btn.style.color = key === role ? "#fff" : "#6b7280";
+      });
+    }
+
+    function handleLogin(event) {
+      event.preventDefault();
+      const email = loginEmail.value.trim().toLowerCase();
+      const password = loginPassword.value;
+      const user = DB.users.find((u) => u.email.toLowerCase() === email && u.password === password && u.isActive);
+      if (!user) {
+        loginError.style.display = "block";
+        loginError.textContent = "Invalid email or password.";
+        return;
+      }
+      if (selectedLoginRole !== user.role && user.role !== "admin") {
+        loginError.style.display = "block";
+        loginError.textContent = "Select the correct role portal.";
+        return;
+      }
+      loginError.style.display = "none";
+      currentUser = user;
+      sidebarAvatar.textContent = user.name.charAt(0).toUpperCase();
+      sidebarName.textContent = user.name;
+      sidebarRole.textContent = user.role.toUpperCase();
+      log("login", "Logged in as " + user.role);
+      loginView.classList.remove("active");
+      appView.classList.add("active");
+      buildSidebar();
+      navigate("dashboard");
+      toast("Welcome back, " + user.name + "!", "success");
+    }
+
+    function handleLogout() {
+      if (currentUser) log("logout", "Signed out");
+      currentUser = null;
+      appView.classList.remove("active");
+      loginView.classList.add("active");
+      loginEmail.value = "";
+      loginPassword.value = "";
+    }
+
+    function applyResponsive() {
+      if (innerWidth < 768) {
+        sidebar.style.display = "none";
+        sidebarOpen = false;
+      } else {
+        sidebar.style.display = "flex";
+        sidebarOpen = true;
+      }
+    }
+
+    function toggleSidebar() {
+      sidebarOpen = !sidebarOpen;
+      sidebar.style.display = sidebarOpen ? "flex" : "none";
+    }
+
+    function stat(value, label, icon, color) {
+      return `<div class="stat"><div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:44px;border-radius:12px;background:${color}22;display:flex;align-items:center;justify-content:center;color:${color}"><i class="fas ${icon}"></i></div><div><div style="font-size:24px;font-weight:800;color:#1B2A4A;font-family:'Crimson Pro',serif">${value}</div><div style="font-size:12px;color:#94a3b8">${label}</div></div></div></div>`;
+    }
+
+    function pageHeader(title, subtitle) {
+      pageTitle.textContent = title;
+      pageSubtitle.textContent = subtitle;
+      topBarDate.textContent = new Date().toLocaleString("en-GB", { weekday:"short", day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" });
+    }
+
+    function buildSidebar() {
+      const links = currentUser.role === "admin"
+        ? [["dashboard","fa-chart-line","Dashboard"],["activity","fa-history","Activity Log"],["routes","fa-route","Routes"],["bookings","fa-ticket-alt","Bookings"],["buses","fa-bus","Buses"],["users","fa-users-cog","Users"],["reports","fa-chart-bar","Reports"]]
+        : currentUser.role === "operator"
+          ? [["dashboard","fa-chart-line","Dashboard"],["bookings","fa-ticket-alt","Bookings"],["buses","fa-bus","Buses"],["reports","fa-chart-bar","Reports"]]
+          : [["dashboard","fa-chart-line","Dashboard"],["my-bookings","fa-ticket-alt","My Bookings"],["book-trip","fa-plus-circle","Book a Trip"]];
+      sidebarNav.innerHTML = links.map(([page, icon, label]) => `<div class="sidebar-link${currentPage===page ? " active" : ""}" onclick="navigate('${page}')"><i class="fas ${icon}"></i><span>${label}</span></div>`).join("");
+    }
+
+    function renderBookingTable(rows) {
+      return `<div class="panel"><div style="overflow:auto"><table><thead><tr><th>Ref</th><th>Passenger</th><th>Route</th><th>Date</th><th>Class</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows.map((b) => `<tr><td style="font-family:monospace;font-weight:700">${b.ref}</td><td>${esc(b.customerName)}</td><td>${esc(b.from)} → ${esc(b.to)}</td><td>${fmtDate(b.travelDate)}</td><td>${badge(b.travelClass)}</td><td>${zmw(b.totalCost)}</td><td>${badge(b.status)}</td><td><button onclick="downloadTicket('${b.id}')" style="background:none;border:none;color:#22c55e;cursor:pointer"><i class="fas fa-download"></i></button>${currentUser.role !== "customer" && b.status === "pending" ? ` <button onclick="updateBookingStatus('${b.id}','confirmed')" style="background:none;border:none;color:#8b5cf6;cursor:pointer"><i class="fas fa-check"></i></button>` : ""}</td></tr>`).join("")}</tbody></table></div></div>`;
+    }
+
+    function renderDashboard() {
+      if (currentUser.role === "admin") {
+        const revenue = DB.bookings.filter((b) => b.status !== "cancelled").reduce((sum, b) => sum + b.totalCost, 0);
+        pageContent.innerHTML = `<div class="stat-grid" style="margin-bottom:24px">${stat(DB.users.length,"Total Users","fa-users","#3b82f6")}${stat(DB.bookings.length,"Bookings","fa-ticket-alt","#D4900C")}${stat(zmw(revenue),"Revenue","fa-money-bill-wave","#22c55e")}${stat(DB.routes.filter((r) => r.status === "active").length,"Active Routes","fa-route","#8b5cf6")}</div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px"><button class="btn btn-primary" onclick="openRouteModal()"><i class="fas fa-plus"></i>Add Route</button><button class="btn btn-secondary" onclick="navigate('users')"><i class="fas fa-users-cog"></i>Manage Users</button></div><div class="panel"><div style="padding:16px 20px;border-bottom:1px solid #e5e7eb;font-weight:700;color:#1B2A4A">Recent Bookings</div><div style="overflow:auto"><table><thead><tr><th>Ref</th><th>Passenger</th><th>Route</th><th>Date</th><th>Status</th></tr></thead><tbody>${DB.bookings.slice(0,5).map((b) => `<tr><td style="font-family:monospace;font-weight:700">${b.ref}</td><td>${esc(b.customerName)}</td><td>${esc(b.from)} → ${esc(b.to)}</td><td>${fmtDate(b.travelDate)}</td><td>${badge(b.status)}</td></tr>`).join("")}</tbody></table></div></div>`;
+      } else if (currentUser.role === "operator") {
+        const today = DB.bookings.filter((b) => b.travelDate === todayISO());
+        pageContent.innerHTML = `<div class="stat-grid" style="margin-bottom:24px">${stat(today.length,"Today's Trips","fa-calendar-day","#3b82f6")}${stat(DB.buses.filter((b) => b.status === "active").length,"Active Buses","fa-bus","#D4900C")}</div><div class="panel"><div style="padding:16px 20px;border-bottom:1px solid #e5e7eb;font-weight:700;color:#1B2A4A">Today's Departures</div>${today.length ? `<div style="overflow:auto"><table><thead><tr><th>Ref</th><th>Passenger</th><th>Route</th><th>Departure</th><th>Status</th><th>Action</th></tr></thead><tbody>${today.map((b) => `<tr><td>${b.ref}</td><td>${esc(b.customerName)}</td><td>${esc(b.from)} → ${esc(b.to)}</td><td>${esc(b.departure)}</td><td>${badge(b.status)}</td><td>${b.status === "confirmed" ? `<button class="btn btn-primary" style="padding:6px 10px" onclick="updateBookingStatus('${b.id}','checked-in')">Check In</button>` : "—"}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty">No departures scheduled for today.</div>`}</div>`;
+      } else {
+        const mine = DB.bookings.filter((b) => b.customerId === currentUser.id);
+        pageContent.innerHTML = `<div class="stat-grid" style="margin-bottom:24px">${stat(mine.length,"Total Trips","fa-ticket-alt","#3b82f6")}${stat(mine.filter((b) => ["pending","confirmed","checked-in"].includes(b.status)).length,"Upcoming","fa-calendar-check","#D4900C")}${stat(mine.filter((b) => b.status === "completed").length,"Completed","fa-check-circle","#22c55e")}</div><button class="btn btn-primary" style="margin-bottom:24px" onclick="navigate('book-trip')"><i class="fas fa-plus-circle"></i>Book a New Trip</button>${mine.length ? renderBookingTable(mine) : `<div class="panel"><div class="empty">No bookings yet.</div></div>`}`;
+      }
+    }
+
+    function renderActivity() {
+      pageContent.innerHTML = `<div class="panel"><div style="padding:16px 20px;border-bottom:1px solid #e5e7eb;font-weight:700;color:#1B2A4A">Activity Log</div><div style="overflow:auto"><table><thead><tr><th>User</th><th>Role</th><th>Action</th><th>Details</th><th>Time</th></tr></thead><tbody>${DB.activities.map((a) => `<tr><td>${esc(a.userName)}</td><td>${roleBadge(a.userRole)}</td><td>${esc(a.action)}</td><td>${esc(a.details)}</td><td>${fmtDateTime(a.timestamp)}</td></tr>`).join("")}</tbody></table></div></div>`;
+    }
+
+    function renderRoutes() {
+      pageContent.innerHTML = `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">${currentUser.role === "admin" ? `<button class="btn btn-primary" onclick="openRouteModal()"><i class="fas fa-plus"></i>Add Route</button>` : ""}<span style="font-size:12px;color:#94a3b8;align-self:center">${DB.routes.length} routes total</span></div><div class="panel"><div style="overflow:auto"><table><thead><tr><th>ID</th><th>Route</th><th>Duration</th><th>Economy</th><th>Business</th><th>VIP</th><th>Departures</th><th>Status</th>${currentUser.role === "admin" ? "<th>Actions</th>" : ""}</tr></thead><tbody>${DB.routes.map((r) => `<tr><td style="font-family:monospace">${r.id}</td><td style="font-weight:700">${esc(r.from)} → ${esc(r.to)}</td><td>${esc(r.duration)}</td><td>${zmw(r.price.economy)}</td><td>${zmw(r.price.business)}</td><td>${zmw(r.price.vip)}</td><td>${r.departures.join(", ")}</td><td>${badge(r.status)}</td>${currentUser.role === "admin" ? `<td><button onclick="toggleRoute('${r.id}')" style="background:none;border:none;color:${r.status === "active" ? "#ef4444" : "#22c55e"};cursor:pointer"><i class="fas fa-${r.status === "active" ? "ban" : "check-circle"}"></i></button></td>` : ""}</tr>`).join("")}</tbody></table></div></div>`;
+    }
+
+    function renderBookings() {
+      const rows = currentUser.role === "customer" ? DB.bookings.filter((b) => b.customerId === currentUser.id) : DB.bookings;
+      pageContent.innerHTML = renderBookingTable(rows);
+    }
+
+    function renderBuses() {
+      pageContent.innerHTML = `<div class="stat-grid" style="margin-bottom:20px">${stat(DB.buses.length,"Total Buses","fa-bus","#3b82f6")}${stat(DB.buses.filter((b) => b.status === "active").length,"Active","fa-check-circle","#22c55e")}${stat(DB.buses.filter((b) => b.status === "maintenance").length,"Maintenance","fa-screwdriver-wrench","#D4900C")}</div><div class="panel"><div style="overflow:auto"><table><thead><tr><th>Bus #</th><th>Type</th><th>Capacity</th><th>Status</th><th>Last Service</th></tr></thead><tbody>${DB.buses.map((b) => `<tr><td style="font-family:monospace;font-weight:700">${b.number}</td><td>${esc(b.type)}</td><td>${b.capacity} seats</td><td>${badge(b.status)}</td><td>${fmtDate(b.lastService)}</td></tr>`).join("")}</tbody></table></div></div>`;
+    }
+
+    function renderUsers() {
+      pageContent.innerHTML = `<div style="margin-bottom:16px"><button class="btn btn-primary" onclick="openUserModal()"><i class="fas fa-user-plus"></i>Add User</button></div><div class="panel"><div style="overflow:auto"><table><thead><tr><th>Name</th><th>Email</th><th>Password</th><th>Phone</th><th>Role</th><th>Status</th><th>Joined</th><th>Action</th></tr></thead><tbody>${DB.users.map((u) => `<tr><td>${esc(u.name)}</td><td>${esc(u.email)}</td><td><code>${esc(u.password)}</code></td><td>${esc(u.phone)}</td><td>${roleBadge(u.role)}</td><td>${u.isActive ? badge("active") : badge("inactive")}</td><td>${fmtDate(u.createdAt)}</td><td>${u.id !== currentUser.id ? `<button onclick="toggleUser('${u.id}')" style="background:none;border:none;color:${u.isActive ? "#ef4444" : "#22c55e"};cursor:pointer"><i class="fas fa-${u.isActive ? "ban" : "check-circle"}"></i></button>` : "—"}</td></tr>`).join("")}</tbody></table></div></div>`;
+    }
+
+    function renderReports() {
+      const rows = currentUser.role === "customer" ? DB.bookings.filter((b) => b.customerId === currentUser.id) : DB.bookings;
+      const revenue = rows.filter((b) => b.status !== "cancelled").reduce((sum, b) => sum + b.totalCost, 0);
+      const pending = rows.filter((b) => b.status === "pending").length;
+      const byRoute = rows.reduce((acc, b) => { const key = b.from + " → " + b.to; acc[key] = (acc[key] || 0) + b.totalCost; return acc; }, {});
+      pageContent.innerHTML = `<div class="stat-grid" style="margin-bottom:20px">${stat(zmw(revenue),"Revenue","fa-money-bill-wave","#22c55e")}${stat(rows.length,"Bookings","fa-ticket-alt","#3b82f6")}${stat(pending,"Pending","fa-clock","#D4900C")}</div><div style="display:grid;grid-template-columns:1.1fr .9fr;gap:20px"><div class="panel"><div style="padding:16px 20px;border-bottom:1px solid #e5e7eb;font-weight:700;color:#1B2A4A">Top Routes</div><div style="padding:8px 20px 18px">${Object.entries(byRoute).sort((a,b) => b[1]-a[1]).slice(0,5).map(([route,value], i) => `<div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:${i<4 ? "1px solid #f3f4f6" : "none"}"><span>${esc(route)}</span><strong>${zmw(value)}</strong></div>`).join("") || '<div class="empty" style="padding:18px 0">No route data yet.</div>'}</div></div><div class="panel"><div style="padding:16px 20px;border-bottom:1px solid #e5e7eb;font-weight:700;color:#1B2A4A">Payment Mix</div><div style="padding:16px 20px">${PAYMENTS.map((payment) => `<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f3f4f6"><span>${payment}</span><strong>${zmw(rows.filter((b) => b.paymentMethod === payment).reduce((sum, b) => sum + b.totalCost, 0))}</strong></div>`).join("")}</div></div></div>`;
+    }
+
+    function renderMyBookings() {
+      renderBookings();
+    }
+
+    function navigate(page) {
+      currentPage = page;
+      buildSidebar();
+      if (innerWidth < 768) {
+        sidebar.style.display = "none";
+        sidebarOpen = false;
+      }
+      const titles = {
+        dashboard:["Dashboard","Overview of your system"],
+        activity:["Activity Log","Track system actions"],
+        routes:["Route Management","Add and manage routes"],
+        bookings:["Bookings","View and manage tickets"],
+        buses:["Fleet Management","Track buses and service status"],
+        users:["User Management","Manage staff and customer accounts"],
+        reports:["Reports","Revenue and booking insights"],
+        "my-bookings":["My Bookings","Your trip history"],
+        "book-trip":["Book a Trip","Reserve seats across available routes"]
+      };
+      pageHeader(...titles[page]);
+      ({ dashboard:renderDashboard, activity:renderActivity, routes:renderRoutes, bookings:renderBookings, buses:renderBuses, users:renderUsers, reports:renderReports, "my-bookings":renderMyBookings, "book-trip":renderBookTrip }[page] || (() => pageContent.innerHTML = "<p>Page not found.</p>"))();
+    }
+
+    function seatPool() {
+      const out = [];
+      for (let row=1; row<=12; row++) ["A","B","C","D"].forEach((col) => out.push(row + col));
+      return out;
+    }
+
+    function renderBookTrip() {
+      pageContent.innerHTML = `<div style="display:grid;grid-template-columns:1.05fr .95fr;gap:20px"><div class="panel"><div style="padding:20px;border-bottom:1px solid #e5e7eb"><h3 style="margin:0;color:#1B2A4A">Reserve a Seat</h3><p style="margin:6px 0 0;color:#94a3b8;font-size:12px">Choose your route, class and departure.</p></div><form onsubmit="createBooking(event)" style="padding:20px"><div style="margin-bottom:14px"><div style="font-size:12px;font-weight:700;color:#6b7280;margin-bottom:6px">Route</div><select id="tripRouteId" class="field" required onchange="syncTrip()"><option value="">Select route</option>${DB.routes.filter((r) => r.status === "active").map((r) => `<option value="${r.id}">${r.from} → ${r.to} • ${r.duration}</option>`).join("")}</select></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px"><div><div style="font-size:12px;font-weight:700;color:#6b7280;margin-bottom:6px">Travel Date</div><input id="tripDate" type="date" min="${todayISO()}" class="field" onchange="syncTrip()" required></div><div><div style="font-size:12px;font-weight:700;color:#6b7280;margin-bottom:6px">Departure</div><select id="tripDeparture" class="field" required><option value="">Select departure</option></select></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px"><div><div style="font-size:12px;font-weight:700;color:#6b7280;margin-bottom:6px">Class</div><select id="tripClass" class="field" onchange="syncTrip()"><option value="economy">Economy</option><option value="business">Business</option><option value="vip">VIP</option></select></div><div><div style="font-size:12px;font-weight:700;color:#6b7280;margin-bottom:6px">Passengers</div><input id="tripPassengers" type="number" min="1" max="6" value="1" class="field" onchange="syncTrip()"></div></div>${currentUser.role !== "customer" ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px"><input id="tripCustomerName" class="field" placeholder="Customer name" required><input id="tripCustomerPhone" class="field" placeholder="Customer phone" required></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px"><input id="tripCustomerEmail" class="field" type="email" placeholder="Customer email"><input id="tripCustomerNrc" class="field" placeholder="Customer NRC / ID"></div>` : ""}<div style="margin-bottom:14px"><div style="font-size:12px;font-weight:700;color:#6b7280;margin-bottom:6px">Payment Method</div><select id="tripPaymentMethod" class="field">${PAYMENTS.map((p) => `<option>${p}</option>`).join("")}</select></div><div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#f8fafc;border-radius:14px;margin-bottom:16px"><div><div style="font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase">Estimated Total</div><div id="tripTotal" style="font-size:26px;font-weight:800;color:#1B2A4A;font-family:'Crimson Pro',serif">K0</div></div><div id="tripMeta" style="font-size:12px;color:#94a3b8;text-align:right">Select route details</div></div><button class="btn btn-primary" style="width:100%;padding:14px 16px"><i class="fas fa-ticket-alt"></i>Create Booking</button></form></div><div class="panel"><div style="padding:20px;border-bottom:1px solid #e5e7eb"><h3 style="margin:0;color:#1B2A4A">Fare Guide</h3></div><div style="padding:16px 20px">${DB.routes.filter((r) => r.status === "active").map((r) => `<div style="padding:12px 0;border-bottom:1px solid #f3f4f6"><div style="font-weight:700">${r.from} → ${r.to}</div><div style="font-size:12px;color:#64748b;margin-top:4px">Economy ${zmw(r.price.economy)} • Business ${zmw(r.price.business)} • VIP ${zmw(r.price.vip)}</div></div>`).join("")}</div></div></div>`;
+      syncTrip();
+    }
+
+    function syncTrip() {
+      const route = DB.routes.find((r) => r.id === tripRouteId.value);
+      tripDeparture.innerHTML = '<option value="">Select departure</option>' + (route ? route.departures.map((t) => `<option value="${t}">${t}</option>`).join("") : "");
+      const passengers = Math.max(1, Number(tripPassengers.value || 1));
+      tripTotal.textContent = zmw(route ? route.price[tripClass.value] * passengers : 0);
+      tripMeta.textContent = route ? route.days + " • " + route.duration : "Select route details";
+    }
+
+    function createBooking(event) {
+      event.preventDefault();
+      const route = DB.routes.find((r) => r.id === tripRouteId.value);
+      const passengers = Math.max(1, Number(tripPassengers.value || 1));
+      if (!route || !tripDate.value || !tripDeparture.value) {
+        toast("Complete the route, date and departure fields.", "error");
+        return;
+      }
+      let customer = currentUser.role === "customer" ? currentUser : { id:genId("u"), name:tripCustomerName.value.trim(), email:tripCustomerEmail.value.trim() || genId("guest") + "@local", password:"cust123", phone:tripCustomerPhone.value.trim(), nrc:tripCustomerNrc.value.trim(), address:"Created at booking desk", role:"customer", isActive:true, createdAt:new Date().toISOString() };
+      if (currentUser.role !== "customer") {
+        if (!customer.name || !customer.phone) {
+          toast("Customer name and phone are required.", "error");
+          return;
+        }
+        const existingCustomer = DB.users.find((u) => u.phone === customer.phone);
+        if (existingCustomer) {
+          existingCustomer.name = customer.name;
+          existingCustomer.email = customer.email;
+          existingCustomer.nrc = customer.nrc;
+          customer = existingCustomer;
+        } else {
+          DB.users.push(customer);
+        }
+      }
+      const taken = new Set(DB.bookings.filter((b) => b.routeId === route.id && b.travelDate === tripDate.value && b.departure === tripDeparture.value && b.status !== "cancelled").flatMap((b) => b.seatNumbers));
+      const seats = seatPool().filter((s) => !taken.has(s)).slice(0, passengers);
+      if (seats.length < passengers) {
+        toast("Not enough seats available.", "error");
+        return;
+      }
+      const booking = { id:genId("b"), ref:genRef(), customerId:customer.id, customerName:customer.name, customerPhone:customer.phone, customerEmail:customer.email, customerNrc:customer.nrc, routeId:route.id, from:route.from, to:route.to, travelDate:tripDate.value, departure:tripDeparture.value, travelClass:tripClass.value, passengers, seatNumbers:seats, totalCost:route.price[tripClass.value] * passengers, status:currentUser.role === "operator" ? "confirmed" : "pending", paymentMethod:tripPaymentMethod.value, createdAt:new Date().toISOString() };
+      DB.bookings.unshift(booking);
+      log("booking", "Booked " + route.from + " to " + route.to + " - Ref " + booking.ref);
+      toast("Booking " + booking.ref + " created.", "success");
+      navigate(currentUser.role === "customer" ? "my-bookings" : "bookings");
+    }
+
+    function toggleRoute(id) {
+      const route = DB.routes.find((r) => r.id === id);
+      route.status = route.status === "active" ? "inactive" : "active";
+      log("route-status", "Set route " + route.from + " to " + route.to + " to " + route.status);
+      renderRoutes();
+    }
+
+    function updateBookingStatus(id, status) {
+      const booking = DB.bookings.find((b) => b.id === id);
+      booking.status = status;
+      log("booking-status", "Updated booking " + booking.ref + " to " + status);
+      toast("Booking " + booking.ref + " updated.", "success");
+      currentPage === "dashboard" ? renderDashboard() : renderBookings();
+    }
+
+    function toggleUser(id) {
+      const user = DB.users.find((u) => u.id === id);
+      user.isActive = !user.isActive;
+      log("user-toggle", "Set user " + user.name + " to " + (user.isActive ? "active" : "inactive"));
+      renderUsers();
+    }
+
+    function openRouteModal() {
+      openModal(`<div style="padding:0"><div style="background:linear-gradient(135deg,#1B2A4A,#0F1B33);padding:20px 24px;color:#fff"><h3 style="margin:0">Add Route</h3><p style="margin:4px 0 0;color:#94a3b8;font-size:12px">Create a new bus route between cities.</p></div><form onsubmit="saveRoute(event)" style="padding:24px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px"><select id="newFrom" class="field" required><option value="">From</option>${CITIES.map((c) => `<option>${c}</option>`).join("")}</select><select id="newTo" class="field" required><option value="">To</option>${CITIES.map((c) => `<option>${c}</option>`).join("")}</select></div><input id="newDuration" class="field" placeholder="Duration e.g. 5h 30m" style="margin-bottom:12px" required><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px"><input id="newEco" type="number" min="1" class="field" placeholder="Economy" required><input id="newBiz" type="number" min="1" class="field" placeholder="Business" required><input id="newVip" type="number" min="1" class="field" placeholder="VIP" required></div><input id="newDeps" class="field" placeholder="Departures e.g. 05:30, 12:30" style="margin-bottom:18px" required><div style="display:flex;gap:10px"><button type="button" class="btn btn-soft" style="flex:1" onclick="closeModal()">Cancel</button><button class="btn btn-primary" style="flex:1">Save Route</button></div></form></div>`);
+    }
+
+    function saveRoute(event) {
+      event.preventDefault();
+      if (newFrom.value === newTo.value) {
+        toast("Origin and destination cannot be the same.", "error");
+        return;
+      }
+      DB.routes.push({ id:genId("r"), from:newFrom.value, to:newTo.value, duration:newDuration.value.trim(), price:{ economy:Number(newEco.value), business:Number(newBiz.value), vip:Number(newVip.value) }, days:"Daily", departures:newDeps.value.split(",").map((x) => x.trim()).filter(Boolean), status:"active" });
+      log("route-add", "Added route " + newFrom.value + " to " + newTo.value);
+      closeModal();
+      renderRoutes();
+      toast("Route added.", "success");
+    }
+
+    function openUserModal() {
+      openModal(`<div style="padding:0"><div style="background:linear-gradient(135deg,#1B2A4A,#0F1B33);padding:20px 24px;color:#fff"><h3 style="margin:0">Add User</h3><p style="margin:4px 0 0;color:#94a3b8;font-size:12px">Create a new staff or customer account.</p></div><form onsubmit="saveUser(event)" style="padding:24px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px"><input id="uName" class="field" placeholder="Full name" required><select id="uRole" class="field"><option value="customer">Customer</option><option value="operator">Operator</option><option value="admin">Admin</option></select></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px"><input id="uEmail" type="email" class="field" placeholder="Email" required><input id="uPassword" class="field" placeholder="Password" required></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px"><input id="uPhone" class="field" placeholder="Phone" required><input id="uNrc" class="field" placeholder="NRC / ID"></div><div style="display:flex;gap:10px"><button type="button" class="btn btn-soft" style="flex:1" onclick="closeModal()">Cancel</button><button class="btn btn-primary" style="flex:1">Create User</button></div></form></div>`);
+    }
+
+    function saveUser(event) {
+      event.preventDefault();
+      if (DB.users.some((u) => u.email.toLowerCase() === uEmail.value.trim().toLowerCase())) {
+        toast("A user with that email already exists.", "error");
+        return;
+      }
+      DB.users.unshift({ id:genId("u"), name:uName.value.trim(), email:uEmail.value.trim(), password:uPassword.value, phone:uPhone.value.trim(), nrc:uNrc.value.trim(), address:"", role:uRole.value, isActive:true, createdAt:new Date().toISOString() });
+      log("user-add", "Created " + uRole.value + " user " + uName.value.trim());
+      closeModal();
+      renderUsers();
+      toast("User created.", "success");
+    }
+
+    function downloadTicket(id) {
+      const booking = DB.bookings.find((b) => b.id === id);
+      if (!booking) return;
+      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${booking.ref}</title><style>body{font-family:Arial,sans-serif;background:#f5f5f5;padding:20px}.ticket{max-width:760px;margin:auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.1)}.head{background:linear-gradient(135deg,#0F1B33,#1B2A4A);color:#fff;padding:28px;text-align:center}.box{padding:22px}.route{border:2px solid #D4900C;border-radius:12px;padding:18px;text-align:center;margin:18px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.card{background:#f9fafb;border-radius:10px;padding:14px}.label{font-size:10px;color:#888;text-transform:uppercase;font-weight:700}.value{margin-top:4px;font-weight:700}.total{background:#D4900C;color:#0F1B33;padding:18px;border-radius:12px;text-align:center;font-size:28px;font-weight:900;margin-top:18px}</style></head><body><div class="ticket"><div class="head"><div style="font-size:30px;font-weight:900">UBZ</div><div>Official Travel Ticket</div></div><div class="box"><div style="text-align:center;font-family:monospace;font-size:32px;font-weight:900;color:#1B2A4A">${booking.ref}</div><div class="route"><div style="font-size:30px;font-weight:900">${booking.from} → ${booking.to}</div><div style="margin-top:6px;color:#666">${booking.travelClass.toUpperCase()} • ${booking.departure}</div></div><div class="grid"><div class="card"><div class="label">Passenger</div><div class="value">${booking.customerName}</div></div><div class="card"><div class="label">Travel Date</div><div class="value">${fmtDate(booking.travelDate)}</div></div><div class="card"><div class="label">Seats</div><div class="value">${booking.seatNumbers.join(", ")}</div></div><div class="card"><div class="label">Payment</div><div class="value">${booking.paymentMethod}</div></div></div><div class="total">${zmw(booking.totalCost)}</div></div></div></body></html>`;
+      const blob = new Blob([html], { type:"text/html" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "UBZ-Ticket-" + booking.ref + ".html";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      log("ticket-download", "Downloaded ticket for " + booking.ref);
+      toast("Ticket downloaded.", "success");
+    }
+
+    window.addEventListener("resize", applyResponsive);
+    setLoginRole("admin");
+    applyResponsive();
+    pageHeader("Dashboard", "Overview of your system");
+  </script>
+</body>
+</html>

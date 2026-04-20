@@ -838,6 +838,7 @@
               <button class="tab-btn" data-tab="bookings"><i class="fas fa-calendar-check"></i><span class="ml-1">Book</span></button>
               <button class="tab-btn" data-tab="planner"><i class="fas fa-route"></i><span class="ml-1">Plan</span></button>
               <button class="tab-btn" data-tab="adventures"><i class="fas fa-trophy"></i><span class="ml-1">Adventures</span></button>
+              <button class="tab-btn" data-tab="services"><i class="fas fa-store"></i><span class="ml-1">Services</span></button>
               <button class="tab-btn" data-tab="profile"><i class="fas fa-user"></i><span class="ml-1">Profile</span></button>
             </div>
             
@@ -849,6 +850,7 @@
               <button class="tab-btn-icon" data-tab="bookings" title="Book"><i class="fas fa-calendar-check"></i></button>
               <button class="tab-btn-icon" data-tab="planner" title="Plan Trip"><i class="fas fa-route"></i></button>
               <button class="tab-btn-icon" data-tab="adventures" title="Adventures"><i class="fas fa-trophy"></i></button>
+              <button class="tab-btn-icon" data-tab="services" title="Services"><i class="fas fa-store"></i></button>
               <button class="tab-btn-icon" data-tab="profile" title="Profile"><i class="fas fa-user"></i></button>
             </div>
             
@@ -880,6 +882,7 @@
           <button class="tab-btn" data-tab="bookings"><i class="fas fa-calendar mr-1"></i>Book</button>
           <button class="tab-btn" data-tab="planner"><i class="fas fa-route mr-1"></i>Plan</button>
           <button class="tab-btn" data-tab="adventures"><i class="fas fa-trophy mr-1"></i>Adventures</button>
+          <button class="tab-btn" data-tab="services"><i class="fas fa-store mr-1"></i>Services</button>
           <button class="tab-btn" data-tab="profile"><i class="fas fa-user mr-1"></i>Profile</button>
           <button class="tab-btn" onclick="logoutAPI()" style="color: #EF4444;"><i class="fas fa-sign-out-alt mr-1"></i>Logout</button>
         </div>
@@ -1241,6 +1244,86 @@
           </div>
         </div>
         
+        <!-- Services Tab -->
+        <div id="servicesTab" class="tab-content hidden">
+          <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <!-- Service Categories -->
+            <div class="lg:col-span-4">
+              <div class="text-center mb-8">
+                <h1 class="text-3xl md:text-4xl font-display font-bold mb-4 gradient-text">Local Services</h1>
+                <p class="text-lg" style="color: var(--text-secondary)">Discover restaurants, repair shops, real estate, and essential services in Zambia</p>
+              </div>
+              
+              <!-- Service Category Cards -->
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="service-category-card rounded-3xl p-6 text-white cursor-pointer transition-all hover:scale-105 hover:shadow-xl" style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);" onclick="showServiceCategory('restaurants')">
+                  <div class="text-center">
+                    <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <i class="fas fa-utensils text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Restaurants</h3>
+                    <p class="text-sm opacity-90">Local cuisine & dining</p>
+                    <div class="mt-4 text-xs font-semibold">
+                      <span>50+ Restaurants</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="service-category-card rounded-3xl p-6 text-white cursor-pointer transition-all hover:scale-105 hover:shadow-xl" style="background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);" onclick="showServiceCategory('repair')">
+                  <div class="text-center">
+                    <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <i class="fas fa-tools text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Repair Shops</h3>
+                    <p class="text-sm opacity-90">Auto, electronics & more</p>
+                    <div class="mt-4 text-xs font-semibold">
+                      <span>30+ Services</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="service-category-card rounded-3xl p-6 text-white cursor-pointer transition-all hover:scale-105 hover:shadow-xl" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);" onclick="showServiceCategory('realestate')">
+                  <div class="text-center">
+                    <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <i class="fas fa-home text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Real Estate</h3>
+                    <p class="text-sm opacity-90">Properties & rentals</p>
+                    <div class="mt-4 text-xs font-semibold">
+                      <span>100+ Properties</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="service-category-card rounded-3xl p-6 text-white cursor-pointer transition-all hover:scale-105 hover:shadow-xl" style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);" onclick="showServiceCategory('services')">
+                  <div class="text-center">
+                    <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <i class="fas fa-concierge-bell text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Services</h3>
+                    <p class="text-sm opacity-90">Professional services</p>
+                    <div class="mt-4 text-xs font-semibold">
+                      <span>40+ Services</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Service Listings -->
+            <div class="lg:col-span-4">
+              <div id="serviceListings" class="space-y-6">
+                <!-- Default view - all services -->
+                <div class="text-center py-12">
+                  <i class="fas fa-store text-6xl mb-4 opacity-20" style="color: var(--text-secondary)"></i>
+                  <h3 class="text-xl font-bold mb-2" style="color: var(--text-primary)">Choose a Service Category</h3>
+                  <p style="color: var(--text-secondary)">Select a category above to browse local services</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <!-- Profile Tab -->
         <div id="profileTab" class="tab-content hidden">
           <!-- Profile Header - Redesigned -->
@@ -1268,7 +1351,7 @@
                   
                   <div class="relative group">
                     <div id="profileImageContainer" class="w-28 h-28 md:w-32 md:h-32 rounded-full bg-white/20 backdrop-blur-lg flex items-center justify-center text-white font-bold text-5xl border-4 border-white/40 overflow-hidden shadow-2xl">
-                      <img id="profileImage" src="" alt="Profile" class="w-full h-full object-cover hidden">
+                      <img id="profileImage" src="BG.jpg" alt="Profile" class="w-full h-full object-cover hidden">
                       <span id="profileInitial">U</span>
                     </div>
                     <button onclick="triggerImageUpload()" class="absolute bottom-0 right-0 w-11 h-11 bg-white text-orange-500 rounded-full flex items-center justify-center shadow-xl hover:scale-110 transition-all group-hover:animate-bounce" title="Change profile picture">
@@ -1326,6 +1409,17 @@
                         </div>
                       </div>
                     </div>
+                    
+                    <!-- Daily Check-In Button -->
+                    <button id="checkInButton" onclick="window.CheckInManager.processCheckIn()" class="stat-pill bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/30 transition-all hover:scale-105 shadow-lg cursor-pointer">
+                      <div class="flex items-center gap-2">
+                        <i class="fas fa-calendar-check text-white text-xl"></i>
+                        <div class="text-left text-white">
+                          <div class="text-lg font-bold">Check In</div>
+                          <div class="text-xs opacity-90" id="checkInStreakDisplay">0 day streak</div>
+                        </div>
+                      </div>
+                    </button>
                   </div>
                   
                   <!-- Progress Bar -->
@@ -1382,6 +1476,39 @@
                     <div class="text-4xl font-bold bg-gradient-to-br from-purple-500 to-purple-600 bg-clip-text text-transparent mb-2 transition-all group-hover:scale-110" id="statsStreak">0</div>
                     <div class="text-sm font-semibold" style="color: var(--text-secondary)">Day Streak</div>
                     <div class="mt-2 h-1 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Treasure Hunt Stats -->
+              <div class="rounded-3xl p-6 md:p-8 shadow-lg" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-3" style="color: var(--text-primary)">
+                  <i class="fas fa-gem text-yellow-500"></i>
+                  Treasure Hunt Progress
+                </h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div class="stat-card group text-center p-5 rounded-2xl cursor-pointer transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(251,191,36,0.05)); border: 2px solid rgba(245,158,11,0.2);">
+                    <div class="text-4xl font-bold bg-gradient-to-br from-yellow-500 to-yellow-600 bg-clip-text text-transparent mb-2 transition-all group-hover:scale-110" id="statsTreasuresFound">0</div>
+                    <div class="text-sm font-semibold" style="color: var(--text-secondary)">Treasures Found</div>
+                    <div class="mt-2 h-1 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+                  </div>
+                  
+                  <div class="stat-card group text-center p-5 rounded-2xl cursor-pointer transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(236,72,153,0.1), rgba(244,114,182,0.05)); border: 2px solid rgba(236,72,153,0.2);">
+                    <div class="text-4xl font-bold bg-gradient-to-br from-pink-500 to-pink-600 bg-clip-text text-transparent mb-2 transition-all group-hover:scale-110" id="statsHuntsCompleted">0</div>
+                    <div class="text-sm font-semibold" style="color: var(--text-secondary)">Hunts Completed</div>
+                    <div class="mt-2 h-1 bg-gradient-to-r from-pink-500 to-pink-600 rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+                  </div>
+                  
+                  <div class="stat-card group text-center p-5 rounded-2xl cursor-pointer transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(52,211,153,0.05)); border: 2px solid rgba(16,185,129,0.2);">
+                    <div class="text-4xl font-bold bg-gradient-to-br from-emerald-500 to-emerald-600 bg-clip-text text-transparent mb-2 transition-all group-hover:scale-110" id="statsTreasureRewards">0</div>
+                    <div class="text-sm font-semibold" style="color: var(--text-secondary)">XP from Treasures</div>
+                    <div class="mt-2 h-1 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
+                  </div>
+                  
+                  <div class="stat-card group text-center p-5 rounded-2xl cursor-pointer transition-all hover:scale-105" style="background: linear-gradient(135deg, rgba(239,68,68,0.1), rgba(248,113,113,0.05)); border: 2px solid rgba(239,68,68,0.2);">
+                    <div class="text-4xl font-bold bg-gradient-to-br from-red-500 to-red-600 bg-clip-text text-transparent mb-2 transition-all group-hover:scale-110" id="statsTotalHunts">0</div>
+                    <div class="text-sm font-semibold" style="color: var(--text-secondary)">Total Hunts</div>
+                    <div class="mt-2 h-1 bg-gradient-to-r from-red-500 to-red-600 rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
                   </div>
                 </div>
               </div>
@@ -1452,7 +1579,7 @@
                     <div class="text-sm opacity-90">Explorer Level</div>
                   </div>
                   <div class="bg-white/20 rounded-full h-3 mb-2 overflow-hidden">
-                    <div id="profileLevelBar" class="bg-white rounded-full h-3 transition-all duration-1000" style="width: 0%; box-shadow: 0 0 10px rgba(255,255,255,0.5);"></div>
+                    <div id="profileLevelBarBig" class="bg-white rounded-full h-3 transition-all duration-1000" style="width: 0%; box-shadow: 0 0 10px rgba(255,255,255,0.5);"></div>
                   </div>
                   <div class="flex justify-between text-sm opacity-90">
                     <span id="profileCurrentXP">0 XP</span>
@@ -1603,6 +1730,7 @@
   <script src="js/api-integration.js"></script>
   <script src="js/quick-wins.js"></script>
   <script src="js/enhanced-features.js"></script>
+  <script src="js/check-in.js"></script>
   <script>
     // ============================================
     // DESTINATION DATA (Embedded for standalone use)
@@ -1687,19 +1815,161 @@
     // SESSION PERSISTENCE
     // ============================================
     
-    // Save session to localStorage
+    // ============================================
+    // ENHANCED USER DATA PERSISTENCE SYSTEM
+    // ============================================
+    
+    // Save comprehensive user data to localStorage (per user)
+    function saveUserData() {
+      if (state.isLoggedIn && state.user && state.user.email) {
+        const userKey = `smartZambia_user_${state.user.email}`;
+        const userData = {
+          // Basic user info
+          user: state.user,
+          
+          // Game progress
+          score: state.score || 0,
+          level: state.level || 1,
+          cashEarned: state.cashEarned || 0,
+          loginStreak: state.loginStreak || 0,
+          
+          // Achievements and progress
+          achievements: state.achievements || [],
+          visitedDestinations: state.visitedDestinations || [],
+          wishlist: state.wishlist || [],
+          
+          // Reviews and ratings
+          userReviews: state.userReviews || {},
+          
+          // Treasure hunt data
+          treasureHuntProgress: state.treasureHuntProgress || {},
+          treasureHuntCompleted: state.treasureHuntCompleted || [],
+          treasureHuntStats: state.treasureHuntStats || {
+            totalHunts: 0,
+            completedHunts: 0,
+            treasuresFound: 0,
+            totalRewards: 0
+          },
+          
+          // Civic engagement
+          civicReports: state.civicReports || [],
+          civicPoints: state.civicPoints || 0,
+          
+          // Bookings and trips
+          bookings: state.bookings || [],
+          tripPlans: state.tripPlans || [],
+          
+          // Preferences and settings
+          preferences: state.preferences || {
+            theme: 'light',
+            notifications: true,
+            language: 'en'
+          },
+          
+          // Activity tracking
+          lastLogin: new Date().toISOString(),
+          totalSessions: (state.totalSessions || 0) + 1,
+          timeSpent: state.timeSpent || 0,
+          
+          // Profile customization
+          profileImage: localStorage.getItem('profileImage'),
+          profileBadges: state.profileBadges || [],
+          
+          // Social features
+          friends: state.friends || [],
+          sharedTrips: state.sharedTrips || [],
+          
+          // Timestamp
+          lastUpdated: new Date().toISOString()
+        };
+        
+        localStorage.setItem(userKey, JSON.stringify(userData));
+        console.log('User data saved for:', state.user.email);
+      }
+    }
+    
+    // Load comprehensive user data from localStorage
+    function loadUserData(email) {
+      if (!email) return false;
+      
+      const userKey = `smartZambia_user_${email}`;
+      const savedData = localStorage.getItem(userKey);
+      
+      if (savedData) {
+        try {
+          const userData = JSON.parse(savedData);
+          
+          // Restore all user data
+          state.user = userData.user || {};
+          state.score = userData.score || 0;
+          state.level = userData.level || 1;
+          state.cashEarned = userData.cashEarned || 0;
+          state.loginStreak = userData.loginStreak || 0;
+          state.achievements = userData.achievements || [];
+          state.visitedDestinations = userData.visitedDestinations || [];
+          state.wishlist = userData.wishlist || [];
+          state.userReviews = userData.userReviews || {};
+          
+          // Restore treasure hunt data
+          state.treasureHuntProgress = userData.treasureHuntProgress || {};
+          state.treasureHuntCompleted = userData.treasureHuntCompleted || [];
+          state.treasureHuntStats = userData.treasureHuntStats || {
+            totalHunts: 0,
+            completedHunts: 0,
+            treasuresFound: 0,
+            totalRewards: 0
+          };
+          
+          // Restore civic data
+          state.civicReports = userData.civicReports || [];
+          state.civicPoints = userData.civicPoints || 0;
+          
+          // Restore bookings and trips
+          state.bookings = userData.bookings || [];
+          state.tripPlans = userData.tripPlans || [];
+          
+          // Restore preferences
+          state.preferences = userData.preferences || {
+            theme: 'light',
+            notifications: true,
+            language: 'en'
+          };
+          
+          // Restore activity data
+          state.totalSessions = userData.totalSessions || 1;
+          state.timeSpent = userData.timeSpent || 0;
+          
+          // Restore profile data
+          if (userData.profileImage) {
+            localStorage.setItem('profileImage', userData.profileImage);
+          }
+          state.profileBadges = userData.profileBadges || [];
+          
+          // Restore social data
+          state.friends = userData.friends || [];
+          state.sharedTrips = userData.sharedTrips || [];
+          
+          console.log('User data loaded for:', email);
+          return true;
+        } catch (error) {
+          console.error('Error loading user data:', error);
+          localStorage.removeItem(userKey);
+        }
+      }
+      return false;
+    }
+    
+    // Save session to localStorage (simplified - just login state)
     function saveSession() {
       if (state.isLoggedIn && state.user) {
         localStorage.setItem('smartZambiaSession', JSON.stringify({
           isLoggedIn: state.isLoggedIn,
-          user: state.user,
-          score: state.score,
-          level: state.level,
-          achievements: state.achievements,
-          visitedDestinations: state.visitedDestinations,
-          loginStreak: state.loginStreak,
-          cashEarned: state.cashEarned
+          userEmail: state.user.email,
+          lastLogin: new Date().toISOString()
         }));
+        
+        // Save comprehensive user data separately
+        saveUserData();
       }
     }
     
@@ -1709,29 +1979,24 @@
       if (savedSession) {
         try {
           const session = JSON.parse(savedSession);
-          if (session.isLoggedIn && session.user) {
-            // Restore state
-            state.isLoggedIn = session.isLoggedIn;
-            state.user = session.user;
-            state.score = session.score || 0;
-            state.level = session.level || 1;
-            state.achievements = session.achievements || [];
-            state.visitedDestinations = session.visitedDestinations || [];
-            state.loginStreak = session.loginStreak || 0;
-            state.cashEarned = session.cashEarned || 0;
-            
-            // Show main app instead of login screen
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            
-            // Update UI
-            document.getElementById('userWelcome').textContent = state.user.name;
-            document.getElementById('userInitial').textContent = state.user.name.charAt(0).toUpperCase();
-            
-            // Initialize app
-            initApp();
-            
-            return true;
+          if (session.isLoggedIn && session.userEmail) {
+            // Load comprehensive user data
+            if (loadUserData(session.userEmail)) {
+              state.isLoggedIn = true;
+              
+              // Show main app instead of login screen
+              document.getElementById('loginScreen').classList.add('hidden');
+              document.getElementById('mainApp').classList.remove('hidden');
+              
+              // Update UI
+              document.getElementById('userWelcome').textContent = state.user.name;
+              document.getElementById('userInitial').textContent = state.user.name.charAt(0).toUpperCase();
+              
+              // Initialize app
+              initApp();
+              
+              return true;
+            }
           }
         } catch (error) {
           console.error('Error loading session:', error);
@@ -1741,9 +2006,36 @@
       return false;
     }
     
-    // Clear session
+    // Clear session and user data
     function clearSession() {
-      localStorage.removeItem('smartZambiaSession');
+      if (state.user && state.user.email) {
+        const userKey = `smartZambia_user_${state.user.email}`;
+        // Don't delete user data, just clear session
+        localStorage.removeItem('smartZambiaSession');
+      }
+    }
+    
+    // Get all users (for admin purposes)
+    function getAllUsers() {
+      const users = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('smartZambia_user_')) {
+          try {
+            const userData = JSON.parse(localStorage.getItem(key));
+            users.push({
+              email: userData.user.email,
+              name: userData.user.name,
+              score: userData.score,
+              level: userData.level,
+              lastLogin: userData.lastLogin
+            });
+          } catch (error) {
+            console.error('Error parsing user data:', error);
+          }
+        }
+      }
+      return users;
     }
     let currentReportChallenge = null;
 
@@ -1753,21 +2045,52 @@
     function handleLogin(e) {
       e.preventDefault();
       const email = document.getElementById('loginEmail').value;
-      const name = email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
       
-      state.isLoggedIn = true;
-      state.user = { name, email };
+      // Load existing user data if available
+      if (loadUserData(email)) {
+        state.isLoggedIn = true;
+        
+        // Update login streak
+        const lastLogin = new Date(state.user.lastLogin || new Date());
+        const today = new Date();
+        const daysDiff = Math.floor((today - lastLogin) / (1000 * 60 * 60 * 24));
+        
+        if (daysDiff === 1) {
+          state.loginStreak = (state.loginStreak || 0) + 1;
+        } else if (daysDiff > 1) {
+          state.loginStreak = 1;
+        }
+        
+        // Award login streak bonus
+        if (state.loginStreak > 1) {
+          const streakBonus = state.loginStreak * 5;
+          addScore(streakBonus);
+          showAchievementToast('Login Streak!', `Day ${state.loginStreak} - +${streakBonus} XP bonus`);
+        }
+      } else {
+        // New user login (create basic profile)
+        const name = email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
+        state.isLoggedIn = true;
+        state.user = { email, name };
+        state.score = 0;
+        state.level = 1;
+        state.loginStreak = 1;
+        state.cashEarned = 0;
+        state.achievements = [];
+        state.visitedDestinations = [];
+        state.wishlist = [];
+      }
       
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('mainApp').classList.remove('hidden');
-      document.getElementById('userWelcome').textContent = name;
-      document.getElementById('userInitial').textContent = name.charAt(0).toUpperCase();
+      document.getElementById('userWelcome').textContent = state.user.name;
+      document.getElementById('userInitial').textContent = state.user.name.charAt(0).toUpperCase();
       
-      // Save session
+      // Save session and user data
       saveSession();
       
       initApp();
-      showAchievementToast('Welcome!', `Hello ${name}, start exploring Zambia!`);
+      showAchievementToast('Welcome!', `Hello ${state.user.name}, start exploring Zambia!`);
     }
 
     function handleRegister(e) {
@@ -1775,19 +2098,63 @@
       const name = document.getElementById('registerName').value;
       const email = document.getElementById('registerEmail').value;
       
+      // Check if user already exists
+      if (loadUserData(email)) {
+        showToast('User already exists! Please login instead.', 'warning');
+        showLogin();
+        return;
+      }
+      
+      // Create new user with comprehensive data structure
       state.isLoggedIn = true;
       state.user = { name, email };
+      state.score = 0;
+      state.level = 1;
+      state.loginStreak = 1;
+      state.cashEarned = 0;
+      state.achievements = [];
+      state.visitedDestinations = [];
+      state.wishlist = [];
+      state.userReviews = {};
+      state.treasureHuntProgress = {};
+      state.treasureHuntCompleted = [];
+      state.treasureHuntStats = {
+        totalHunts: 0,
+        completedHunts: 0,
+        treasuresFound: 0,
+        totalRewards: 0
+      };
+      state.civicReports = [];
+      state.civicPoints = 0;
+      state.bookings = [];
+      state.tripPlans = [];
+      state.preferences = {
+        theme: 'light',
+        notifications: true,
+        language: 'en'
+      };
+      state.totalSessions = 1;
+      state.timeSpent = 0;
+      state.profileBadges = [];
+      state.friends = [];
+      state.sharedTrips = [];
       
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('mainApp').classList.remove('hidden');
       document.getElementById('userWelcome').textContent = name;
       document.getElementById('userInitial').textContent = name.charAt(0).toUpperCase();
       
-      // Save session
+      // Save session and user data
       saveSession();
       
       initApp();
       showAchievementToast('Account Created!', `Welcome ${name}! Your adventure begins.`);
+      
+      // Award welcome bonus
+      setTimeout(() => {
+        addScore(50);
+        showAchievementToast('Welcome Bonus!', '+50 XP for joining Smart Zambia!');
+      }, 2000);
     }
 
     function showRegister() {
@@ -2177,9 +2544,24 @@
       state.treasureHuntActive = true;
       state.currentTreasureIndex = 0;
       state.foundTreasures = [];
+      
+      // Update treasure hunt stats
+      if (!state.treasureHuntStats) {
+        state.treasureHuntStats = {
+          totalHunts: 0,
+          completedHunts: 0,
+          treasuresFound: 0,
+          totalRewards: 0
+        };
+      }
+      state.treasureHuntStats.totalHunts++;
+      
       updateClue();
       renderDestinations();
       showAchievementToast('Treasure Hunt Started!', 'Find hidden treasures!');
+      
+      // Save progress
+      saveUserData();
     }
 
     function updateClue() {
@@ -2188,6 +2570,12 @@
       } else {
         document.getElementById('currentClue').textContent = '🎉 All treasures found!';
         state.treasureHuntActive = false;
+        
+        // Mark hunt as completed
+        if (state.treasureHuntStats) {
+          state.treasureHuntStats.completedHunts++;
+          saveUserData();
+        }
       }
       document.getElementById('treasureCount').textContent = `${state.foundTreasures.length}/5 Found`;
       document.getElementById('treasureBar').style.width = `${(state.foundTreasures.length / 5) * 100}%`;
@@ -2197,6 +2585,27 @@
       const treasureId = state.treasureClues[state.currentTreasureIndex].destination;
       if (!state.foundTreasures.includes(treasureId)) {
         state.foundTreasures.push(treasureId);
+        
+        // Update treasure hunt stats
+        if (!state.treasureHuntStats) {
+          state.treasureHuntStats = {
+            totalHunts: 0,
+            completedHunts: 0,
+            treasuresFound: 0,
+            totalRewards: 0
+          };
+        }
+        state.treasureHuntStats.treasuresFound++;
+        state.treasureHuntStats.totalRewards += 100;
+        
+        // Add to completed treasures list
+        if (!state.treasureHuntCompleted) {
+          state.treasureHuntCompleted = [];
+        }
+        if (!state.treasureHuntCompleted.includes(treasureId)) {
+          state.treasureHuntCompleted.push(treasureId);
+        }
+        
         addScore(100);
         showAchievementToast('Treasure Found!', '+100 XP');
         
@@ -2207,6 +2616,9 @@
         state.currentTreasureIndex++;
         updateClue();
         renderDestinations();
+        
+        // Save progress
+        saveUserData();
       }
     }
 
@@ -2797,6 +3209,572 @@
     window.openDestination = openDestination;
     window.closeModal = closeModal;
     window.addToWishlist = addToWishlist;
+    // ============================================
+    // SERVICES TAB
+    // ============================================
+    
+    // Local Services Data
+    const localServices = {
+      restaurants: [
+        { id: 1, name: 'Maramba River Lodge Restaurant', category: 'Fine Dining', location: 'Livingstone', phone: '+260 213 324 189', description: 'Riverside dining with stunning views of the Zambezi. Specializes in traditional Zambian cuisine and international dishes.', image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800', hours: '11:00 AM - 10:00 PM', rating: 4.8, price: '$$$ ' },
+        { id: 2, name: 'The Deli Café', category: 'Café', location: 'Lusaka', phone: '+260 211 254 321', description: 'Cozy café serving fresh pastries, sandwiches, and excellent coffee. Perfect for breakfast and lunch.', image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800', hours: '7:00 AM - 6:00 PM', rating: 4.6, price: '$$' },
+        { id: 3, name: 'Nshima Palace', category: 'Traditional', location: 'Ndola', phone: '+260 212 612 345', description: 'Authentic Zambian nshima with various relishes. Experience true local flavors in a traditional setting.', image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800', hours: '10:00 AM - 9:00 PM', rating: 4.7, price: '$' },
+        { id: 4, name: 'Latitude 15°', category: 'International', location: 'Lusaka', phone: '+260 211 254 888', description: 'Upscale restaurant offering international cuisine with a Zambian twist. Beautiful garden setting.', image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800', hours: '12:00 PM - 11:00 PM', rating: 4.9, price: '$$$$' },
+        { id: 5, name: 'Chita Lodge Restaurant', category: 'Safari Dining', location: 'South Luangwa', phone: '+260 216 246 055', description: 'Bush dining experience with game viewing. Enjoy meals while watching elephants at the waterhole.', image: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800', hours: '6:00 AM - 10:00 PM', rating: 4.9, price: '$$$' }
+      ],
+      repair: [
+        { id: 6, name: 'AutoFix Zambia', category: 'Auto Repair', location: 'Lusaka', phone: '+260 211 234 567', description: 'Full-service auto repair shop. Specializes in all makes and models. Certified mechanics with 15+ years experience.', image: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800', hours: '8:00 AM - 6:00 PM', rating: 4.5, price: '$$' },
+        { id: 7, name: 'TechFix Electronics', category: 'Electronics', location: 'Kitwe', phone: '+260 212 223 456', description: 'Repair services for phones, laptops, tablets, and home electronics. Fast turnaround, genuine parts.', image: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800', hours: '9:00 AM - 7:00 PM', rating: 4.4, price: '$$' },
+        { id: 8, name: 'Copper Belt Mechanics', category: 'Auto Repair', location: 'Ndola', phone: '+260 212 612 789', description: 'Trusted auto repair with roadside assistance. Specializes in 4x4 and safari vehicle maintenance.', image: 'https://images.unsplash.com/photo-1625047509168-a7026f36de04?w=800', hours: '7:00 AM - 8:00 PM', rating: 4.6, price: '$$' },
+        { id: 9, name: 'Home Appliance Doctors', category: 'Appliances', location: 'Lusaka', phone: '+260 211 267 890', description: 'Repair and maintenance for all home appliances. Refrigerators, washing machines, ovens, and more.', image: 'https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=800', hours: '8:00 AM - 5:00 PM', rating: 4.3, price: '$' }
+      ],
+      realestate: [
+        { id: 10, name: 'Zambia Property Group', category: 'Real Estate Agency', location: 'Lusaka', phone: '+260 211 256 789', description: 'Leading real estate agency with properties across Zambia. Residential, commercial, and land sales.', image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800', hours: '8:00 AM - 6:00 PM', rating: 4.7, price: 'Commission-based' },
+        { id: 11, name: 'Livingstone Rentals', category: 'Property Rentals', location: 'Livingstone', phone: '+260 213 324 567', description: 'Short and long-term rentals near Victoria Falls. Apartments, houses, and lodges available.', image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800', hours: '9:00 AM - 5:00 PM', rating: 4.5, price: 'K2,500 - K15,000/month' },
+        { id: 12, name: 'Copperbelt Estates', category: 'Property Sales', location: 'Kitwe', phone: '+260 212 225 678', description: 'Residential and commercial properties in the Copperbelt region. New developments and resales.', image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800', hours: '8:30 AM - 5:30 PM', rating: 4.6, price: 'K500,000+' },
+        { id: 13, name: 'Safari Lodge Properties', category: 'Tourism Properties', location: 'South Luangwa', phone: '+260 216 246 123', description: 'Lodges, camps, and tourism properties for sale or lease. Prime locations in national parks.', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800', hours: '9:00 AM - 6:00 PM', rating: 4.8, price: 'K2M+' }
+      ],
+      services: [
+        { id: 14, name: 'Zambia Legal Associates', category: 'Legal Services', location: 'Lusaka', phone: '+260 211 254 321', description: 'Full-service law firm. Corporate law, property law, immigration, and litigation services.', image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800', hours: '8:00 AM - 5:00 PM', rating: 4.8, price: 'K500+/hour' },
+        { id: 15, name: 'Safari Tours Zambia', category: 'Tour Operator', location: 'Livingstone', phone: '+260 213 324 999', description: 'Customized safari packages, Victoria Falls tours, and adventure activities. Licensed and insured.', image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800', hours: '7:00 AM - 7:00 PM', rating: 4.9, price: '$50 - $500/person' },
+        { id: 16, name: 'CleanPro Services', category: 'Cleaning', location: 'Lusaka', phone: '+260 211 267 456', description: 'Professional cleaning for homes and offices. Deep cleaning, carpet cleaning, and maintenance services.', image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800', hours: '7:00 AM - 6:00 PM', rating: 4.4, price: 'K200 - K1,500' },
+        { id: 17, name: 'Zambia Accounting Services', category: 'Accounting', location: 'Ndola', phone: '+260 212 612 234', description: 'Tax preparation, bookkeeping, and financial consulting for businesses and individuals.', image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800', hours: '8:00 AM - 5:00 PM', rating: 4.6, price: 'K300+/month' },
+        { id: 18, name: 'Wellness Spa Zambia', category: 'Spa & Wellness', location: 'Lusaka', phone: '+260 211 256 888', description: 'Relaxation and rejuvenation services. Massages, facials, body treatments in a tranquil setting.', image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800', hours: '9:00 AM - 8:00 PM', rating: 4.7, price: 'K150 - K800' }
+      ]
+    };
+    
+    // Show services by category
+    function showServiceCategory(category) {
+      const services = localServices[category] || [];
+      const container = document.getElementById('serviceListings');
+      
+      if (services.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12">
+            <i class="fas fa-exclamation-circle text-6xl mb-4 opacity-20" style="color: var(--text-secondary)"></i>
+            <h3 class="text-xl font-bold mb-2" style="color: var(--text-primary)">No Services Found</h3>
+            <p style="color: var(--text-secondary)">Check back soon for more services in this category</p>
+          </div>
+        `;
+        return;
+      }
+      
+      // Category titles
+      const categoryTitles = {
+        restaurants: 'Restaurants & Dining',
+        repair: 'Repair Services',
+        realestate: 'Real Estate',
+        services: 'Professional Services'
+      };
+      
+      container.innerHTML = `
+        <div class="mb-6">
+          <h2 class="text-2xl font-bold mb-2" style="color: var(--text-primary)">${categoryTitles[category]}</h2>
+          <p style="color: var(--text-secondary)">Browse ${services.length} ${category === 'restaurants' ? 'dining options' : category === 'repair' ? 'repair shops' : category === 'realestate' ? 'properties' : 'professional services'} in Zambia</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          ${services.map(service => `
+            <div class="rounded-3xl overflow-hidden transition-all hover:scale-105 hover:shadow-xl cursor-pointer" style="background: var(--bg-card); border: 1px solid var(--border-color);" onclick="showServiceDetail(${service.id}, '${category}')">
+              <div class="relative h-48 overflow-hidden">
+                <img src="${service.image}" alt="${service.name}" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                <div class="absolute top-3 right-3 flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-bold text-yellow-900" style="background: rgba(250,204,21,0.95);">
+                  <i class="fas fa-star text-yellow-600"></i>
+                  ${service.rating}
+                </div>
+              </div>
+              <div class="p-5">
+                <h3 class="text-lg font-bold mb-1" style="color: var(--text-primary)">${service.name}</h3>
+                <p class="text-sm flex items-center gap-1.5 mb-2" style="color: var(--text-secondary)">
+                  <i class="fas fa-map-marker-alt text-zambia-orange"></i>
+                  ${service.location}
+                </p>
+                <p class="text-sm line-clamp-2 mb-4" style="color: var(--text-secondary)">${service.description}</p>
+                <div class="flex items-center justify-between pt-4" style="border-top: 1px solid var(--border-color)">
+                  <span class="text-xs font-semibold px-3 py-1.5 rounded-full" style="background: rgba(232,93,4,0.1); color: #E85D04;">
+                    ${service.category}
+                  </span>
+                  <span class="text-sm font-bold" style="color: #16A34A;">
+                    ${service.price}
+                  </span>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      
+      // Scroll to top of services section
+      container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    
+    // Show service detail modal
+    function showServiceDetail(serviceId, category) {
+      const services = localServices[category] || [];
+      const service = services.find(s => s.id === serviceId);
+      
+      if (!service) return;
+      
+      // Create modal
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay active';
+      modal.innerHTML = `
+        <div class="modal-content relative">
+          <button onclick="this.closest('.modal-overlay').remove(); document.body.style.overflow = '';" class="absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center z-10 transition-all hover:scale-110" style="background: var(--bg-card); color: var(--text-primary); box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            <i class="fas fa-times"></i>
+          </button>
+          <div class="relative h-64 md:h-80 overflow-hidden">
+            <img src="${service.image}" class="w-full h-full object-cover" alt="${service.name}">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div class="absolute bottom-6 left-6 right-6 text-white">
+              <h2 class="text-2xl md:text-3xl font-display font-bold mb-2">${service.name}</h2>
+              <p class="flex items-center gap-2 opacity-90">
+                <i class="fas fa-map-marker-alt text-zambia-gold"></i>
+                <span>${service.location}</span>
+              </p>
+            </div>
+          </div>
+          <div class="p-6 md:p-8">
+            <div class="flex flex-wrap gap-3 mb-6">
+              <span class="px-4 py-2 rounded-full text-sm font-semibold" style="background: rgba(232,93,4,0.1); color: #E85D04;">${service.category}</span>
+              <div class="flex items-center gap-1 px-4 py-2 rounded-full text-sm font-semibold" style="background: rgba(245,158,11,0.1); color: #F59E0B;">
+                <i class="fas fa-star"></i> ${service.rating}
+              </div>
+              <span class="px-4 py-2 rounded-full text-sm font-bold" style="background: rgba(22,163,74,0.1); color: #16A34A;">${service.price}</span>
+            </div>
+            
+            <p class="text-lg leading-relaxed mb-6" style="color: var(--text-secondary)">${service.description}</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div class="p-4 rounded-xl" style="background: var(--bg-primary)">
+                <div class="flex items-center gap-3 mb-2">
+                  <i class="fas fa-phone text-zambia-orange text-xl"></i>
+                  <div>
+                    <p class="text-xs font-semibold" style="color: var(--text-secondary)">Phone</p>
+                    <p class="font-bold" style="color: var(--text-primary)">${service.phone}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="p-4 rounded-xl" style="background: var(--bg-primary)">
+                <div class="flex items-center gap-3 mb-2">
+                  <i class="fas fa-clock text-zambia-orange text-xl"></i>
+                  <div>
+                    <p class="text-xs font-semibold" style="color: var(--text-secondary)">Hours</p>
+                    <p class="font-bold" style="color: var(--text-primary)">${service.hours}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-3">
+              <button onclick="callService('${service.phone}')" class="flex-1 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2" style="background: linear-gradient(135deg, #16A34A, #15803D); color: white;">
+                <i class="fas fa-phone"></i> Call Now
+              </button>
+              <button onclick="bookService('${service.name}')" class="flex-1 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2" style="background: linear-gradient(135deg, #E85D04, #C45508); color: white;">
+                <i class="fas fa-calendar-check"></i> Book Service
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      document.body.style.overflow = 'hidden';
+      
+      // Add XP for viewing service
+      addScore(3);
+    }
+    
+    // Call service
+    function callService(phone) {
+      window.location.href = `tel:${phone}`;
+      addScore(5);
+      showAchievementToast('Calling Service', 'Connecting you now...');
+    }
+    
+    // Book service
+    function bookService(serviceName) {
+      showAchievementToast('Booking Request', `Request sent to ${serviceName}. They will contact you soon!`);
+      addScore(10);
+      
+      // Close modal
+      document.querySelector('.modal-overlay')?.remove();
+      document.body.style.overflow = '';
+    }
+
+    // ============================================
+    // EASTER EGGS & HIDDEN BONUSES
+    // ============================================
+    
+    // Easter egg tracking
+    const easterEggs = {
+      discovered: [],
+      konamiCode: { sequence: [], target: ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'], unlocked: false },
+      logoClicks: { count: 0, required: 7, unlocked: false, lastClick: 0 },
+      midnightLogin: { unlocked: false },
+      luckyVisits: { visits: 0, milestones: [7, 77, 777], unlocked: [] },
+      hiddenCodes: { codes: ['ZAMBIA2024', 'VICTORIA', 'COPPER'], found: [] },
+      speedDemon: { actions: [], unlocked: false },
+      profileSecret: { unlocked: false },
+      weatherBonus: { unlocked: false }
+    };
+    
+    // Load Easter egg progress
+    function loadEasterEggs() {
+      const saved = localStorage.getItem('smartZambia_easterEggs');
+      if (saved) {
+        try {
+          const data = JSON.parse(saved);
+          Object.assign(easterEggs, data);
+        } catch (e) {
+          console.error('Error loading Easter eggs:', e);
+        }
+      }
+    }
+    
+    // Save Easter egg progress
+    function saveEasterEggs() {
+      localStorage.setItem('smartZambia_easterEggs', JSON.stringify(easterEggs));
+    }
+    
+    // 1. KONAMI CODE (↑↑↓↓←→←→BA)
+    function initKonamiCode() {
+      document.addEventListener('keydown', (e) => {
+        if (easterEggs.konamiCode.unlocked) return;
+        
+        easterEggs.konamiCode.sequence.push(e.key);
+        if (easterEggs.konamiCode.sequence.length > 10) {
+          easterEggs.konamiCode.sequence.shift();
+        }
+        
+        const match = easterEggs.konamiCode.sequence.every((key, i) => 
+          key === easterEggs.konamiCode.target[i]
+        );
+        
+        if (match && easterEggs.konamiCode.sequence.length === 10) {
+          unlockKonamiCode();
+        }
+      });
+    }
+    
+    function unlockKonamiCode() {
+      easterEggs.konamiCode.unlocked = true;
+      easterEggs.discovered.push('konami');
+      saveEasterEggs();
+      
+      // Screen shake effect
+      document.body.style.animation = 'shake 0.5s';
+      setTimeout(() => document.body.style.animation = '', 500);
+      
+      // Confetti effect
+      createConfetti();
+      
+      addScore(1000);
+      unlockAchievement('secret_agent');
+      showAchievementToast('🎮 KONAMI CODE!', 'Secret Agent Badge Unlocked! +1000 XP');
+      
+      // Add achievement if not exists
+      if (!achievementDefs.find(a => a.id === 'secret_agent')) {
+        achievementDefs.push({
+          id: 'secret_agent',
+          name: 'Secret Agent',
+          desc: 'Discovered the Konami Code',
+          icon: 'fa-user-secret',
+          xp: 1000
+        });
+      }
+    }
+    
+    // 2. LOGO CLICK (7 times fast)
+    function initLogoClick() {
+      const logo = document.querySelector('.w-11.h-11.bg-gradient-to-br');
+      if (!logo) return;
+      
+      logo.style.cursor = 'pointer';
+      logo.addEventListener('click', () => {
+        if (easterEggs.logoClicks.unlocked) return;
+        
+        const now = Date.now();
+        if (now - easterEggs.logoClicks.lastClick > 2000) {
+          easterEggs.logoClicks.count = 0;
+        }
+        
+        easterEggs.logoClicks.count++;
+        easterEggs.logoClicks.lastClick = now;
+        
+        // Spin animation
+        logo.style.transform = `rotate(${easterEggs.logoClicks.count * 51.4}deg)`;
+        logo.style.transition = 'transform 0.3s ease';
+        
+        if (easterEggs.logoClicks.count >= easterEggs.logoClicks.required) {
+          unlockLogoBadge();
+        }
+      });
+    }
+    
+    function unlockLogoBadge() {
+      easterEggs.logoClicks.unlocked = true;
+      easterEggs.discovered.push('logo');
+      saveEasterEggs();
+      
+      addScore(500);
+      showAchievementToast('🔍 Curious Explorer!', 'You found the logo secret! +500 XP');
+      
+      if (!achievementDefs.find(a => a.id === 'curious_explorer')) {
+        achievementDefs.push({
+          id: 'curious_explorer',
+          name: 'Curious Explorer',
+          desc: 'Clicked the logo 7 times',
+          icon: 'fa-search',
+          xp: 500
+        });
+      }
+    }
+    
+    // 3. MIDNIGHT LOGIN
+    function checkMidnightLogin() {
+      const hour = new Date().getHours();
+      const today = new Date().toDateString();
+      const lastMidnight = localStorage.getItem('smartZambia_lastMidnight');
+      
+      if (hour === 0 && lastMidnight !== today) {
+        localStorage.setItem('smartZambia_lastMidnight', today);
+        unlockMidnightBonus();
+      }
+    }
+    
+    function unlockMidnightBonus() {
+      easterEggs.midnightLogin.unlocked = true;
+      easterEggs.discovered.push('midnight');
+      saveEasterEggs();
+      
+      // 2x XP for 1 hour
+      state.xpMultiplier = 2;
+      setTimeout(() => {
+        state.xpMultiplier = 1;
+        showAchievementToast('Bonus Expired', 'XP multiplier returned to normal');
+      }, 3600000); // 1 hour
+      
+      showAchievementToast('🦉 Night Owl!', '2x XP for the next hour! +200 XP');
+      addScore(200);
+      
+      if (!achievementDefs.find(a => a.id === 'night_owl')) {
+        achievementDefs.push({
+          id: 'night_owl',
+          name: 'Night Owl',
+          desc: 'Logged in at midnight',
+          icon: 'fa-moon',
+          xp: 200
+        });
+      }
+    }
+    
+    // 4. LUCKY NUMBERS (7th, 77th, 777th visit)
+    function checkLuckyVisit() {
+      easterEggs.luckyVisits.visits++;
+      saveEasterEggs();
+      
+      easterEggs.luckyVisits.milestones.forEach((milestone, index) => {
+        if (easterEggs.luckyVisits.visits === milestone && !easterEggs.luckyVisits.unlocked.includes(milestone)) {
+          easterEggs.luckyVisits.unlocked.push(milestone);
+          unlockLuckyMilestone(milestone, index);
+        }
+      });
+    }
+    
+    function unlockLuckyMilestone(milestone, index) {
+      const rewards = [100, 500, 2000];
+      const reward = rewards[index];
+      
+      easterEggs.discovered.push(`lucky_${milestone}`);
+      saveEasterEggs();
+      
+      // Fireworks effect
+      createFireworks();
+      
+      addScore(reward);
+      showAchievementToast(`🎰 Lucky ${milestone}!`, `Visit #${milestone} - You won ${reward} XP!`);
+    }
+    
+    // 5. HIDDEN CODES in descriptions
+    function checkHiddenCode(text) {
+      if (!text) return;
+      
+      easterEggs.hiddenCodes.codes.forEach(code => {
+        if (text.toUpperCase().includes(code) && !easterEggs.hiddenCodes.found.includes(code)) {
+          unlockHiddenCode(code);
+        }
+      });
+    }
+    
+    function unlockHiddenCode(code) {
+      easterEggs.hiddenCodes.found.push(code);
+      easterEggs.discovered.push(`code_${code}`);
+      saveEasterEggs();
+      
+      addScore(250);
+      showAchievementToast(`🔐 Code Found: ${code}`, 'Hidden code discovered! +250 XP');
+    }
+    
+    // 6. SPEED DEMON (5 actions in 30 seconds)
+    function trackAction() {
+      if (easterEggs.speedDemon.unlocked) return;
+      
+      const now = Date.now();
+      easterEggs.speedDemon.actions.push(now);
+      
+      // Remove actions older than 30 seconds
+      easterEggs.speedDemon.actions = easterEggs.speedDemon.actions.filter(
+        time => now - time < 30000
+      );
+      
+      if (easterEggs.speedDemon.actions.length >= 5) {
+        unlockSpeedDemon();
+      }
+    }
+    
+    function unlockSpeedDemon() {
+      easterEggs.speedDemon.unlocked = true;
+      easterEggs.discovered.push('speed');
+      saveEasterEggs();
+      
+      addScore(300);
+      showAchievementToast('⚡ Speed Demon!', '5 actions in 30 seconds! +300 XP');
+      
+      if (!achievementDefs.find(a => a.id === 'speed_demon')) {
+        achievementDefs.push({
+          id: 'speed_demon',
+          name: 'Speed Demon',
+          desc: 'Completed 5 actions in 30 seconds',
+          icon: 'fa-bolt',
+          xp: 300
+        });
+      }
+    }
+    
+    // 7. PROFILE SECRET (bio = "I love Zambia")
+    function checkProfileSecret(bio) {
+      if (!bio || easterEggs.profileSecret.unlocked) return;
+      
+      if (bio.toLowerCase().includes('i love zambia')) {
+        unlockProfileSecret();
+      }
+    }
+    
+    function unlockProfileSecret() {
+      easterEggs.profileSecret.unlocked = true;
+      easterEggs.discovered.push('profile');
+      saveEasterEggs();
+      
+      addScore(200);
+      showAchievementToast('🇿🇲 Patriot!', 'Profile secret unlocked! +200 XP');
+      
+      if (!achievementDefs.find(a => a.id === 'patriot')) {
+        achievementDefs.push({
+          id: 'patriot',
+          name: 'Patriot',
+          desc: 'Showed love for Zambia',
+          icon: 'fa-flag',
+          xp: 200
+        });
+      }
+    }
+    
+    // Visual effects
+    function createConfetti() {
+      const colors = ['#E85D04', '#F59E0B', '#16A34A', '#3B82F6', '#8B5CF6'];
+      for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.style.cssText = `
+          position: fixed;
+          width: 10px;
+          height: 10px;
+          background: ${colors[Math.floor(Math.random() * colors.length)]};
+          left: ${Math.random() * 100}%;
+          top: -10px;
+          opacity: 1;
+          transform: rotate(${Math.random() * 360}deg);
+          z-index: 10000;
+          pointer-events: none;
+        `;
+        document.body.appendChild(confetti);
+        
+        const duration = 2000 + Math.random() * 1000;
+        const animation = confetti.animate([
+          { transform: `translateY(0) rotate(0deg)`, opacity: 1 },
+          { transform: `translateY(${window.innerHeight + 20}px) rotate(${Math.random() * 720}deg)`, opacity: 0 }
+        ], { duration, easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' });
+        
+        animation.onfinish = () => confetti.remove();
+      }
+    }
+    
+    function createFireworks() {
+      const colors = ['#F59E0B', '#EF4444', '#8B5CF6', '#3B82F6'];
+      for (let i = 0; i < 3; i++) {
+        setTimeout(() => {
+          const x = 20 + Math.random() * 60;
+          const y = 20 + Math.random() * 40;
+          
+          for (let j = 0; j < 20; j++) {
+            const particle = document.createElement('div');
+            particle.style.cssText = `
+              position: fixed;
+              width: 6px;
+              height: 6px;
+              background: ${colors[Math.floor(Math.random() * colors.length)]};
+              left: ${x}%;
+              top: ${y}%;
+              border-radius: 50%;
+              z-index: 10000;
+              pointer-events: none;
+            `;
+            document.body.appendChild(particle);
+            
+            const angle = (Math.PI * 2 * j) / 20;
+            const velocity = 100 + Math.random() * 100;
+            const tx = Math.cos(angle) * velocity;
+            const ty = Math.sin(angle) * velocity;
+            
+            const animation = particle.animate([
+              { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+              { transform: `translate(${tx}px, ${ty}px) scale(0)`, opacity: 0 }
+            ], { duration: 1000, easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' });
+            
+            animation.onfinish = () => particle.remove();
+          }
+        }, i * 300);
+      }
+    }
+    
+    // Initialize all Easter eggs
+    function initEasterEggs() {
+      loadEasterEggs();
+      initKonamiCode();
+      initLogoClick();
+      checkMidnightLogin();
+      checkLuckyVisit();
+      
+      // Track actions for speed demon
+      const originalAddScore = addScore;
+      window.addScore = function(...args) {
+        trackAction();
+        return originalAddScore.apply(this, args);
+      };
+    }
+    
+    // Add shake animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+        20%, 40%, 60%, 80% { transform: translateX(10px); }
+      }
+    `;
+    document.head.appendChild(style);
+
     window.getDirections = getDirections;
     window.showRandomDestination = showRandomDestination;
     window.startTreasureHunt = startTreasureHunt;
@@ -2811,6 +3789,10 @@
     window.generateItinerary = generateItinerary;
     window.handleMediaUpload = handleMediaUpload;
     window.removeMedia = removeMedia;
+    window.showServiceCategory = showServiceCategory;
+    window.showServiceDetail = showServiceDetail;
+    window.callService = callService;
+    window.bookService = bookService;
     
     // ============================================
     // NOTE: Profile functions moved to js/profile.js
@@ -2827,8 +3809,16 @@
     // Initialize event listeners immediately when page loads
     setupEventListeners();
     
+    // Initialize Easter eggs
+    initEasterEggs();
+    
     // Check for existing session on page load
     loadSession();
+    
+    // Initialize Daily Check-In System
+    if (typeof window.CheckInManager !== 'undefined') {
+      window.CheckInManager.init();
+    }
     
   </script>
 </body>

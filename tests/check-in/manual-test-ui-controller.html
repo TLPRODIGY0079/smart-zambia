@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UIController Manual Test</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    
+    .test-card {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    
+    .test-button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      margin: 0.5rem;
+    }
+    
+    .test-button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .test-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    #check-in-button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 0.75rem;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 1.25rem;
+      transition: all 0.3s ease;
+      min-width: 200px;
+      min-height: 60px;
+    }
+    
+    #check-in-button:hover:not(:disabled) {
+      transform: scale(1.05);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
+    }
+    
+    #streak-counter {
+      font-size: 4rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .toast {
+      position: fixed;
+      top: 2rem;
+      right: 2rem;
+      background: white;
+      padding: 1rem 1.5rem;
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      animation: slideIn 0.3s ease;
+      max-width: 400px;
+    }
+    
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    .toast.success {
+      border-left: 4px solid #10b981;
+    }
+    
+    .toast.warning {
+      border-left: 4px solid #f59e0b;
+    }
+    
+    .toast.info {
+      border-left: 4px solid #3b82f6;
+    }
+    
+    .confetti {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      background: #f0f;
+      position: absolute;
+      animation: confetti-fall 3s linear;
+    }
+    
+    @keyframes confetti-fall {
+      to {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="max-w-6xl mx-auto">
+    <h1 class="text-4xl font-bold text-white text-center mb-8">
+      <i class="fas fa-vial mr-3"></i>UIController Manual Test Suite
+    </h1>
+    
+    <!-- Test 1: updateCheckInButton -->
+    <div class="test-card">
+      <h2 class="text-2xl font-bold mb-4">
+        <i class="fas fa-toggle-on mr-2 text-purple-600"></i>
+        Test 1: updateCheckInButton
+      </h2>
+      <p class="text-gray-600 mb-4">Tests enabling and disabling the check-in button with proper styling.</p>
+      
+      <div class="flex items-center gap-4 mb-4">
+        <button id="check-in-button" class="test-button">
+          ✓ Check In
+        </button>
+      </div>
+      
+      <div class="flex gap-2">
+        <button onclick="testEnableButton()" class="test-button">
+          <i class="fas fa-check-circle mr-2"></i>Enable Button
+        </button>
+        <button onclick="testDisableButton()" class="test-button">
+          <i class="fas fa-ban mr-2"></i>Disable Button
+        </button>
+      </div>
+      
+      <div id="button-status" class="mt-4 p-3 bg-gray-100 rounded"></div>
+    </div>
+    
+    <!-- Test 2: updateStreakDisplay -->
+    <div class="test-card">
+      <h2 class="text-2xl font-bold mb-4">
+        <i class="fas fa-fire mr-2 text-orange-600"></i>
+        Test 2: updateStreakDisplay
+      </h2>
+      <p class="text-gray-600 mb-4">Tests updating the streak counter with smooth animation.</p>
+      
+      <div class="text-center mb-6">
+        <div id="streak-counter" class="mb-2">0</div>
+        <p class="text-gray-500 font-semibold">Day Streak</p>
+      </div>
+      
+      <div class="flex gap-2 flex-wrap">
+        <button onclick="testUpdateStreak(7)" class="test-button">
+          <i class="fas fa-arrow-up mr-2"></i>Set to 7
+        </button>
+        <button onclick="testUpdateStreak(30)" class="test-button">
+          <i class="fas fa-arrow-up mr-2"></i>Set to 30
+        </button>
+        <button onclick="testUpdateStreak(100)" class="test-button">
+          <i class="fas fa-arrow-up mr-2"></i>Set to 100
+        </button>
+        <button onclick="testUpdateStreak(0)" class="test-button">
+          <i class="fas fa-redo mr-2"></i>Reset to 0
+        </button>
+      </div>
+      
+      <div id="streak-status" class="mt-4 p-3 bg-gray-100 rounded"></div>
+    </div>
+    
+    <!-- Test 3: showCheckInSuccess -->
+    <div class="test-card">
+      <h2 class="text-2xl font-bold mb-4">
+        <i class="fas fa-check-circle mr-2 text-green-600"></i>
+        Test 3: showCheckInSuccess
+      </h2>
+      <p class="text-gray-600 mb-4">Tests displaying check-in success notifications.</p>
+      
+      <div class="flex gap-2 flex-wrap">
+        <button onclick="testCheckInSuccess(12, 1)" class="test-button">
+          <i class="fas fa-star mr-2"></i>Day 1 (12 XP)
+        </button>
+        <button onclick="testCheckInSuccess(74, 7)" class="test-button">
+          <i class="fas fa-fire mr-2"></i>Day 7 (74 XP)
+        </button>
+        <button onclick="testCheckInSuccess(270, 30)" class="test-button">
+          <i class="fas fa-calendar-check mr-2"></i>Day 30 (270 XP)
+        </button>
+        <button onclick="testCheckInSuccess(1210, 100)" class="test-button">
+          <i class="fas fa-crown mr-2"></i>Day 100 (1210 XP)
+        </button>
+      </div>
+      
+      <div id="success-status" class="mt-4 p-3 bg-gray-100 rounded"></div>
+    </div>
+    
+    <!-- Test 4: showMilestoneCelebration -->
+    <div class="test-card">
+      <h2 class="text-2xl font-bold mb-4">
+        <i class="fas fa-trophy mr-2 text-yellow-600"></i>
+        Test 4: showMilestoneCelebration
+      </h2>
+      <p class="text-gray-600 mb-4">Tests milestone celebrations with confetti effects.</p>
+      
+      <div class="flex gap-2 flex-wrap">
+        <button onclick="testMilestone(7)" class="test-button">
+          <i class="fas fa-fire mr-2"></i>Week Warrior (7 days)
+        </button>
+        <button onclick="testMilestone(30)" class="test-button">
+          <i class="fas fa-calendar-check mr-2"></i>Monthly Master (30 days)
+        </button>
+        <button onclick="testMilestone(100)" class="test-button">
+          <i class="fas fa-crown mr-2"></i>Century Champion (100 days)
+        </button>
+      </div>
+      
+      <div id="milestone-status" class="mt-4 p-3 bg-gray-100 rounded"></div>
+    </div>
+    
+    <!-- Test 5: showFreezeNotification -->
+    <div class="test-card">
+      <h2 class="text-2xl font-bold mb-4">
+        <i class="fas fa-snowflake mr-2 text-blue-600"></i>
+        Test 5: showFreezeNotification
+      </h2>
+      <p class="text-gray-600 mb-4">Tests freeze protection notifications.</p>
+      
+      <div class="flex gap-2">
+        <button onclick="testFreezeNotification(true)" class="test-button">
+          <i class="fas fa-shield-alt mr-2"></i>Freeze Used
+        </button>
+        <button onclick="testFreezeNotification(false)" class="test-button">
+          <i class="fas fa-info-circle mr-2"></i>Freeze Available
+        </button>
+      </div>
+      
+      <div id="freeze-status" class="mt-4 p-3 bg-gray-100 rounded"></div>
+    </div>
+    
+    <!-- Test 6: animateCounter -->
+    <div class="test-card">
+      <h2 class="text-2xl font-bold mb-4">
+        <i class="fas fa-chart-line mr-2 text-indigo-600"></i>
+        Test 6: animateCounter
+      </h2>
+      <p class="text-gray-600 mb-4">Tests smooth counter animation with different durations.</p>
+      
+      <div class="text-center mb-6">
+        <div id="test-counter" class="text-6xl font-bold text-purple-600">0</div>
+      </div>
+      
+      <div class="flex gap-2 flex-wrap">
+        <button onclick="testAnimateCounter(50, 500)" class="test-button">
+          <i class="fas fa-fast-forward mr-2"></i>Fast (50, 500ms)
+        </button>
+        <button onclick="testAnimateCounter(100, 1000)" class="test-button">
+          <i class="fas fa-play mr-2"></i>Normal (100, 1000ms)
+        </button>
+        <button onclick="testAnimateCounter(200, 2000)" class="test-button">
+          <i class="fas fa-hourglass-half mr-2"></i>Slow (200, 2000ms)
+        </button>
+        <button onclick="testAnimateCounter(0, 1000)" class="test-button">
+          <i class="fas fa-redo mr-2"></i>Reset
+        </button>
+      </div>
+      
+      <div id="counter-status" class="mt-4 p-3 bg-gray-100 rounded"></div>
+    </div>
+  </div>
+  
+  <!-- Load check-in.js -->
+  <script src="../../public/js/check-in.js"></script>
+  
+  <!-- Test Functions -->
+  <script>
+    // Mock notification system
+    window.showAchievementToast = function(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `
+        <div class="flex items-start gap-3">
+          <i class="fas ${type === 'success' ? 'fa-check-circle text-green-500' : 
+                          type === 'warning' ? 'fa-exclamation-triangle text-yellow-500' : 
+                          'fa-info-circle text-blue-500'} text-xl"></i>
+          <div>
+            <p class="font-semibold">${message}</p>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.animation = 'slideIn 0.3s ease reverse';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    };
+    
+    // Mock confetti function
+    window.triggerConfetti = function() {
+      const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+      for (let i = 0; i < 50; i++) {
+        setTimeout(() => {
+          const confetti = document.createElement('div');
+          confetti.className = 'confetti';
+          confetti.style.left = Math.random() * window.innerWidth + 'px';
+          confetti.style.top = '-10px';
+          confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+          confetti.style.animationDelay = Math.random() * 0.5 + 's';
+          document.body.appendChild(confetti);
+          
+          setTimeout(() => confetti.remove(), 3000);
+        }, i * 30);
+      }
+    };
+    
+    // Test 1: updateCheckInButton
+    function testEnableButton() {
+      const result = window.UIController.updateCheckInButton(true);
+      const button = document.getElementById('check-in-button');
+      document.getElementById('button-status').innerHTML = `
+        <strong>Result:</strong> ${result ? 'SUCCESS' : 'FAILED'}<br>
+        <strong>Button State:</strong> ${button.disabled ? 'Disabled' : 'Enabled'}<br>
+        <strong>Button Text:</strong> ${button.textContent}<br>
+        <strong>Has Hover Effect:</strong> ${button.classList.contains('hover:scale-105') ? 'Yes' : 'No'}
+      `;
+    }
+    
+    function testDisableButton() {
+      const result = window.UIController.updateCheckInButton(false);
+      const button = document.getElementById('check-in-button');
+      document.getElementById('button-status').innerHTML = `
+        <strong>Result:</strong> ${result ? 'SUCCESS' : 'FAILED'}<br>
+        <strong>Button State:</strong> ${button.disabled ? 'Disabled' : 'Enabled'}<br>
+        <strong>Button Text:</strong> ${button.textContent}<br>
+        <strong>Has Opacity:</strong> ${button.classList.contains('opacity-50') ? 'Yes' : 'No'}
+      `;
+    }
+    
+    // Test 2: updateStreakDisplay
+    function testUpdateStreak(value) {
+      const result = window.UIController.updateStreakDisplay(value);
+      document.getElementById('streak-status').innerHTML = `
+        <strong>Result:</strong> ${result ? 'SUCCESS' : 'FAILED'}<br>
+        <strong>Target Value:</strong> ${value}<br>
+        <strong>Animation:</strong> Watch the counter animate smoothly!
+      `;
+    }
+    
+    // Test 3: showCheckInSuccess
+    function testCheckInSuccess(xp, streak) {
+      const result = window.UIController.showCheckInSuccess(xp, streak);
+      document.getElementById('success-status').innerHTML = `
+        <strong>Result:</strong> ${result ? 'SUCCESS' : 'FAILED'}<br>
+        <strong>XP Earned:</strong> ${xp}<br>
+        <strong>Streak:</strong> ${streak} days<br>
+        <strong>Notification:</strong> Check top-right corner!
+      `;
+    }
+    
+    // Test 4: showMilestoneCelebration
+    function testMilestone(milestone) {
+      const achievement = window.MILESTONE_ACHIEVEMENTS[milestone];
+      const result = window.UIController.showMilestoneCelebration(milestone, achievement);
+      document.getElementById('milestone-status').innerHTML = `
+        <strong>Result:</strong> ${result ? 'SUCCESS' : 'FAILED'}<br>
+        <strong>Milestone:</strong> ${milestone} days<br>
+        <strong>Achievement:</strong> ${achievement.name}<br>
+        <strong>Bonus XP:</strong> +${achievement.xpBonus}<br>
+        <strong>Effects:</strong> Confetti + Notification + Bounce animation!
+      `;
+    }
+    
+    // Test 5: showFreezeNotification
+    function testFreezeNotification(used) {
+      const result = window.UIController.showFreezeNotification(used);
+      document.getElementById('freeze-status').innerHTML = `
+        <strong>Result:</strong> ${result ? 'SUCCESS' : 'FAILED'}<br>
+        <strong>Freeze Status:</strong> ${used ? 'Used' : 'Available'}<br>
+        <strong>Notification:</strong> Check top-right corner!
+      `;
+    }
+    
+    // Test 6: animateCounter
+    function testAnimateCounter(target, duration) {
+      const element = document.getElementById('test-counter');
+      const result = window.UIController.animateCounter(element, target, duration);
+      document.getElementById('counter-status').innerHTML = `
+        <strong>Result:</strong> ${result ? 'SUCCESS' : 'FAILED'}<br>
+        <strong>Target Value:</strong> ${target}<br>
+        <strong>Duration:</strong> ${duration}ms<br>
+        <strong>Animation:</strong> Watch the smooth easing effect!
+      `;
+    }
+    
+    // Initialize with welcome message
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        window.showAchievementToast('UIController Test Suite Ready! Click buttons to test each function.', 'info');
+      }, 500);
+    });
+  </script>
+</body>
+</html>

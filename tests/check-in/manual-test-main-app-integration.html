@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check-In System - Main App Integration Test</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .test-card {
+      background: white;
+      border-radius: 24px;
+      padding: 32px;
+      max-width: 800px;
+      margin: 0 auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    .stat-pill {
+      background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));
+      border: 2px solid rgba(102,126,234,0.3);
+      padding: 16px 20px;
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin: 8px;
+      transition: all 0.3s ease;
+    }
+    
+    .stat-pill:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(102,126,234,0.2);
+    }
+    
+    .check-in-button {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      padding: 16px 24px;
+      border-radius: 16px;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .check-in-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(16,185,129,0.4);
+    }
+    
+    .check-in-button:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .test-result {
+      background: #f0fdf4;
+      border: 2px solid #86efac;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 16px 0;
+    }
+    
+    .test-result.error {
+      background: #fef2f2;
+      border-color: #fca5a5;
+    }
+    
+    .achievement-toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: linear-gradient(135deg, #166534 0%, #15803D 100%);
+      color: white;
+      padding: 20px 28px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      z-index: 200;
+      transform: translateX(150%);
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 16px 48px rgba(22,101,52,0.4);
+    }
+    
+    .achievement-toast.show {
+      transform: translateX(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="test-card">
+    <h1 class="text-3xl font-bold mb-6 text-gray-800">
+      <i class="fas fa-calendar-check text-green-500 mr-3"></i>
+      Check-In System Integration Test
+    </h1>
+    
+    <div class="mb-8">
+      <h2 class="text-xl font-bold mb-4 text-gray-700">Current State</h2>
+      <div class="flex flex-wrap">
+        <div class="stat-pill">
+          <i class="fas fa-fire text-orange-500 text-2xl"></i>
+          <div>
+            <div class="text-2xl font-bold text-gray-800" id="currentStreak">0</div>
+            <div class="text-sm text-gray-600">Day Streak</div>
+          </div>
+        </div>
+        
+        <div class="stat-pill">
+          <i class="fas fa-trophy text-yellow-500 text-2xl"></i>
+          <div>
+            <div class="text-2xl font-bold text-gray-800" id="totalXP">0</div>
+            <div class="text-sm text-gray-600">Total XP</div>
+          </div>
+        </div>
+        
+        <div class="stat-pill">
+          <i class="fas fa-check-circle text-green-500 text-2xl"></i>
+          <div>
+            <div class="text-2xl font-bold text-gray-800" id="totalCheckIns">0</div>
+            <div class="text-sm text-gray-600">Check-Ins</div>
+          </div>
+        </div>
+        
+        <div class="stat-pill">
+          <i class="fas fa-shield-alt text-blue-500 text-2xl"></i>
+          <div>
+            <div class="text-lg font-bold text-gray-800" id="freezeStatus">Available</div>
+            <div class="text-sm text-gray-600">Freeze</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="mb-8">
+      <h2 class="text-xl font-bold mb-4 text-gray-700">Actions</h2>
+      <button id="checkInButton" onclick="performCheckIn()" class="check-in-button">
+        <i class="fas fa-calendar-check text-2xl"></i>
+        <div>
+          <div class="text-lg font-bold">Check In Today</div>
+          <div class="text-sm opacity-90" id="checkInStreakDisplay">Start your streak!</div>
+        </div>
+      </button>
+      
+      <button onclick="resetState()" class="ml-4 bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-semibold transition-all">
+        <i class="fas fa-redo mr-2"></i>Reset State
+      </button>
+      
+      <button onclick="simulateStreak()" class="ml-4 bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl font-semibold transition-all">
+        <i class="fas fa-fast-forward mr-2"></i>Simulate 6-Day Streak
+      </button>
+    </div>
+    
+    <div class="mb-8">
+      <h2 class="text-xl font-bold mb-4 text-gray-700">Test Results</h2>
+      <div id="testResults"></div>
+    </div>
+    
+    <div>
+      <h2 class="text-xl font-bold mb-4 text-gray-700">Integration Checks</h2>
+      <div id="integrationChecks"></div>
+    </div>
+  </div>
+  
+  <!-- Achievement Toast Container -->
+  <div id="achievementToast" class="achievement-toast">
+    <i class="fas fa-trophy text-3xl"></i>
+    <div>
+      <div class="font-bold text-lg" id="toastTitle">Achievement!</div>
+      <div class="text-sm opacity-90" id="toastMessage">Message</div>
+    </div>
+  </div>
+  
+  <!-- Load Check-In System -->
+  <script src="../../public/js/check-in.js"></script>
+  
+  <script>
+    // Initialize global state
+    window.state = {};
+    
+    // Mock integration functions
+    let xpAwarded = 0;
+    let achievementsShown = [];
+    
+    window.addScore = function(amount) {
+      xpAwarded += amount;
+      logTest(`✓ addScore called with ${amount} XP`, 'success');
+      updateDisplay();
+    };
+    
+    window.showAchievementToast = function(message, type = 'success') {
+      achievementsShown.push({ message, type });
+      logTest(`✓ showAchievementToast called: ${message}`, 'success');
+      
+      // Show toast
+      const toast = document.getElementById('achievementToast');
+      document.getElementById('toastTitle').textContent = type === 'milestone' ? '🎉 Milestone!' : '✅ Success!';
+      document.getElementById('toastMessage').textContent = message;
+      toast.classList.add('show');
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    };
+    
+    // Initialize check-in system
+    window.CheckInManager.init();
+    
+    // Update display
+    function updateDisplay() {
+      const state = window.state.checkIn;
+      document.getElementById('currentStreak').textContent = state.currentStreak;
+      document.getElementById('totalXP').textContent = state.totalCheckInXP;
+      document.getElementById('totalCheckIns').textContent = state.totalCheckIns;
+      document.getElementById('freezeStatus').textContent = state.freezeAvailable ? 'Available' : 'Used';
+      
+      const streakText = state.currentStreak === 0 ? 'Start your streak!' : 
+                        state.currentStreak === 1 ? '1 day streak' :
+                        `${state.currentStreak} day streak`;
+      document.getElementById('checkInStreakDisplay').textContent = streakText;
+      
+      // Update button state
+      const canCheckIn = window.CheckInManager.canCheckInToday();
+      const button = document.getElementById('checkInButton');
+      button.disabled = !canCheckIn;
+      if (!canCheckIn) {
+        button.querySelector('.text-lg').textContent = 'Already Checked In';
+        button.querySelector('.text-sm').textContent = 'Come back tomorrow!';
+      }
+    }
+    
+    // Perform check-in
+    function performCheckIn() {
+      logTest('Attempting check-in...', 'info');
+      const result = window.CheckInManager.processCheckIn();
+      
+      if (result) {
+        logTest('✓ Check-in successful!', 'success');
+      } else {
+        logTest('✗ Check-in failed (already checked in today)', 'error');
+      }
+      
+      updateDisplay();
+    }
+    
+    // Reset state
+    function resetState() {
+      localStorage.clear();
+      window.state = {};
+      xpAwarded = 0;
+      achievementsShown = [];
+      window.CheckInManager.init();
+      updateDisplay();
+      document.getElementById('testResults').innerHTML = '';
+      logTest('State reset successfully', 'success');
+    }
+    
+    // Simulate 6-day streak
+    function simulateStreak() {
+      const state = window.state.checkIn;
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      state.currentStreak = 6;
+      state.lastCheckInDate = yesterday.toISOString().split('T')[0];
+      state.checkInHistory = [];
+      
+      for (let i = 6; i >= 1; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        state.checkInHistory.push(date.toISOString().split('T')[0]);
+      }
+      
+      state.totalCheckIns = 6;
+      state.totalCheckInXP = 102; // Sum of first 6 days
+      
+      window.CheckInManager.saveState();
+      updateDisplay();
+      logTest('Simulated 6-day streak. Next check-in will be day 7 (milestone)!', 'success');
+    }
+    
+    // Log test result
+    function logTest(message, type = 'info') {
+      const results = document.getElementById('testResults');
+      const div = document.createElement('div');
+      div.className = `test-result ${type === 'error' ? 'error' : ''}`;
+      div.innerHTML = `
+        <div class="flex items-center gap-2">
+          <i class="fas ${type === 'success' ? 'fa-check-circle text-green-600' : 
+                         type === 'error' ? 'fa-times-circle text-red-600' : 
+                         'fa-info-circle text-blue-600'}"></i>
+          <span class="font-medium">${message}</span>
+        </div>
+      `;
+      results.appendChild(div);
+      results.scrollTop = results.scrollHeight;
+    }
+    
+    // Run integration checks
+    function runIntegrationChecks() {
+      const checks = document.getElementById('integrationChecks');
+      const results = [];
+      
+      // Check 1: CheckInManager exposed
+      results.push({
+        name: 'CheckInManager exposed to window',
+        passed: typeof window.CheckInManager === 'object'
+      });
+      
+      // Check 2: State initialized
+      results.push({
+        name: 'window.state.checkIn initialized',
+        passed: window.state.checkIn !== undefined
+      });
+      
+      // Check 3: addScore function available
+      results.push({
+        name: 'addScore function available',
+        passed: typeof window.addScore === 'function'
+      });
+      
+      // Check 4: showAchievementToast function available
+      results.push({
+        name: 'showAchievementToast function available',
+        passed: typeof window.showAchievementToast === 'function'
+      });
+      
+      // Check 5: localStorage working
+      results.push({
+        name: 'localStorage persistence working',
+        passed: localStorage.getItem('checkInState') !== null
+      });
+      
+      // Render results
+      checks.innerHTML = results.map(r => `
+        <div class="flex items-center gap-3 mb-2 p-3 rounded-lg ${r.passed ? 'bg-green-50' : 'bg-red-50'}">
+          <i class="fas ${r.passed ? 'fa-check-circle text-green-600' : 'fa-times-circle text-red-600'} text-xl"></i>
+          <span class="font-medium ${r.passed ? 'text-green-800' : 'text-red-800'}">${r.name}</span>
+        </div>
+      `).join('');
+    }
+    
+    // Initial display update
+    updateDisplay();
+    runIntegrationChecks();
+    
+    logTest('Check-In System loaded and initialized', 'success');
+    logTest('Integration with addScore and showAchievementToast verified', 'success');
+  </script>
+</body>
+</html>

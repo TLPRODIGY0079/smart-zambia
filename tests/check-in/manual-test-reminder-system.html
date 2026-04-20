@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReminderSystem Manual Test</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .test-section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+    }
+    .test-result {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    .test-pass {
+      background-color: #d1fae5;
+      color: #065f46;
+    }
+    .test-fail {
+      background-color: #fee2e2;
+      color: #991b1b;
+    }
+    .test-info {
+      background-color: #dbeafe;
+      color: #1e40af;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 p-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-6 text-purple-600">
+      <i class="fas fa-bell"></i> ReminderSystem Manual Test
+    </h1>
+    
+    <!-- Test Controls -->
+    <div class="test-section bg-white">
+      <h2 class="text-xl font-semibold mb-4">Test Controls</h2>
+      <div class="space-y-2">
+        <button onclick="runAllTests()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+          Run All Tests
+        </button>
+        <button onclick="clearResults()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 ml-2">
+          Clear Results
+        </button>
+        <button onclick="simulateCheckIn()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 ml-2">
+          Simulate Check-In
+        </button>
+        <button onclick="resetState()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 ml-2">
+          Reset State
+        </button>
+      </div>
+    </div>
+    
+    <!-- Visual Reminder Indicator (for testing) -->
+    <div class="test-section bg-white">
+      <h2 class="text-xl font-semibold mb-4">Visual Reminder Indicator</h2>
+      <div class="flex items-center space-x-4">
+        <div id="check-in-reminder-indicator" class="w-4 h-4 rounded-full hidden"></div>
+        <span id="indicator-status" class="text-gray-600">Indicator status will appear here</span>
+      </div>
+    </div>
+    
+    <!-- Countdown Display (for testing) -->
+    <div class="test-section bg-white">
+      <h2 class="text-xl font-semibold mb-4">Countdown Display</h2>
+      <div class="text-2xl font-bold">
+        Time remaining: <span id="check-in-countdown" class="text-purple-600">--</span>
+      </div>
+    </div>
+    
+    <!-- Test Results -->
+    <div class="test-section bg-white">
+      <h2 class="text-xl font-semibold mb-4">Test Results</h2>
+      <div id="test-results"></div>
+    </div>
+    
+    <!-- Current State Display -->
+    <div class="test-section bg-white">
+      <h2 class="text-xl font-semibold mb-4">Current State</h2>
+      <pre id="state-display" class="bg-gray-100 p-4 rounded overflow-auto text-sm"></pre>
+    </div>
+  </div>
+  
+  <!-- Load Check-In System -->
+  <script src="../../public/js/check-in.js"></script>
+  
+  <script>
+    // Test utilities
+    function logResult(testName, passed, message) {
+      const resultsDiv = document.getElementById('test-results');
+      const resultDiv = document.createElement('div');
+      resultDiv.className = `test-result ${passed ? 'test-pass' : 'test-fail'}`;
+      resultDiv.innerHTML = `
+        <strong>${passed ? '✓' : '✗'} ${testName}</strong><br>
+        ${message}
+      `;
+      resultsDiv.appendChild(resultDiv);
+    }
+    
+    function logInfo(message) {
+      const resultsDiv = document.getElementById('test-results');
+      const resultDiv = document.createElement('div');
+      resultDiv.className = 'test-result test-info';
+      resultDiv.innerHTML = `<strong>ℹ Info:</strong> ${message}`;
+      resultsDiv.appendChild(resultDiv);
+    }
+    
+    function clearResults() {
+      document.getElementById('test-results').innerHTML = '';
+    }
+    
+    function updateStateDisplay() {
+      const stateDisplay = document.getElementById('state-display');
+      stateDisplay.textContent = JSON.stringify(window.state.checkIn, null, 2);
+    }
+    
+    function updateIndicatorStatus() {
+      const indicator = document.getElementById('check-in-reminder-indicator');
+      const status = document.getElementById('indicator-status');
+      
+      if (indicator.classList.contains('hidden')) {
+        status.textContent = 'Hidden (already checked in)';
+        status.className = 'text-gray-600';
+      } else if (indicator.classList.contains('bg-red-500')) {
+        status.textContent = 'Visible - Warning (streak at risk)';
+        status.className = 'text-red-600 font-bold';
+      } else if (indicator.classList.contains('bg-blue-500')) {
+        status.textContent = 'Visible - Subtle (no streak)';
+        status.className = 'text-blue-600';
+      } else {
+        status.textContent = 'Unknown state';
+        status.className = 'text-gray-600';
+      }
+    }
+    
+    // Test functions
+    function testShouldShowReminder() {
+      logInfo('Testing shouldShowReminder()...');
+      
+      // Test 1: Should show when not checked in
+      window.state.checkIn.checkInHistory = [];
+      const result1 = window.ReminderSystem.shouldShowReminder();
+      logResult(
+        'shouldShowReminder - not checked in',
+        result1 === true,
+        `Expected true, got ${result1}`
+      );
+      
+      // Test 2: Should not show when checked in today
+      const today = window.getTodayString();
+      window.state.checkIn.checkInHistory = [today];
+      const result2 = window.ReminderSystem.shouldShowReminder();
+      logResult(
+        'shouldShowReminder - already checked in',
+        result2 === false,
+        `Expected false, got ${result2}`
+      );
+    }
+    
+    function testCalculateTimeRemaining() {
+      logInfo('Testing calculateTimeRemaining()...');
+      
+      const result = window.ReminderSystem.calculateTimeRemaining();
+      
+      // Test structure
+      const hasAllFields = result.hours !== undefined && 
+                          result.minutes !== undefined && 
+                          result.seconds !== undefined && 
+                          result.formatted !== undefined &&
+                          result.totalMilliseconds !== undefined;
+      
+      logResult(
+        'calculateTimeRemaining - structure',
+        hasAllFields,
+        `Has all required fields: ${hasAllFields}`
+      );
+      
+      // Test ranges
+      const validRanges = result.hours >= 0 && result.hours < 24 &&
+                         result.minutes >= 0 && result.minutes < 60 &&
+                         result.seconds >= 0 && result.seconds < 60;
+      
+      logResult(
+        'calculateTimeRemaining - valid ranges',
+        validRanges,
+        `Hours: ${result.hours}, Minutes: ${result.minutes}, Seconds: ${result.seconds}`
+      );
+      
+      // Test formatted string
+      const validFormat = /^\d+h \d+m \d+s$/.test(result.formatted);
+      logResult(
+        'calculateTimeRemaining - format',
+        validFormat,
+        `Formatted: "${result.formatted}"`
+      );
+      
+      // Test positive time
+      const positiveTime = result.totalMilliseconds > 0;
+      logResult(
+        'calculateTimeRemaining - positive time',
+        positiveTime,
+        `Total milliseconds: ${result.totalMilliseconds}`
+      );
+    }
+    
+    function testUpdateReminderIndicator() {
+      logInfo('Testing updateReminderIndicator()...');
+      
+      // Test 1: Show indicator when not checked in (no streak)
+      window.state.checkIn.checkInHistory = [];
+      window.state.checkIn.currentStreak = 0;
+      const result1 = window.ReminderSystem.updateReminderIndicator();
+      const indicator = document.getElementById('check-in-reminder-indicator');
+      
+      logResult(
+        'updateReminderIndicator - show subtle',
+        result1 === true && !indicator.classList.contains('hidden') && indicator.classList.contains('bg-blue-500'),
+        `Result: ${result1}, Hidden: ${indicator.classList.contains('hidden')}, Blue: ${indicator.classList.contains('bg-blue-500')}`
+      );
+      
+      // Test 2: Show warning when streak at risk
+      window.state.checkIn.currentStreak = 5;
+      const result2 = window.ReminderSystem.updateReminderIndicator();
+      
+      logResult(
+        'updateReminderIndicator - show warning',
+        result2 === true && indicator.classList.contains('bg-red-500') && indicator.classList.contains('animate-pulse'),
+        `Result: ${result2}, Red: ${indicator.classList.contains('bg-red-500')}, Pulse: ${indicator.classList.contains('animate-pulse')}`
+      );
+      
+      // Test 3: Hide when checked in
+      const today = window.getTodayString();
+      window.state.checkIn.checkInHistory = [today];
+      const result3 = window.ReminderSystem.updateReminderIndicator();
+      
+      logResult(
+        'updateReminderIndicator - hide',
+        result3 === true && indicator.classList.contains('hidden'),
+        `Result: ${result3}, Hidden: ${indicator.classList.contains('hidden')}`
+      );
+      
+      updateIndicatorStatus();
+    }
+    
+    function testUpdateCountdown() {
+      logInfo('Testing updateCountdown()...');
+      
+      // Test 1: Show countdown when not checked in
+      window.state.checkIn.checkInHistory = [];
+      const result1 = window.ReminderSystem.updateCountdown();
+      const countdown = document.getElementById('check-in-countdown');
+      
+      logResult(
+        'updateCountdown - show',
+        result1 === true && !countdown.classList.contains('hidden') && /^\d+h \d+m \d+s$/.test(countdown.textContent),
+        `Result: ${result1}, Hidden: ${countdown.classList.contains('hidden')}, Text: "${countdown.textContent}"`
+      );
+      
+      // Test 2: Hide when checked in
+      const today = window.getTodayString();
+      window.state.checkIn.checkInHistory = [today];
+      const result2 = window.ReminderSystem.updateCountdown();
+      
+      logResult(
+        'updateCountdown - hide',
+        result2 === true && countdown.classList.contains('hidden'),
+        `Result: ${result2}, Hidden: ${countdown.classList.contains('hidden')}`
+      );
+    }
+    
+    function testRefresh() {
+      logInfo('Testing refresh()...');
+      
+      window.state.checkIn.checkInHistory = [];
+      window.state.checkIn.currentStreak = 3;
+      
+      const result = window.ReminderSystem.refresh();
+      
+      logResult(
+        'refresh - updates all displays',
+        result === true,
+        `Result: ${result}`
+      );
+      
+      updateIndicatorStatus();
+    }
+    
+    function testIntegration() {
+      logInfo('Testing integration with CheckInManager...');
+      
+      // Setup: No check-in today
+      window.state.checkIn.checkInHistory = [];
+      window.state.checkIn.currentStreak = 0;
+      window.state.checkIn.lastCheckInDate = null;
+      
+      // Mock addScore to avoid errors
+      window.addScore = function(xp) {
+        console.log(`Mock addScore called with ${xp} XP`);
+      };
+      
+      // Process check-in
+      const checkInResult = window.CheckInManager.processCheckIn();
+      
+      // Verify reminder is hidden after check-in
+      const shouldShow = window.ReminderSystem.shouldShowReminder();
+      
+      logResult(
+        'Integration - reminder hidden after check-in',
+        checkInResult === true && shouldShow === false,
+        `Check-in: ${checkInResult}, Should show reminder: ${shouldShow}`
+      );
+      
+      updateIndicatorStatus();
+      updateStateDisplay();
+    }
+    
+    // Run all tests
+    function runAllTests() {
+      clearResults();
+      logInfo('Starting ReminderSystem tests...');
+      
+      testShouldShowReminder();
+      testCalculateTimeRemaining();
+      testUpdateReminderIndicator();
+      testUpdateCountdown();
+      testRefresh();
+      testIntegration();
+      
+      logInfo('All tests completed!');
+      updateStateDisplay();
+    }
+    
+    // Utility functions
+    function simulateCheckIn() {
+      window.CheckInManager.processCheckIn();
+      updateStateDisplay();
+      updateIndicatorStatus();
+      logInfo('Check-in simulated');
+    }
+    
+    function resetState() {
+      window.state.checkIn = window.getDefaultCheckInState();
+      window.ReminderSystem.refresh();
+      updateStateDisplay();
+      updateIndicatorStatus();
+      logInfo('State reset to defaults');
+    }
+    
+    // Initialize on load
+    window.addEventListener('load', () => {
+      updateStateDisplay();
+      updateIndicatorStatus();
+      
+      // Start countdown timer
+      window.ReminderSystem.startCountdownTimer();
+      
+      logInfo('ReminderSystem initialized. Click "Run All Tests" to begin testing.');
+    });
+  </script>
+</body>
+</html>

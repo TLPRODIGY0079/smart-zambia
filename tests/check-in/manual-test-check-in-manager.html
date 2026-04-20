@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CheckInManager Manual Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-section {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .test-section h2 {
+      margin-top: 0;
+      color: #333;
+    }
+    button {
+      background: #6366f1;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 5px;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #4f46e5;
+    }
+    .result {
+      background: #f0f0f0;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+    .success {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .info {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: 10px 0;
+    }
+    .status-item {
+      background: #f9fafb;
+      padding: 10px;
+      border-radius: 4px;
+      border-left: 3px solid #6366f1;
+    }
+    .status-label {
+      font-size: 12px;
+      color: #6b7280;
+      text-transform: uppercase;
+    }
+    .status-value {
+      font-size: 18px;
+      font-weight: bold;
+      color: #111827;
+    }
+  </style>
+</head>
+<body>
+  <h1>CheckInManager Manual Test</h1>
+  <p>This page tests the CheckInManager module functionality.</p>
+
+  <div class="test-section">
+    <h2>Current Status</h2>
+    <div class="status-grid" id="status-grid">
+      <!-- Status will be populated here -->
+    </div>
+    <button onclick="refreshStatus()">Refresh Status</button>
+  </div>
+
+  <div class="test-section">
+    <h2>Test: Check-In Operations</h2>
+    <button onclick="testCheckIn()">Process Check-In</button>
+    <button onclick="testCanCheckInToday()">Test canCheckInToday()</button>
+    <button onclick="testGetCheckInStatus()">Test getCheckInStatus()</button>
+    <div id="check-in-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test: Streak Scenarios</h2>
+    <button onclick="testFirstCheckIn()">Test First Check-In</button>
+    <button onclick="testConsecutiveDay()">Test Consecutive Day</button>
+    <button onclick="testMissedDay()">Test Missed Day (Freeze)</button>
+    <button onclick="testStreakBreak()">Test Streak Break (2+ days)</button>
+    <div id="streak-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test: Milestone Achievements</h2>
+    <button onclick="testMilestone7()">Test 7-Day Milestone</button>
+    <button onclick="testMilestone30()">Test 30-Day Milestone</button>
+    <button onclick="testMilestone100()">Test 100-Day Milestone</button>
+    <div id="milestone-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test: Data Persistence</h2>
+    <button onclick="testSaveState()">Test Save State</button>
+    <button onclick="testLoadState()">Test Load State</button>
+    <button onclick="testResetState()">Reset State</button>
+    <div id="persistence-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test: Integration</h2>
+    <button onclick="testXPIntegration()">Test XP Award Integration</button>
+    <button onclick="testAchievementIntegration()">Test Achievement Integration</button>
+    <button onclick="testNotificationIntegration()">Test Notification Integration</button>
+    <div id="integration-result" class="result"></div>
+  </div>
+
+  <!-- Load check-in.js -->
+  <script src="../../public/js/check-in.js"></script>
+
+  <script>
+    // Mock functions for testing integration
+    window.addScore = function(amount) {
+      console.log('Mock addScore called with:', amount);
+      return amount;
+    };
+
+    window.unlockAchievement = function(achievement) {
+      console.log('Mock unlockAchievement called with:', achievement);
+      return achievement;
+    };
+
+    window.showAchievementToast = function(message, type) {
+      console.log('Mock showAchievementToast called:', message, type);
+      return { message, type };
+    };
+
+    window.triggerConfetti = function() {
+      console.log('Mock triggerConfetti called');
+      return true;
+    };
+
+    // Initialize state
+    if (!window.state) {
+      window.state = {};
+    }
+
+    // Helper function to display results
+    function displayResult(elementId, result, isSuccess = true) {
+      const element = document.getElementById(elementId);
+      element.textContent = JSON.stringify(result, null, 2);
+      element.className = 'result ' + (isSuccess ? 'success' : 'error');
+    }
+
+    // Refresh status display
+    function refreshStatus() {
+      const status = CheckInManager.getCheckInStatus();
+      const grid = document.getElementById('status-grid');
+      
+      grid.innerHTML = `
+        <div class="status-item">
+          <div class="status-label">Current Streak</div>
+          <div class="status-value">${status.streak} days</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Longest Streak</div>
+          <div class="status-value">${status.longestStreak} days</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Total Check-Ins</div>
+          <div class="status-value">${status.totalCheckIns}</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Total XP Earned</div>
+          <div class="status-value">${status.totalCheckInXP} XP</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Checked In Today</div>
+          <div class="status-value">${status.checkedIn ? 'Yes ✓' : 'No ✗'}</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label">Freeze Available</div>
+          <div class="status-value">${status.freezeAvailable ? 'Yes ❄️' : 'No'}</div>
+        </div>
+      `;
+    }
+
+    // Test: Process Check-In
+    function testCheckIn() {
+      const result = CheckInManager.processCheckIn();
+      displayResult('check-in-result', {
+        success: result,
+        status: CheckInManager.getCheckInStatus()
+      }, result);
+      refreshStatus();
+    }
+
+    // Test: canCheckInToday
+    function testCanCheckInToday() {
+      const canCheckIn = CheckInManager.canCheckInToday();
+      displayResult('check-in-result', {
+        canCheckInToday: canCheckIn,
+        message: canCheckIn ? 'Check-in is available' : 'Already checked in today'
+      });
+    }
+
+    // Test: getCheckInStatus
+    function testGetCheckInStatus() {
+      const status = CheckInManager.getCheckInStatus();
+      displayResult('check-in-result', status);
+    }
+
+    // Test: First Check-In
+    function testFirstCheckIn() {
+      // Reset state
+      window.state.checkIn = getDefaultCheckInState();
+      CheckInManager.saveState();
+      
+      // Process check-in
+      const result = CheckInManager.processCheckIn();
+      const status = CheckInManager.getCheckInStatus();
+      
+      displayResult('streak-result', {
+        success: result,
+        streak: status.streak,
+        expected: 1,
+        passed: status.streak === 1
+      }, status.streak === 1);
+      refreshStatus();
+    }
+
+    // Test: Consecutive Day
+    function testConsecutiveDay() {
+      // Set up state with yesterday's check-in
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+      
+      window.state.checkIn = {
+        ...getDefaultCheckInState(),
+        currentStreak: 5,
+        lastCheckInDate: yesterdayStr,
+        checkInHistory: [yesterdayStr],
+        totalCheckIns: 5
+      };
+      CheckInManager.saveState();
+      
+      // Process check-in
+      const result = CheckInManager.processCheckIn();
+      const status = CheckInManager.getCheckInStatus();
+      
+      displayResult('streak-result', {
+        success: result,
+        previousStreak: 5,
+        newStreak: status.streak,
+        expected: 6,
+        passed: status.streak === 6
+      }, status.streak === 6);
+      refreshStatus();
+    }
+
+    // Test: Missed Day (Freeze)
+    function testMissedDay() {
+      // Set up state with check-in 2 days ago
+      const twoDaysAgo = new Date();
+      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+      const twoDaysAgoStr = twoDaysAgo.toISOString().split('T')[0];
+      
+      window.state.checkIn = {
+        ...getDefaultCheckInState(),
+        currentStreak: 5,
+        lastCheckInDate: twoDaysAgoStr,
+        checkInHistory: [twoDaysAgoStr],
+        freezeAvailable: true,
+        totalCheckIns: 5
+      };
+      CheckInManager.saveState();
+      
+      // Process check-in
+      const result = CheckInManager.processCheckIn();
+      const status = CheckInManager.getCheckInStatus();
+      
+      displayResult('streak-result', {
+        success: result,
+        previousStreak: 5,
+        newStreak: status.streak,
+        freezeUsed: !status.freezeAvailable,
+        expected: 6,
+        passed: status.streak === 6 && !status.freezeAvailable
+      }, status.streak === 6);
+      refreshStatus();
+    }
+
+    // Test: Streak Break
+    function testStreakBreak() {
+      // Set up state with check-in 3 days ago
+      const threeDaysAgo = new Date();
+      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+      const threeDaysAgoStr = threeDaysAgo.toISOString().split('T')[0];
+      
+      window.state.checkIn = {
+        ...getDefaultCheckInState(),
+        currentStreak: 5,
+        lastCheckInDate: threeDaysAgoStr,
+        checkInHistory: [threeDaysAgoStr],
+        freezeAvailable: true,
+        totalCheckIns: 5
+      };
+      CheckInManager.saveState();
+      
+      // Process check-in
+      const result = CheckInManager.processCheckIn();
+      const status = CheckInManager.getCheckInStatus();
+      
+      displayResult('streak-result', {
+        success: result,
+        previousStreak: 5,
+        newStreak: status.streak,
+        expected: 1,
+        passed: status.streak === 1
+      }, status.streak === 1);
+      refreshStatus();
+    }
+
+    // Test: 7-Day Milestone
+    function testMilestone7() {
+      // Set up state with 6-day streak
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+      
+      window.state.checkIn = {
+        ...getDefaultCheckInState(),
+        currentStreak: 6,
+        lastCheckInDate: yesterdayStr,
+        checkInHistory: [yesterdayStr],
+        totalCheckIns: 6
+      };
+      CheckInManager.saveState();
+      
+      // Process check-in
+      const result = CheckInManager.processCheckIn();
+      const status = CheckInManager.getCheckInStatus();
+      
+      displayResult('milestone-result', {
+        success: result,
+        newStreak: status.streak,
+        milestonesAchieved: status.milestonesAchieved,
+        expected: 7,
+        passed: status.streak === 7 && status.milestonesAchieved.includes(7)
+      }, status.streak === 7);
+      refreshStatus();
+    }
+
+    // Test: 30-Day Milestone
+    function testMilestone30() {
+      // Set up state with 29-day streak
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+      
+      window.state.checkIn = {
+        ...getDefaultCheckInState(),
+        currentStreak: 29,
+        lastCheckInDate: yesterdayStr,
+        checkInHistory: [yesterdayStr],
+        totalCheckIns: 29,
+        milestonesAchieved: [7]
+      };
+      CheckInManager.saveState();
+      
+      // Process check-in
+      const result = CheckInManager.processCheckIn();
+      const status = CheckInManager.getCheckInStatus();
+      
+      displayResult('milestone-result', {
+        success: result,
+        newStreak: status.streak,
+        milestonesAchieved: status.milestonesAchieved,
+        expected: 30,
+        passed: status.streak === 30 && status.milestonesAchieved.includes(30)
+      }, status.streak === 30);
+      refreshStatus();
+    }
+
+    // Test: 100-Day Milestone
+    function testMilestone100() {
+      // Set up state with 99-day streak
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+      
+      window.state.checkIn = {
+        ...getDefaultCheckInState(),
+        currentStreak: 99,
+        lastCheckInDate: yesterdayStr,
+        checkInHistory: [yesterdayStr],
+        totalCheckIns: 99,
+        milestonesAchieved: [7, 30]
+      };
+      CheckInManager.saveState();
+      
+      // Process check-in
+      const result = CheckInManager.processCheckIn();
+      const status = CheckInManager.getCheckInStatus();
+      
+      displayResult('milestone-result', {
+        success: result,
+        newStreak: status.streak,
+        milestonesAchieved: status.milestonesAchieved,
+        expected: 100,
+        passed: status.streak === 100 && status.milestonesAchieved.includes(100)
+      }, status.streak === 100);
+      refreshStatus();
+    }
+
+    // Test: Save State
+    function testSaveState() {
+      const result = CheckInManager.saveState();
+      displayResult('persistence-result', {
+        success: result,
+        message: result ? 'State saved successfully' : 'Failed to save state'
+      }, result);
+    }
+
+    // Test: Load State
+    function testLoadState() {
+      const state = loadCheckInState();
+      displayResult('persistence-result', {
+        success: true,
+        state: state
+      });
+    }
+
+    // Test: Reset State
+    function testResetState() {
+      window.state.checkIn = getDefaultCheckInState();
+      CheckInManager.saveState();
+      displayResult('persistence-result', {
+        success: true,
+        message: 'State reset to defaults',
+        state: window.state.checkIn
+      });
+      refreshStatus();
+    }
+
+    // Test: XP Integration
+    function testXPIntegration() {
+      let xpAwarded = 0;
+      window.addScore = function(amount) {
+        xpAwarded = amount;
+        return amount;
+      };
+      
+      CheckInManager.awardXP(100);
+      
+      displayResult('integration-result', {
+        success: xpAwarded === 100,
+        xpAwarded: xpAwarded,
+        expected: 100,
+        passed: xpAwarded === 100
+      }, xpAwarded === 100);
+    }
+
+    // Test: Achievement Integration
+    function testAchievementIntegration() {
+      let achievementUnlocked = null;
+      window.unlockAchievement = function(achievement) {
+        achievementUnlocked = achievement;
+        return achievement;
+      };
+      
+      const testAchievement = MILESTONE_ACHIEVEMENTS[7];
+      CheckInManager.unlockMilestoneAchievement(testAchievement);
+      
+      displayResult('integration-result', {
+        success: achievementUnlocked !== null,
+        achievement: achievementUnlocked,
+        passed: achievementUnlocked?.id === 'week_warrior'
+      }, achievementUnlocked !== null);
+    }
+
+    // Test: Notification Integration
+    function testNotificationIntegration() {
+      let notificationShown = null;
+      window.showAchievementToast = function(message, type) {
+        notificationShown = { message, type };
+        return { message, type };
+      };
+      
+      CheckInManager.showCheckInSuccess(100, 7, true, MILESTONE_ACHIEVEMENTS[7]);
+      
+      displayResult('integration-result', {
+        success: notificationShown !== null,
+        notification: notificationShown,
+        passed: notificationShown !== null
+      }, notificationShown !== null);
+    }
+
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', () => {
+      refreshStatus();
+    });
+
+    // Refresh status every 5 seconds
+    setInterval(refreshStatus, 5000);
+  </script>
+</body>
+</html>

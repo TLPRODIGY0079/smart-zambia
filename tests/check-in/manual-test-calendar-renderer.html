@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendar Renderer Manual Test</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    
+    .test-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    .calendar-container {
+      margin-top: 1rem;
+    }
+    
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+    }
+    
+    .calendar-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #4a5568;
+    }
+    
+    .calendar-nav-btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .calendar-nav-btn:hover {
+      background: #5a67d8;
+      transform: scale(1.05);
+    }
+    
+    .calendar-days-header {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .calendar-day-name {
+      text-align: center;
+      font-weight: 600;
+      color: #718096;
+      font-size: 0.875rem;
+      padding: 0.5rem;
+    }
+    
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 0.5rem;
+    }
+    
+    .calendar-day {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.5rem;
+      border: 2px solid #e2e8f0;
+      background: white;
+      position: relative;
+      transition: all 0.2s;
+    }
+    
+    .calendar-day-empty {
+      border: none;
+      background: transparent;
+    }
+    
+    .calendar-day-number {
+      font-size: 1rem;
+      color: #4a5568;
+      font-weight: 500;
+    }
+    
+    .calendar-day-checked-in {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-color: #667eea;
+    }
+    
+    .calendar-day-checked-in .calendar-day-number {
+      color: white;
+      font-weight: 600;
+    }
+    
+    .calendar-check-icon {
+      position: absolute;
+      bottom: 0.25rem;
+      right: 0.25rem;
+      color: white;
+      font-size: 0.75rem;
+    }
+    
+    .calendar-day-today {
+      border-color: #f59e0b;
+      border-width: 3px;
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+    }
+    
+    .calendar-day-today.calendar-day-checked-in {
+      border-color: #fbbf24;
+    }
+    
+    .test-section {
+      margin-bottom: 2rem;
+      padding: 1rem;
+      background: #f7fafc;
+      border-radius: 0.5rem;
+    }
+    
+    .test-result {
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+      border-radius: 0.25rem;
+    }
+    
+    .test-pass {
+      background: #c6f6d5;
+      color: #22543d;
+    }
+    
+    .test-fail {
+      background: #fed7d7;
+      color: #742a2a;
+    }
+    
+    .calendar-error {
+      padding: 1rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1 class="text-3xl font-bold mb-4 text-gray-800">
+      <i class="fas fa-calendar-check text-purple-600"></i>
+      Calendar Renderer Manual Test
+    </h1>
+    
+    <div class="test-section">
+      <h2 class="text-xl font-semibold mb-2">Test Results</h2>
+      <div id="test-results"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2 class="text-xl font-semibold mb-2">Calendar Display</h2>
+      <div id="check-in-calendar"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2 class="text-xl font-semibold mb-2">Test Controls</h2>
+      <button onclick="runTests()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mr-2">
+        Run Tests
+      </button>
+      <button onclick="addRandomCheckIns()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 mr-2">
+        Add Random Check-ins
+      </button>
+      <button onclick="clearCheckIns()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+        Clear Check-ins
+      </button>
+    </div>
+  </div>
+
+  <script src="../../public/js/check-in.js"></script>
+  <script>
+    // Test results container
+    const resultsDiv = document.getElementById('test-results');
+    
+    function logTest(name, passed, message = '') {
+      const div = document.createElement('div');
+      div.className = `test-result ${passed ? 'test-pass' : 'test-fail'}`;
+      div.innerHTML = `
+        <strong>${passed ? '✓' : '✗'} ${name}</strong>
+        ${message ? `<br><small>${message}</small>` : ''}
+      `;
+      resultsDiv.appendChild(div);
+    }
+    
+    function runTests() {
+      resultsDiv.innerHTML = '<p class="font-semibold mb-2">Running tests...</p>';
+      
+      // Test 1: CalendarRenderer exists
+      logTest(
+        'CalendarRenderer module exists',
+        typeof window.CalendarRenderer === 'object',
+        'CalendarRenderer should be exposed on window object'
+      );
+      
+      // Test 2: getDaysInMonth function
+      const daysInJan2024 = CalendarRenderer.getDaysInMonth(2024, 0);
+      logTest(
+        'getDaysInMonth(2024, 0) returns 31',
+        daysInJan2024 === 31,
+        `Expected 31, got ${daysInJan2024}`
+      );
+      
+      // Test 3: getDaysInMonth for leap year February
+      const daysInFeb2024 = CalendarRenderer.getDaysInMonth(2024, 1);
+      logTest(
+        'getDaysInMonth(2024, 1) returns 29 (leap year)',
+        daysInFeb2024 === 29,
+        `Expected 29, got ${daysInFeb2024}`
+      );
+      
+      // Test 4: getDaysInMonth for non-leap year February
+      const daysInFeb2023 = CalendarRenderer.getDaysInMonth(2023, 1);
+      logTest(
+        'getDaysInMonth(2023, 1) returns 28 (non-leap year)',
+        daysInFeb2023 === 28,
+        `Expected 28, got ${daysInFeb2023}`
+      );
+      
+      // Test 5: getFirstDayOfMonth
+      const firstDay = CalendarRenderer.getFirstDayOfMonth(2024, 0);
+      logTest(
+        'getFirstDayOfMonth returns valid day (0-6)',
+        firstDay >= 0 && firstDay <= 6,
+        `Expected 0-6, got ${firstDay}`
+      );
+      
+      // Test 6: hasCheckIn function
+      const testHistory = ['2024-01-15', '2024-01-20'];
+      const hasCheckIn = CalendarRenderer.hasCheckIn('2024-01-15', testHistory);
+      logTest(
+        'hasCheckIn detects existing check-in',
+        hasCheckIn === true,
+        'Should return true for date in history'
+      );
+      
+      // Test 7: hasCheckIn returns false for missing date
+      const noCheckIn = CalendarRenderer.hasCheckIn('2024-01-16', testHistory);
+      logTest(
+        'hasCheckIn returns false for missing date',
+        noCheckIn === false,
+        'Should return false for date not in history'
+      );
+      
+      // Test 8: renderMonth returns HTML string
+      const html = CalendarRenderer.renderMonth(2024, 0, testHistory);
+      logTest(
+        'renderMonth returns HTML string',
+        typeof html === 'string' && html.length > 0,
+        `Returned ${typeof html} with length ${html.length}`
+      );
+      
+      // Test 9: renderMonth includes calendar container
+      logTest(
+        'renderMonth includes calendar-container class',
+        html.includes('calendar-container'),
+        'HTML should contain calendar-container div'
+      );
+      
+      // Test 10: renderMonth includes month name
+      logTest(
+        'renderMonth includes month name',
+        html.includes('January'),
+        'HTML should contain month name'
+      );
+      
+      // Test 11: navigateMonth function
+      const initialMonth = CalendarRenderer.currentDisplayMonth;
+      const navResult = CalendarRenderer.navigateMonth(1);
+      logTest(
+        'navigateMonth(1) advances month',
+        navResult === true && CalendarRenderer.currentDisplayMonth === (initialMonth + 1) % 12,
+        `Month changed from ${initialMonth} to ${CalendarRenderer.currentDisplayMonth}`
+      );
+      
+      // Test 12: navigateMonth backwards
+      CalendarRenderer.navigateMonth(-1);
+      logTest(
+        'navigateMonth(-1) goes back to original month',
+        CalendarRenderer.currentDisplayMonth === initialMonth,
+        `Month is back to ${CalendarRenderer.currentDisplayMonth}`
+      );
+      
+      // Test 13: Error handling for invalid year
+      const errorHtml = CalendarRenderer.renderMonth(3000, 0, []);
+      logTest(
+        'renderMonth handles invalid year gracefully',
+        errorHtml.includes('calendar-error') || errorHtml.includes('Unable to load'),
+        'Should return error message for invalid year'
+      );
+      
+      console.log('All tests completed!');
+    }
+    
+    function addRandomCheckIns() {
+      // Add random check-ins for current month
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const daysInMonth = CalendarRenderer.getDaysInMonth(year, month);
+      
+      const checkIns = [];
+      const numCheckIns = Math.floor(Math.random() * 15) + 5; // 5-20 check-ins
+      
+      for (let i = 0; i < numCheckIns; i++) {
+        const day = Math.floor(Math.random() * daysInMonth) + 1;
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        if (!checkIns.includes(dateStr)) {
+          checkIns.push(dateStr);
+        }
+      }
+      
+      // Update state
+      if (!window.state) window.state = {};
+      if (!window.state.checkIn) window.state.checkIn = getDefaultCheckInState();
+      window.state.checkIn.checkInHistory = checkIns.sort();
+      
+      // Re-render calendar
+      CalendarRenderer.updateCalendarDisplay();
+      
+      console.log(`Added ${checkIns.length} random check-ins:`, checkIns);
+    }
+    
+    function clearCheckIns() {
+      // Clear check-ins
+      if (window.state && window.state.checkIn) {
+        window.state.checkIn.checkInHistory = [];
+      }
+      
+      // Re-render calendar
+      CalendarRenderer.updateCalendarDisplay();
+      
+      console.log('Cleared all check-ins');
+    }
+    
+    // Initialize calendar on load
+    window.addEventListener('load', () => {
+      console.log('Initializing calendar...');
+      CalendarRenderer.init();
+      runTests();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StreakCalculator Manual Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-section {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .test-result {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    .pass {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .fail {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    h1 {
+      color: #333;
+    }
+    h2 {
+      color: #666;
+      margin-top: 0;
+    }
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>StreakCalculator Manual Test Suite</h1>
+  <p>Testing Task 4.1: StreakCalculator module implementation</p>
+  
+  <div id="test-results"></div>
+
+  <script src="../../public/js/check-in.js"></script>
+  <script>
+    // Test utilities
+    function assert(condition, message) {
+      if (condition) {
+        return { pass: true, message };
+      } else {
+        return { pass: false, message };
+      }
+    }
+
+    function runTest(testName, testFn) {
+      try {
+        const result = testFn();
+        displayResult(testName, result);
+      } catch (error) {
+        displayResult(testName, { pass: false, message: `Error: ${error.message}` });
+      }
+    }
+
+    function displayResult(testName, result) {
+      const resultsDiv = document.getElementById('test-results');
+      const testSection = document.createElement('div');
+      testSection.className = 'test-section';
+      
+      const title = document.createElement('h2');
+      title.textContent = testName;
+      testSection.appendChild(title);
+      
+      const resultDiv = document.createElement('div');
+      resultDiv.className = `test-result ${result.pass ? 'pass' : 'fail'}`;
+      resultDiv.textContent = `${result.pass ? '✓ PASS' : '✗ FAIL'}: ${result.message}`;
+      testSection.appendChild(resultDiv);
+      
+      resultsDiv.appendChild(testSection);
+    }
+
+    // Run tests
+    console.log('Starting StreakCalculator tests...');
+
+    // Test 1: Empty history returns 0
+    runTest('Test 1: Empty history', () => {
+      const streak = StreakCalculator.calculateStreak([], null);
+      return assert(streak === 0, `Expected 0, got ${streak}`);
+    });
+
+    // Test 2: Null lastCheckInDate returns 0
+    runTest('Test 2: Null lastCheckInDate', () => {
+      const history = ['2024-01-01', '2024-01-02'];
+      const streak = StreakCalculator.calculateStreak(history, null);
+      return assert(streak === 0, `Expected 0, got ${streak}`);
+    });
+
+    // Test 3: Single check-in today
+    runTest('Test 3: Single check-in today', () => {
+      const today = getTodayString();
+      const history = [today];
+      const streak = StreakCalculator.calculateStreak(history, today, today);
+      return assert(streak === 1, `Expected 1, got ${streak}`);
+    });
+
+    // Test 4: Consecutive days (3 days)
+    runTest('Test 4: Consecutive days (3 days)', () => {
+      const history = ['2024-01-01', '2024-01-02', '2024-01-03'];
+      const streak = StreakCalculator.calculateStreak(history, '2024-01-03', '2024-01-03');
+      return assert(streak === 3, `Expected 3, got ${streak}`);
+    });
+
+    // Test 5: Gap in history breaks streak
+    runTest('Test 5: Gap breaks streak', () => {
+      const history = ['2024-01-01', '2024-01-02', '2024-01-05'];
+      const streak = StreakCalculator.calculateStreak(history, '2024-01-05', '2024-01-05');
+      return assert(streak === 1, `Expected 1, got ${streak}`);
+    });
+
+    // Test 6: Last check-in was yesterday (can continue)
+    runTest('Test 6: Last check-in yesterday', () => {
+      const history = ['2024-01-01', '2024-01-02', '2024-01-03'];
+      const streak = StreakCalculator.calculateStreak(history, '2024-01-03', '2024-01-04');
+      return assert(streak === 3, `Expected 3, got ${streak}`);
+    });
+
+    // Test 7: Last check-in was 2+ days ago (streak broken)
+    runTest('Test 7: Last check-in 2+ days ago', () => {
+      const history = ['2024-01-01', '2024-01-02', '2024-01-03'];
+      const streak = StreakCalculator.calculateStreak(history, '2024-01-03', '2024-01-06');
+      return assert(streak === 0, `Expected 0, got ${streak}`);
+    });
+
+    // Test 8: areConsecutiveDays - true case
+    runTest('Test 8: areConsecutiveDays (true)', () => {
+      const result = StreakCalculator.areConsecutiveDays('2024-01-01', '2024-01-02');
+      return assert(result === true, `Expected true, got ${result}`);
+    });
+
+    // Test 9: areConsecutiveDays - false case
+    runTest('Test 9: areConsecutiveDays (false)', () => {
+      const result = StreakCalculator.areConsecutiveDays('2024-01-01', '2024-01-03');
+      return assert(result === false, `Expected false, got ${result}`);
+    });
+
+    // Test 10: isToday - true case
+    runTest('Test 10: isToday (true)', () => {
+      const today = new Date();
+      const result = StreakCalculator.isToday(today);
+      return assert(result === true, `Expected true, got ${result}`);
+    });
+
+    // Test 11: isToday - false case
+    runTest('Test 11: isToday (false)', () => {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const result = StreakCalculator.isToday(yesterday);
+      return assert(result === false, `Expected false, got ${result}`);
+    });
+
+    // Test 12: isYesterday - true case
+    runTest('Test 12: isYesterday (true)', () => {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const result = StreakCalculator.isYesterday(yesterday);
+      return assert(result === true, `Expected true, got ${result}`);
+    });
+
+    // Test 13: isYesterday - false case
+    runTest('Test 13: isYesterday (false)', () => {
+      const today = new Date();
+      const result = StreakCalculator.isYesterday(today);
+      return assert(result === false, `Expected false, got ${result}`);
+    });
+
+    // Test 14: Long streak (7 days)
+    runTest('Test 14: Long streak (7 days)', () => {
+      const history = [
+        '2024-01-01', '2024-01-02', '2024-01-03', '2024-01-04',
+        '2024-01-05', '2024-01-06', '2024-01-07'
+      ];
+      const streak = StreakCalculator.calculateStreak(history, '2024-01-07', '2024-01-07');
+      return assert(streak === 7, `Expected 7, got ${streak}`);
+    });
+
+    // Test 15: Unordered history (should still work)
+    runTest('Test 15: Unordered history', () => {
+      const history = ['2024-01-03', '2024-01-01', '2024-01-02'];
+      const streak = StreakCalculator.calculateStreak(history, '2024-01-03', '2024-01-03');
+      return assert(streak === 3, `Expected 3, got ${streak}`);
+    });
+
+    console.log('All tests completed!');
+  </script>
+</body>
+</html>
