@@ -197,20 +197,49 @@ async function loadProfileFavorites() {
     const favDestinations = window.destinations?.filter(d => favorites.includes(d.id)).slice(0, 6) || [];
     
     container.innerHTML = favDestinations.map((dest, index) => `
-      <div class="rounded-xl overflow-hidden cursor-pointer hover:scale-105 hover:shadow-xl transition-all animate-fadeInUp" style="border: 1px solid var(--border-color); animation-delay: ${index * 0.1}s; opacity: 0;" onclick="openDestination(${dest.id})">
-        <div class="relative">
-          <img src="${dest.image_url}" alt="${dest.name}" class="w-full h-32 object-cover" onerror="this.src='https://via.placeholder.com/300x200/E85D04/FFFFFF?text=${encodeURIComponent(dest.name)}'">
-          <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-          <div class="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white shadow-lg">
-            <i class="fas fa-heart text-sm"></i>
+      <div class="favorite-card group rounded-2xl overflow-hidden cursor-pointer hover:scale-105 hover:shadow-2xl transition-all animate-fadeInUp relative" 
+           style="border: 2px solid var(--border-color); 
+                  animation-delay: ${index * 0.1}s; 
+                  opacity: 0;" 
+           onclick="openDestination(${dest.id})">
+        <!-- Image with zoom effect -->
+        <div class="relative overflow-hidden">
+          <img src="${dest.image_url}" 
+               alt="${dest.name}" 
+               class="w-full h-40 object-cover group-hover:scale-110 transition-transform duration-500" 
+               onerror="this.src='https://via.placeholder.com/300x200/E85D04/FFFFFF?text=${encodeURIComponent(dest.name)}'">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent group-hover:from-black/80 transition-all"></div>
+          
+          <!-- Animated heart -->
+          <div class="absolute top-3 right-3 w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center text-white shadow-xl group-hover:scale-125 group-hover:rotate-12 transition-all">
+            <i class="fas fa-heart text-base animate-pulse"></i>
+          </div>
+          
+          <!-- Rating badge -->
+          <div class="absolute top-3 left-3 px-3 py-1 rounded-full bg-black/50 backdrop-blur-sm text-white text-xs font-bold flex items-center gap-1">
+            <i class="fas fa-star text-yellow-400"></i>
+            ${dest.rating}
           </div>
         </div>
-        <div class="p-3" style="background: var(--bg-card);">
-          <h4 class="font-bold text-sm mb-1" style="color: var(--text-primary)">${dest.name}</h4>
-          <p class="text-xs flex items-center" style="color: var(--text-secondary)">
-            <i class="fas fa-map-marker-alt text-orange-500 mr-1"></i>${dest.province}
+        
+        <!-- Content with gradient background -->
+        <div class="p-4 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 group-hover:from-orange-50 group-hover:to-red-50 dark:group-hover:from-orange-900/20 dark:group-hover:to-red-900/20 transition-all" style="background: var(--bg-card);">
+          <h4 class="font-bold text-base mb-2 group-hover:text-orange-600 transition-colors" style="color: var(--text-primary)">${dest.name}</h4>
+          <p class="text-xs flex items-center mb-2" style="color: var(--text-secondary)">
+            <i class="fas fa-map-marker-alt text-orange-500 mr-2"></i>${dest.province}
           </p>
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold px-3 py-1 rounded-full" style="background: rgba(232,93,4,0.1); color: #E85D04;">
+              ${dest.category}
+            </span>
+            <span class="text-xs font-bold text-green-600">
+              $${dest.entry_fee_foreign}
+            </span>
+          </div>
         </div>
+        
+        <!-- Bottom shine effect -->
+        <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
       </div>
     `).join('');
     
@@ -247,20 +276,34 @@ function loadProfileAchievements() {
   }
   
   container.innerHTML = achievements.map((ach, index) => `
-    <div class="p-4 rounded-xl hover:scale-105 transition-all cursor-pointer animate-fadeInUp" style="background: var(--bg-primary); border: 1px solid var(--border-color); animation-delay: ${index * 0.1}s; opacity: 0;">
-      <div class="flex items-center gap-3">
-        <div class="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white shadow-lg">
-          <i class="fas ${ach.icon || 'fa-trophy'} text-xl"></i>
+    <div class="achievement-card group p-5 rounded-2xl hover:scale-105 hover:shadow-2xl transition-all cursor-pointer animate-fadeInUp relative overflow-hidden" 
+         style="background: linear-gradient(135deg, rgba(251,191,36,0.05), rgba(245,158,11,0.1)); 
+                border: 2px solid rgba(251,191,36,0.2); 
+                animation-delay: ${index * 0.1}s; 
+                opacity: 0;">
+      <!-- Shine effect on hover -->
+      <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+      
+      <div class="relative flex items-center gap-4">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 flex items-center justify-center text-white shadow-xl group-hover:rotate-12 group-hover:scale-110 transition-all">
+          <i class="fas ${ach.icon || 'fa-trophy'} text-2xl"></i>
         </div>
         <div class="flex-1">
-          <h4 class="font-bold text-sm mb-1" style="color: var(--text-primary)">${ach.name}</h4>
-          <p class="text-xs mb-1" style="color: var(--text-secondary)">${ach.desc}</p>
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-bold px-2 py-1 rounded-full bg-green-100 text-green-700">+${ach.xp} XP</span>
-            ${ach.cash ? `<span class="text-xs font-bold px-2 py-1 rounded-full bg-blue-100 text-blue-700">K${ach.cash}</span>` : ''}
+          <h4 class="font-bold text-base mb-1 group-hover:text-orange-600 transition-colors" style="color: var(--text-primary)">${ach.name}</h4>
+          <p class="text-xs mb-2 leading-relaxed" style="color: var(--text-secondary)">${ach.desc}</p>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs font-bold px-3 py-1 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-md">
+              <i class="fas fa-plus-circle mr-1"></i>${ach.xp} XP
+            </span>
+            ${ach.cash ? `<span class="text-xs font-bold px-3 py-1 rounded-full bg-gradient-to-r from-blue-400 to-cyan-500 text-white shadow-md">
+              <i class="fas fa-coins mr-1"></i>K${ach.cash}
+            </span>` : ''}
           </div>
         </div>
       </div>
+      
+      <!-- Bottom glow effect -->
+      <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 transform scale-x-0 group-hover:scale-x-100 transition-transform"></div>
     </div>
   `).join('');
   
@@ -291,6 +334,7 @@ function loadRecentActivity() {
           icon: 'fa-map-marker-alt',
           color: 'text-orange-500',
           bgColor: 'bg-orange-100',
+          bgGradient: 'from-orange-400 to-red-500',
           text: `Visited ${dest.name}`,
           time: 'Recently'
         });
@@ -305,6 +349,7 @@ function loadRecentActivity() {
         icon: 'fa-trophy',
         color: 'text-yellow-500',
         bgColor: 'bg-yellow-100',
+        bgGradient: 'from-yellow-400 to-orange-500',
         text: `Unlocked "${ach.name}"`,
         time: 'Recently'
       });
@@ -322,20 +367,36 @@ function loadRecentActivity() {
   }
   
   container.innerHTML = `
-    <!-- Timeline line -->
-    <div class="absolute left-5 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500 opacity-20"></div>
+    <!-- Timeline line with gradient -->
+    <div class="absolute left-6 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500 opacity-30 rounded-full"></div>
     
     ${activities.slice(0, 10).map((activity, index) => `
-      <div class="relative flex items-start gap-4 p-3 rounded-xl mb-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all animate-fadeInUp" style="animation-delay: ${index * 0.1}s; opacity: 0;">
-        <!-- Timeline dot -->
-        <div class="absolute left-5 w-3 h-3 rounded-full ${activity.bgColor} border-2 border-white dark:border-gray-900 z-10" style="transform: translateX(-50%);"></div>
-        
-        <div class="w-10 h-10 rounded-full ${activity.bgColor} flex items-center justify-center flex-shrink-0 ml-6">
-          <i class="fas ${activity.icon} ${activity.color}"></i>
+      <div class="activity-item group relative flex items-start gap-4 p-4 rounded-2xl mb-3 hover:bg-gradient-to-r hover:from-gray-50 hover:to-transparent dark:hover:from-gray-800 dark:hover:to-transparent transition-all cursor-pointer animate-fadeInUp hover:scale-[1.02] hover:shadow-lg" 
+           style="animation-delay: ${index * 0.08}s; opacity: 0;">
+        <!-- Timeline dot with pulse animation -->
+        <div class="absolute left-6 w-4 h-4 rounded-full ${activity.bgColor} border-3 border-white dark:border-gray-900 z-10 group-hover:scale-125 transition-transform shadow-lg" 
+             style="transform: translateX(-50%); box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4);">
+          <div class="absolute inset-0 rounded-full bg-gradient-to-br ${activity.bgGradient} animate-ping opacity-75"></div>
         </div>
+        
+        <!-- Icon container with gradient -->
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br ${activity.bgGradient} flex items-center justify-center flex-shrink-0 ml-8 shadow-lg group-hover:rotate-6 group-hover:scale-110 transition-all">
+          <i class="fas ${activity.icon} text-white text-lg"></i>
+        </div>
+        
+        <!-- Content -->
         <div class="flex-1 pt-1">
-          <p class="text-sm font-medium" style="color: var(--text-primary)">${activity.text}</p>
-          <p class="text-xs" style="color: var(--text-secondary)">${activity.time}</p>
+          <p class="text-sm font-semibold mb-1 group-hover:text-orange-600 transition-colors" style="color: var(--text-primary)">${activity.text}</p>
+          <div class="flex items-center gap-2">
+            <p class="text-xs" style="color: var(--text-secondary)">
+              <i class="fas fa-clock mr-1"></i>${activity.time}
+            </p>
+          </div>
+        </div>
+        
+        <!-- Hover arrow -->
+        <div class="opacity-0 group-hover:opacity-100 transition-opacity">
+          <i class="fas fa-chevron-right text-gray-400"></i>
         </div>
       </div>
     `).join('')}
