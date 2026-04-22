@@ -60,6 +60,7 @@ const achievementDefs = [
   { id: 'streak_3', name: 'Consistent Explorer', desc: '3-day login streak', icon: 'fa-fire', xp: 30 },
   { id: 'streak_7', name: 'Dedicated Traveler', desc: '7-day login streak', icon: 'fa-calendar-check', xp: 100 },
   { id: 'reviewer', name: 'Critic', desc: 'Write your first review', icon: 'fa-star', xp: 25 },
+  { id: 'dream_collector', name: 'Dream Collector', desc: 'Add 5 places to wishlist', icon: 'fa-heart', xp: 30 },
   { id: 'cash_500', name: 'Cash Reward!', desc: 'Earned K50 for reaching 500 XP', icon: 'fa-money-bill-wave', xp: 0, cash: 50 },
   { id: 'cash_1000', name: 'Big Winner!', desc: 'Earned K100 for reaching 1000 XP', icon: 'fa-coins', xp: 0, cash: 100 },
   { id: 'cash_2000', name: 'Champion!', desc: 'Earned K250 for reaching 2000 XP', icon: 'fa-trophy', xp: 0, cash: 250 },
@@ -974,6 +975,11 @@ function addToWishlist() {
     state.wishlist.push(state.currentDestination.id);
     showAchievementToast('Added to Wishlist!', state.currentDestination.name);
     addScore(5);
+
+    // Check for Dream Collector achievement (5 wishlist items)
+    if (state.wishlist.length === 5) {
+      unlockAchievement('dream_collector');
+    }
   }
 }
 
@@ -1082,10 +1088,10 @@ async function startCivicChallenge(challengeId) {
     showLoginForm();
     return;
   }
-  
+
   const challenge = civicChallenges.find(c => c.id === challengeId);
   if (!challenge) return;
-  
+
   // Enhanced reporting modal
   const modal = document.createElement('div');
   modal.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4';
@@ -1098,18 +1104,18 @@ async function startCivicChallenge(challengeId) {
         <h2 class="text-2xl font-bold">${challenge.name}</h2>
         <p class="text-gray-600">${challenge.desc}</p>
       </div>
-      
+
       <form id="reportForm">
         <div class="mb-4">
           <label class="block text-sm font-bold mb-2">Report Title</label>
           <input type="text" id="reportTitle" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none" placeholder="Brief title for this issue">
         </div>
-        
+
         <div class="mb-4">
           <label class="block text-sm font-bold mb-2">Description</label>
           <textarea id="reportDescription" required rows="3" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none" placeholder="Describe the issue in detail..."></textarea>
         </div>
-        
+
         <div class="mb-4">
           <label class="block text-sm font-bold mb-2 flex items-center gap-2">
             <i class="fas fa-camera text-blue-500"></i> Photos (Optional - +50% XP Bonus)
@@ -1117,14 +1123,14 @@ async function startCivicChallenge(challengeId) {
           <input type="file" id="reportPhotos" multiple accept="image/*" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none">
           <p class="text-xs text-gray-500 mt-1">Upload up to 3 photos for bonus XP</p>
         </div>
-        
+
         <div class="mb-6">
           <label class="flex items-center gap-2">
             <input type="checkbox" id="useLocation" checked class="rounded">
             <span class="text-sm">Use my current location (GPS)</span>
           </label>
         </div>
-        
+
         <div class="flex gap-3">
           <button type="button" onclick="this.closest('.fixed').remove()" class="flex-1 px-6 py-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-all">
             Cancel
@@ -1136,23 +1142,23 @@ async function startCivicChallenge(challengeId) {
       </form>
     </div>
   `;
-  
+
   document.body.appendChild(modal);
-  
+
   // Handle form submission
   modal.querySelector('#reportForm').onsubmit = async (e) => {
     e.preventDefault();
-    
+
     const title = document.getElementById('reportTitle').value.trim();
     const description = document.getElementById('reportDescription').value.trim();
     const photos = document.getElementById('reportPhotos').files;
     const useLocation = document.getElementById('useLocation').checked;
-    
+
     if (!title || !description) {
       alert('Please fill in all required fields');
       return;
     }
-    
+
     try {
       // Get location
       let latitude, longitude;
@@ -1177,7 +1183,7 @@ async function startCivicChallenge(challengeId) {
         latitude = -15.4167 + (Math.random() - 0.5) * 0.1;
         longitude = 28.2833 + (Math.random() - 0.5) * 0.1;
       }
-      
+
       // Simulate photo upload (in production, upload to cloud storage)
       const imageUrls = [];
       if (photos.length > 0) {
@@ -1185,14 +1191,14 @@ async function startCivicChallenge(challengeId) {
           imageUrls.push(`https://via.placeholder.com/400x300?text=Photo+${i+1}`);
         }
       }
-      
+
       // Get weather data
       const weatherData = {
         temperature: Math.round(20 + Math.random() * 15),
         condition: 'Sunny',
         timestamp: new Date().toISOString()
       };
-      
+
       const result = await submitCivicReport({
         type: challengeId,
         title,
@@ -1203,7 +1209,7 @@ async function startCivicChallenge(challengeId) {
         imageUrls,
         weatherData
       }, state.token);
-      
+
       // Calculate bonus XP for photos
       let totalXP = result.reward.xp;
       if (imageUrls.length > 0) {
@@ -1211,24 +1217,29 @@ async function startCivicChallenge(challengeId) {
         totalXP += bonusXP;
         showAchievementToast('Photo Bonus!', `+${bonusXP} bonus XP for photos!`);
       }
-      
+
       // Update local state
       state.civicXP += totalXP;
       state.cashEarned += result.reward.cash;
-      
+
+      // Check for Civic Hero achievement (first civic report)
+      if (!state.civicReports || state.civicReports.length === 0) {
+        unlockAchievement('civic_hero');
+      }
+
       if (result.levelUp) {
         state.civicLevel++;
         showAchievementToast('Level Up!', `You reached Safety Level ${state.civicLevel}!`);
       }
-      
+
       addScore(totalXP);
       showAchievementToast('Report Submitted!', `+${totalXP} XP, +K${result.reward.cash}`);
-      
+
       // Close modal and reload
       modal.remove();
       await loadUserProfile();
       renderTabs();
-      
+
     } catch (error) {
       console.error('Failed to submit report:', error);
       alert('Failed to submit report. Please try again.');

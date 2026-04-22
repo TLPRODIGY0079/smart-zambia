@@ -300,7 +300,7 @@ This implementation plan breaks down the Daily Challenges System into discrete, 
     - Connect to existing state management
     - _Requirements: 12.6_
   
-  - [ ] 17.2 Add challenge tab/section to UI
+  - [x] 17.2 Add challenge tab/section to UI
     - Create dedicated challenges section
     - Add navigation link
     - Display active challenge prominently

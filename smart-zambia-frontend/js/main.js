@@ -60,6 +60,7 @@ const achievementDefs = [
   { id: 'streak_3', name: 'Consistent Explorer', desc: '3-day login streak', icon: 'fa-fire', xp: 30 },
   { id: 'streak_7', name: 'Dedicated Traveler', desc: '7-day login streak', icon: 'fa-calendar-check', xp: 100 },
   { id: 'reviewer', name: 'Critic', desc: 'Write your first review', icon: 'fa-star', xp: 25 },
+  { id: 'dream_collector', name: 'Dream Collector', desc: 'Add 5 places to wishlist', icon: 'fa-heart', xp: 30 },
   { id: 'cash_500', name: 'Cash Reward!', desc: 'Earned K50 for reaching 500 XP', icon: 'fa-money-bill-wave', xp: 0, cash: 50 },
   { id: 'cash_1000', name: 'Big Winner!', desc: 'Earned K100 for reaching 1000 XP', icon: 'fa-coins', xp: 0, cash: 100 },
   { id: 'cash_2000', name: 'Champion!', desc: 'Earned K250 for reaching 2000 XP', icon: 'fa-trophy', xp: 0, cash: 250 },
@@ -974,6 +975,11 @@ function addToWishlist() {
     state.wishlist.push(state.currentDestination.id);
     showAchievementToast('Added to Wishlist!', state.currentDestination.name);
     addScore(5);
+
+    // Check for Dream Collector achievement (5 wishlist items)
+    if (state.wishlist.length === 5) {
+      unlockAchievement('dream_collector');
+    }
   }
 }
 
@@ -1215,6 +1221,11 @@ async function startCivicChallenge(challengeId) {
       // Update local state
       state.civicXP += totalXP;
       state.cashEarned += result.reward.cash;
+      
+      // Check for Civic Hero achievement (first civic report)
+      if (!state.civicReports || state.civicReports.length === 0) {
+        unlockAchievement('civic_hero');
+      }
       
       if (result.levelUp) {
         state.civicLevel++;
