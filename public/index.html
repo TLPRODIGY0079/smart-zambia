@@ -1808,6 +1808,9 @@
       { id: 20, name: "Shiwa Ng'andu", province: "Northern Province", category: "Heritage", rating: 4.4, description: "A stunning English manor house in the heart of Africa. Built by Sir Stewart Gore-Browne in the 1920s.", image_url: "https://images.unsplash.com/photo-1577282748124-3c8c8f98af8d?w=800", entry_fee_foreign: 15, featured: false, lat: -11.2000, lng: 31.7500 },
       { id: 21, name: "Bangweulu Wetlands", province: "Northern Province", category: "Wildlife", rating: 4.5, description: "Vast floodplain system where you can see the rare shoebill stork. One of Africa's great wetland ecosystems.", image_url: "https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?w=800", entry_fee_foreign: 15, featured: false, lat: -11.5000, lng: 29.7500 }
     ];
+    
+    // Make destinations globally accessible
+    window.destinations = destinations;
 
     // ============================================
     // STATE MANAGEMENT
@@ -1838,6 +1841,43 @@
       pendingMedia: [],
       posts: []
     };
+    
+    // Make state globally accessible
+    window.state = state;
+    
+    // Load state from localStorage
+    function loadStateFromStorage() {
+      try {
+        const savedScore = localStorage.getItem('score');
+        const savedLevel = localStorage.getItem('level');
+        const savedAchievements = localStorage.getItem('achievements');
+        const savedWishlist = localStorage.getItem('wishlist');
+        const savedVisitedDestinations = localStorage.getItem('visitedDestinations');
+        const savedFoundTreasures = localStorage.getItem('foundTreasures');
+        const savedCashEarned = localStorage.getItem('cashEarned');
+        const savedLoginStreak = localStorage.getItem('loginStreak');
+        const savedUserReviews = localStorage.getItem('userReviews');
+        const savedUser = localStorage.getItem('user');
+        
+        if (savedScore) window.state.score = parseInt(savedScore);
+        if (savedLevel) window.state.level = parseInt(savedLevel);
+        if (savedAchievements) window.state.achievements = JSON.parse(savedAchievements);
+        if (savedWishlist) window.state.wishlist = JSON.parse(savedWishlist);
+        if (savedVisitedDestinations) window.state.visitedDestinations = JSON.parse(savedVisitedDestinations);
+        if (savedFoundTreasures) window.state.foundTreasures = JSON.parse(savedFoundTreasures);
+        if (savedCashEarned) window.state.cashEarned = parseInt(savedCashEarned);
+        if (savedLoginStreak) window.state.loginStreak = parseInt(savedLoginStreak);
+        if (savedUserReviews) window.state.userReviews = JSON.parse(savedUserReviews);
+        if (savedUser) window.state.user = JSON.parse(savedUser);
+        
+        console.log('State loaded from localStorage:', window.state);
+      } catch (error) {
+        console.error('Error loading state from localStorage:', error);
+      }
+    }
+    
+    // Load state on page load
+    loadStateFromStorage();
 
     // Civic Challenges
     const civicChallenges = [
