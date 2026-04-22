@@ -1,4 +1,7 @@
 [build]
+  # Base directory (root of the project)
+  base = "."
+  
   # Directory to publish (where index.html is located)
   publish = "public"
   
