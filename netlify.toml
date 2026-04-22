@@ -25,17 +25,17 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
 
 [[headers]]
-  # Cache static assets
+  # Cache static assets - reduced cache time for development
   for = "/js/*"
   [headers.values]
-    Cache-Control = "public, max-age=31536000"
+    Cache-Control = "public, max-age=300, must-revalidate"
 
 [[headers]]
   for = "/css/*"
   [headers.values]
-    Cache-Control = "public, max-age=31536000"
+    Cache-Control = "public, max-age=300, must-revalidate"
 
 [[headers]]
   for = "/assets/*"
   [headers.values]
-    Cache-Control = "public, max-age=31536000"
+    Cache-Control = "public, max-age=86400"
