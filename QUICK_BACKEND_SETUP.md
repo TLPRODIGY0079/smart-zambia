@@ -110,3 +110,7 @@ Should return: `{"ok":true}`
 ### "CORS error"
 - Check CORS_ORIGIN in `.env` includes your frontend URL
 - Restart backend after changing `.env`
+
+## smart-zambia-api maintenance
+
+When working on **`smart-zambia-api/`** rather than greenfield scaffolding, use the focused checklist in **`smart-zambia-api/API_SMOKE_CHECKLIST.md`** for Postgres migrations, env vars (`JWT_SECRET`, `DB_*`), and regression HTTP curls.

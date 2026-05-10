@@ -1,4 +1,12 @@
 // js/main.js
+// -----------------------------------------------------------------------------
+// LEGACY ENTRY: This module bundled an alternate SPA flow. Production Netlify
+// deploy loads public/index.html (inline app script), NOT this file. Keeping
+// for reference or local experiments only—do not treat as authoritative.
+//
+// konamiCode / konamiSequence below are orphaned game-state fields (no parity
+// with public/index Easter logic). Prefer editing ../index.html instead.
+// -----------------------------------------------------------------------------
 import { fetchDestinations, fetchDestinationById, submitCivicReport, getUserCivicReports, getUserCivicProfile, awardAchievement } from './api.js';
 
 let destinations = [];

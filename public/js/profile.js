@@ -457,6 +457,10 @@ function saveProfileChanges(event) {
   window.state.user.email = email;
   window.state.user.location = location;
   window.state.user.bio = bio;
+
+  if (typeof window.checkProfileSecret === 'function') {
+    window.checkProfileSecret(bio);
+  }
   
   // Save to localStorage using the new system
   if (window.saveUserData) {

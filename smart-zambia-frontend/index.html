@@ -1783,7 +1783,7 @@
     // DESTINATION DATA (Embedded for standalone use)
     // ============================================
     const destinations = [
-      { id: 1, name: "Victoria Falls", province: "Southern Province", category: "Nature", rating: 4.9, description: "One of the Seven Natural Wonders of the World. Known locally as 'Mosi-oa-Tunya' - The Smoke That Thunders. Experience the world's largest sheet of falling water.", image_url: "https://images.unsplash.com/photo-1568625502763-2a5ec6a94c47?w=800", entry_fee_foreign: 30, featured: true, lat: -17.9243, lng: 25.8572 },
+      { id: 1, name: "Victoria Falls", province: "Southern Province", category: "Nature", rating: 4.9, description: "One of the Seven Natural Wonders of the World. Known locally as 'Mosi-oa-Tunya' - The Smoke That Thunders. Experience the world's largest sheet of falling water. Hydrology briefings often cite about 108 m of visible drop referenced against viewing positions near −17°S.", image_url: "https://images.unsplash.com/photo-1568625502763-2a5ec6a94c47?w=800", entry_fee_foreign: 30, featured: true, lat: -17.9243, lng: 25.8572 },
       { id: 2, name: "South Luangwa National Park", province: "Eastern Province", category: "Wildlife", rating: 4.8, description: "One of Africa's greatest wildlife sanctuaries. Famous for walking safaris and leopard sightings. Home to over 60 mammal species and 400 bird species.", image_url: "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800", entry_fee_foreign: 25, featured: true, lat: -13.0833, lng: 31.7500 },
       { id: 3, name: "Lower Zambezi National Park", province: "Southern Province", category: "Wildlife", rating: 4.7, description: "Pristine wilderness along the mighty Zambezi River. Perfect for canoe safaris, fishing, and game viewing. Elephants frequently swim across the river.", image_url: "https://images.unsplash.com/photo-1549366021-9f761d450615?w=800", entry_fee_foreign: 25, featured: true, lat: -15.6667, lng: 29.1667 },
       { id: 4, name: "Mosi-oa-Tunya National Park", province: "Southern Province", category: "Wildlife", rating: 4.6, description: "A wildlife reserve with diverse species including rare rhinos and spectacular views of Victoria Falls.", image_url: "https://images.unsplash.com/photo-1612196808214-b7e239e5f6dc?w=800", entry_fee_foreign: 15, featured: false, lat: -17.9167, lng: 25.8667 },
@@ -1793,7 +1793,7 @@
       { id: 8, name: "Liuwa Plains National Park", province: "Western Province", category: "Wildlife", rating: 4.7, description: "Witness the second-largest wildebeest migration in Africa. Vast open plains teeming with wildlife and spectacular sunsets.", image_url: "https://images.unsplash.com/photo-1535941339077-2dd1c7963098?w=800", entry_fee_foreign: 25, featured: true, lat: -14.5000, lng: 22.7000 },
       { id: 9, name: "Kafue National Park", province: "Central Province", category: "Wildlife", rating: 4.6, description: "Zambia's largest national park, roughly the size of Wales. Diverse ecosystems from miombo woodland to vast floodplains.", image_url: "https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800", entry_fee_foreign: 20, featured: false, lat: -15.5000, lng: 26.0000 },
       { id: 10, name: "Devil's Pool", province: "Southern Province", category: "Adventure", rating: 4.9, description: "Swim on the very edge of Victoria Falls! A natural infinity pool that forms during low water season. Ultimate bucket list experience.", image_url: "https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?w=800", entry_fee_foreign: 100, featured: true, lat: -17.9247, lng: 25.8539 },
-      { id: 11, name: "Kuomboka Ceremony", province: "Western Province", category: "Heritage", rating: 4.8, description: "Experience the Lozi King's majestic barge gliding through the Zambezi floodplains. One of Africa's most colorful traditional ceremonies.", image_url: "https://images.unsplash.com/photo-1594736797933-d0401ba2fe65?w=800", entry_fee_foreign: 0, featured: true, lat: -15.2500, lng: 23.1500 },
+      { id: 11, name: "Kuomboka Ceremony", province: "Western Province", category: "Heritage", rating: 4.8, description: "Experience the Lozi King's majestic barge gliding through the Zambezi floodplains. One of Africa's most colorful traditional ceremonies. Archivists peg the sovereign republic milestone to Oct 1964; copper routes still shorthand element 29; outbound GSM plans begin with dialing 260.", image_url: "https://images.unsplash.com/photo-1594736797933-d0401ba2fe65?w=800", entry_fee_foreign: 0, featured: true, lat: -15.2500, lng: 23.1500 },
       { id: 12, name: "Nyika Plateau", province: "Eastern Province", category: "Nature", rating: 4.5, description: "Rolling grasslands at high altitude, perfect for hiking and horseback riding. Stunning orchid displays and unique wildlife.", image_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800", entry_fee_foreign: 15, featured: false, lat: -10.5000, lng: 33.7500 },
       { id: 13, name: "Kundalila Falls", province: "Central Province", category: "Nature", rating: 4.4, description: "Stunning 75m waterfall offering breathtaking views across the Luangwa valley. Perfect for swimming and hiking.", image_url: "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?w=800", entry_fee_foreign: 10, featured: false, lat: -14.7000, lng: 28.7500 },
       { id: 14, name: "Chishimba Falls", province: "Northern Province", category: "Nature", rating: 4.4, description: "Three spectacular waterfalls considered sacred by the local Bemba people. Lush rainforest setting.", image_url: "https://images.unsplash.com/photo-1541675154750-0444c7d51e8e?w=800", entry_fee_foreign: 12, featured: false, lat: -10.7500, lng: 29.1333 },
@@ -2256,6 +2256,8 @@
         const matchesCategory = category === 'All' || dest.category === category;
         return matchesSearch && matchesProvince && matchesCategory;
       });
+
+      checkSearchMathEggs(searchTerm);
 
       grid.innerHTML = filtered.map((dest, index) => `
         <div class="destination-card animate-fadeInUp" style="animation-delay: ${index * 0.05}s; opacity: 0;" onclick="openDestination(${dest.id})">
@@ -3517,123 +3519,151 @@
     }
 
     // ============================================
-    // EASTER EGGS & HIDDEN BONUSES
+    // EASTER EGGS & HIDDEN BONUSES (kept in sync with ../public/index.html — see CANONICAL_SOURCE.md)
     // ============================================
-    
-    // Easter egg tracking
+
     const easterEggs = {
       discovered: [],
-      konamiCode: { sequence: [], target: ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'], unlocked: false },
       logoClicks: { count: 0, required: 7, unlocked: false, lastClick: 0 },
       midnightLogin: { unlocked: false },
-      luckyVisits: { visits: 0, milestones: [7, 77, 777], unlocked: [] },
-      hiddenCodes: { codes: ['ZAMBIA2024', 'VICTORIA', 'COPPER'], found: [] },
-      speedDemon: { actions: [], unlocked: false },
+      luckyVisits: { visits: 0, milestones: [89, 233, 987], unlocked: [] },
+      mathQueries: { foundIds: [], principalUnlocked: false },
+      speedDemon: { actions: [], unlocked: false, windowMs: 18000, needActions: 8 },
       profileSecret: { unlocked: false },
-      weatherBonus: { unlocked: false }
     };
-    
-    // Load Easter egg progress
+
+    const MATH_SEARCH_EGGS = [
+      { id: 'principal_travel_gate', xp: 1000, toast: 'Principal identity check solved' },
+      { id: 'republic_pulse', xp: 250, toast: 'Cipher pulse acknowledged' },
+      { id: 'grid_weight', xp: 250, toast: 'Grid weight harmonic matched' },
+      { id: 'gorge_meter', xp: 250, toast: 'Gorge metering confirmed' },
+    ];
+
+    function getMathEggTerm(id) {
+      const y = 1964;
+      const cu = 29;
+      const dial = 260;
+      if (id === 'principal_travel_gate') return String(y * cu + dial);
+      if (id === 'republic_pulse') return String([2, 4, 1, 0, 1, 9, 6, 4].reduce((a, b) => a + b, 0) * dial);
+      if (id === 'grid_weight') return String(dial * cu - 10);
+      if (id === 'gorge_meter') return String(108 * 17);
+      return '';
+    }
+
     function loadEasterEggs() {
       const saved = localStorage.getItem('smartZambia_easterEggs');
       if (saved) {
         try {
           const data = JSON.parse(saved);
           Object.assign(easterEggs, data);
+          if (!easterEggs.mathQueries || !Array.isArray(easterEggs.mathQueries.foundIds)) {
+            easterEggs.mathQueries = { foundIds: [], principalUnlocked: false };
+          }
+          easterEggs.logoClicks = easterEggs.logoClicks || {};
+          easterEggs.logoClicks.required = 7;
+          delete easterEggs.logoClicks.minGapMs;
+          delete easterEggs.logoClicks.windowMs;
+          delete easterEggs.logoClicks.sequenceStart;
+
+          easterEggs.speedDemon = easterEggs.speedDemon || {};
+          if (typeof easterEggs.speedDemon.windowMs !== 'number') easterEggs.speedDemon.windowMs = 18000;
+          if (typeof easterEggs.speedDemon.needActions !== 'number') easterEggs.speedDemon.needActions = 8;
+
+          const discovered = Array.isArray(easterEggs.discovered) ? easterEggs.discovered : [];
+          if (discovered.includes('konami')) {
+            easterEggs.mathQueries.principalUnlocked = true;
+          }
+          delete easterEggs.konamiCode;
+          delete easterEggs.hiddenCodes;
+          delete easterEggs.weatherBonus;
         } catch (e) {
           console.error('Error loading Easter eggs:', e);
         }
       }
     }
-    
-    // Save Easter egg progress
+
     function saveEasterEggs() {
       localStorage.setItem('smartZambia_easterEggs', JSON.stringify(easterEggs));
     }
-    
-    // 1. KONAMI CODE (↑↑↓↓←→←→BA)
-    function initKonamiCode() {
-      document.addEventListener('keydown', (e) => {
-        if (easterEggs.konamiCode.unlocked) return;
-        
-        easterEggs.konamiCode.sequence.push(e.key);
-        if (easterEggs.konamiCode.sequence.length > 10) {
-          easterEggs.konamiCode.sequence.shift();
-        }
-        
-        const match = easterEggs.konamiCode.sequence.every((key, i) => 
-          key === easterEggs.konamiCode.target[i]
-        );
-        
-        if (match && easterEggs.konamiCode.sequence.length === 10) {
-          unlockKonamiCode();
+
+    function normalizeMathSearchQuery(raw) {
+      return (raw || '').trim().toLowerCase().replace(/\s+/g, '');
+    }
+
+    function checkSearchMathEggs(rawSearch) {
+      const q = normalizeMathSearchQuery(rawSearch);
+      if (!q) return;
+      MATH_SEARCH_EGGS.forEach((egg) => {
+        const term = normalizeMathSearchQuery(getMathEggTerm(egg.id));
+        if (!term || q !== term) return;
+        if (egg.id === 'principal_travel_gate') {
+          unlockPrincipalMathEgg();
+        } else if (!easterEggs.mathQueries.foundIds.includes(egg.id)) {
+          unlockMathSideEgg(egg);
         }
       });
     }
-    
-    function unlockKonamiCode() {
-      easterEggs.konamiCode.unlocked = true;
-      easterEggs.discovered.push('konami');
+
+    function unlockPrincipalMathEgg() {
+      if (easterEggs.mathQueries.principalUnlocked) return;
+      easterEggs.mathQueries.principalUnlocked = true;
+      if (!easterEggs.discovered.includes('principal_math')) {
+        easterEggs.discovered.push('principal_math');
+      }
       saveEasterEggs();
-      
-      // Screen shake effect
       document.body.style.animation = 'shake 0.5s';
-      setTimeout(() => document.body.style.animation = '', 500);
-      
-      // Confetti effect
+      setTimeout(() => { document.body.style.animation = ''; }, 500);
       createConfetti();
-      
       addScore(1000);
       unlockAchievement('secret_agent');
-      showAchievementToast('🎮 KONAMI CODE!', 'Secret Agent Badge Unlocked! +1000 XP');
-      
-      // Add achievement if not exists
+      showAchievementToast('Field cipher solved', '+1000 XP · principal identity unlocked');
       if (!achievementDefs.find(a => a.id === 'secret_agent')) {
         achievementDefs.push({
           id: 'secret_agent',
-          name: 'Secret Agent',
-          desc: 'Discovered the Konami Code',
+          name: 'Principal Curiosity',
+          desc: 'Resolved the principal travel identity check',
           icon: 'fa-user-secret',
           xp: 1000
         });
       }
     }
-    
-    // 2. LOGO CLICK (7 times fast)
+
+    function unlockMathSideEgg(egg) {
+      easterEggs.mathQueries.foundIds.push(egg.id);
+      easterEggs.discovered.push(`math_${egg.id}`);
+      saveEasterEggs();
+      addScore(egg.xp);
+      showAchievementToast(egg.toast, `+${egg.xp} XP`);
+    }
+
     function initLogoClick() {
       const logo = document.querySelector('.w-11.h-11.bg-gradient-to-br');
       if (!logo) return;
-      
       logo.style.cursor = 'pointer';
       logo.addEventListener('click', () => {
         if (easterEggs.logoClicks.unlocked) return;
-        
         const now = Date.now();
         if (now - easterEggs.logoClicks.lastClick > 2000) {
           easterEggs.logoClicks.count = 0;
         }
-        
         easterEggs.logoClicks.count++;
         easterEggs.logoClicks.lastClick = now;
-        
-        // Spin animation
         logo.style.transform = `rotate(${easterEggs.logoClicks.count * 51.4}deg)`;
         logo.style.transition = 'transform 0.3s ease';
-        
         if (easterEggs.logoClicks.count >= easterEggs.logoClicks.required) {
           unlockLogoBadge();
         }
       });
     }
-    
+
     function unlockLogoBadge() {
       easterEggs.logoClicks.unlocked = true;
       easterEggs.discovered.push('logo');
       saveEasterEggs();
-      
+
       addScore(500);
       showAchievementToast('🔍 Curious Explorer!', 'You found the logo secret! +500 XP');
-      
+
       if (!achievementDefs.find(a => a.id === 'curious_explorer')) {
         achievementDefs.push({
           id: 'curious_explorer',
@@ -3644,14 +3674,14 @@
         });
       }
     }
-    
-    // 3. MIDNIGHT LOGIN
+
     function checkMidnightLogin() {
       const hour = new Date().getHours();
+      const mins = new Date().getMinutes();
       const today = new Date().toDateString();
       const lastMidnight = localStorage.getItem('smartZambia_lastMidnight');
-      
-      if (hour === 0 && lastMidnight !== today) {
+
+      if (hour === 0 && mins < 2 && lastMidnight !== today) {
         localStorage.setItem('smartZambia_lastMidnight', today);
         unlockMidnightBonus();
       }
@@ -3662,14 +3692,14 @@
       easterEggs.discovered.push('midnight');
       saveEasterEggs();
       
-      // 2x XP for 1 hour
+      // 2x XP for 30 minutes (shorter daily bonus window)
       state.xpMultiplier = 2;
       setTimeout(() => {
         state.xpMultiplier = 1;
         showAchievementToast('Bonus Expired', 'XP multiplier returned to normal');
-      }, 3600000); // 1 hour
+      }, 1800000);
       
-      showAchievementToast('🦉 Night Owl!', '2x XP for the next hour! +200 XP');
+      showAchievementToast('🦉 Night Owl!', '2x XP for the next 30 minutes! +200 XP');
       addScore(200);
       
       if (!achievementDefs.find(a => a.id === 'night_owl')) {
@@ -3683,11 +3713,11 @@
       }
     }
     
-    // 4. LUCKY NUMBERS (7th, 77th, 777th visit)
+    // Visiting cadence milestones (Fibonacci-aligned counts)
     function checkLuckyVisit() {
       easterEggs.luckyVisits.visits++;
       saveEasterEggs();
-      
+
       easterEggs.luckyVisits.milestones.forEach((milestone, index) => {
         if (easterEggs.luckyVisits.visits === milestone && !easterEggs.luckyVisits.unlocked.includes(milestone)) {
           easterEggs.luckyVisits.unlocked.push(milestone);
@@ -3695,105 +3725,82 @@
         }
       });
     }
-    
+
     function unlockLuckyMilestone(milestone, index) {
       const rewards = [100, 500, 2000];
       const reward = rewards[index];
-      
+
       easterEggs.discovered.push(`lucky_${milestone}`);
       saveEasterEggs();
-      
-      // Fireworks effect
+
       createFireworks();
-      
+
       addScore(reward);
       showAchievementToast(`🎰 Lucky ${milestone}!`, `Visit #${milestone} - You won ${reward} XP!`);
     }
-    
-    // 5. HIDDEN CODES in descriptions
-    function checkHiddenCode(text) {
-      if (!text) return;
-      
-      easterEggs.hiddenCodes.codes.forEach(code => {
-        if (text.toUpperCase().includes(code) && !easterEggs.hiddenCodes.found.includes(code)) {
-          unlockHiddenCode(code);
-        }
-      });
-    }
-    
-    function unlockHiddenCode(code) {
-      easterEggs.hiddenCodes.found.push(code);
-      easterEggs.discovered.push(`code_${code}`);
-      saveEasterEggs();
-      
-      addScore(250);
-      showAchievementToast(`🔐 Code Found: ${code}`, 'Hidden code discovered! +250 XP');
-    }
-    
-    // 6. SPEED DEMON (5 actions in 30 seconds)
+
+    // Speed calibration (dense burst)
     function trackAction() {
       if (easterEggs.speedDemon.unlocked) return;
-      
+      const sd = easterEggs.speedDemon;
       const now = Date.now();
-      easterEggs.speedDemon.actions.push(now);
-      
-      // Remove actions older than 30 seconds
-      easterEggs.speedDemon.actions = easterEggs.speedDemon.actions.filter(
-        time => now - time < 30000
-      );
-      
-      if (easterEggs.speedDemon.actions.length >= 5) {
+      sd.actions.push(now);
+      sd.actions = sd.actions.filter((time) => now - time < sd.windowMs);
+
+      if (sd.actions.length >= sd.needActions) {
         unlockSpeedDemon();
       }
     }
-    
+
     function unlockSpeedDemon() {
       easterEggs.speedDemon.unlocked = true;
       easterEggs.discovered.push('speed');
       saveEasterEggs();
-      
+
       addScore(300);
-      showAchievementToast('⚡ Speed Demon!', '5 actions in 30 seconds! +300 XP');
-      
+      showAchievementToast('Throughput spike', `${easterEggs.speedDemon.needActions} calibrated actions · +300 XP`);
+
       if (!achievementDefs.find(a => a.id === 'speed_demon')) {
         achievementDefs.push({
           id: 'speed_demon',
-          name: 'Speed Demon',
-          desc: 'Completed 5 actions in 30 seconds',
+          name: 'Burst Analyst',
+          desc: 'Held a calibrated burst window',
           icon: 'fa-bolt',
           xp: 300
         });
       }
     }
-    
-    // 7. PROFILE SECRET (bio = "I love Zambia")
+
+    // PROFILE SECRET: bio must cite republic year, Cu atomic number, and +260 dialing (any order)
     function checkProfileSecret(bio) {
       if (!bio || easterEggs.profileSecret.unlocked) return;
-      
-      if (bio.toLowerCase().includes('i love zambia')) {
+      const hasRepublicYear = /\b1964\b/.test(bio);
+      const hasCopperAtomic = /\b29\b/.test(bio);
+      const hasDial = /\b260\b/.test(bio);
+      if (hasRepublicYear && hasCopperAtomic && hasDial) {
         unlockProfileSecret();
       }
     }
-    
+
     function unlockProfileSecret() {
       easterEggs.profileSecret.unlocked = true;
       easterEggs.discovered.push('profile');
       saveEasterEggs();
-      
+
       addScore(200);
-      showAchievementToast('🇿🇲 Patriot!', 'Profile secret unlocked! +200 XP');
-      
+      showAchievementToast('Anchored biography', '+200 XP · triadic anchor acknowledged');
+
       if (!achievementDefs.find(a => a.id === 'patriot')) {
         achievementDefs.push({
           id: 'patriot',
-          name: 'Patriot',
-          desc: 'Showed love for Zambia',
+          name: 'Triadic Anchors',
+          desc: 'Noted sovereign, copper chemistry, and connect codes together',
           icon: 'fa-flag',
           xp: 200
         });
       }
     }
-    
+
     // Visual effects
     function createConfetti() {
       const colors = ['#E85D04', '#F59E0B', '#16A34A', '#3B82F6', '#8B5CF6'];
@@ -3864,7 +3871,6 @@
     // Initialize all Easter eggs
     function initEasterEggs() {
       loadEasterEggs();
-      initKonamiCode();
       initLogoClick();
       checkMidnightLogin();
       checkLuckyVisit();
@@ -3887,6 +3893,8 @@
       }
     `;
     document.head.appendChild(style);
+
+    window.checkProfileSecret = checkProfileSecret;
 
     window.getDirections = getDirections;
     window.showRandomDestination = showRandomDestination;

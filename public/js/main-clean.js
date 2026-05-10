@@ -1,4 +1,4 @@
-// js/main.js - Clean Version
+// js/main.js - Clean Version (legacy; see main.js banner — production uses public/index.html.)
 import { fetchDestinations, fetchDestinationById, submitCivicReport, getUserCivicReports, getUserCivicProfile, awardAchievement } from './api.js';
 
 let destinations = [];
