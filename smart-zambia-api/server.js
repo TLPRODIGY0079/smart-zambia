@@ -59,6 +59,27 @@ const rateLimitRegister = (req, res, next) => {
   next();
 };
 
+app.get("/api/stats", (req, res) => {
+  res.json({
+    tourism: {
+      visitors: 128450,
+      topDestination: "South Luangwa National Park"
+    },
+    carbon: {
+      co2OffsetKg: 14200,
+      treesPlanted: 52000
+    },
+    energy: {
+      renewablePercentage: 87,
+      hydroPowerDominance: true
+    },
+    conservation: {
+      protectedAreas: 36,
+      wildlifeSpeciesTracked: 184
+    }
+  });
+});
+
 // Register
 app.post('/api/auth/register', rateLimitRegister, async (req, res) => {
   const { email, password, fullName } = req.body;
