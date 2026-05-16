@@ -156,83 +156,6 @@ function connectBuddy(name) {
 }
 
 // ============================================
-// BOOKING SYSTEMS
-// ============================================
-function initBookingSystems() {
-  renderTourGuides();
-  renderActivityReservations();
-}
-
-function renderTourGuides() {
-  const guides = [
-    { name: 'Joseph Mwanza', specialty: 'Wildlife Safari', rating: 4.9, price: 50, languages: ['English', 'Bemba'] },
-    { name: 'Grace Phiri', specialty: 'Cultural Tours', rating: 4.8, price: 40, languages: ['English', 'Nyanja'] },
-    { name: 'David Banda', specialty: 'Adventure Sports', rating: 4.7, price: 60, languages: ['English', 'Tonga'] }
-  ];
-  
-  document.getElementById('tourGuides').innerHTML = guides.map(guide => `
-    <div class="p-4 rounded-xl border" style="border-color: var(--border-color)">
-      <div class="flex items-center gap-3 mb-3">
-        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center text-white font-bold">
-          ${guide.name.charAt(0)}
-        </div>
-        <div>
-          <h3 class="font-bold" style="color: var(--text-primary)">${guide.name}</h3>
-          <p class="text-sm" style="color: var(--text-secondary)">${guide.specialty}</p>
-          <p class="text-xs">⭐ ${guide.rating} • ${guide.languages.join(', ')}</p>
-        </div>
-      </div>
-      <div class="flex justify-between items-center">
-        <span class="font-bold text-green-600">$${guide.price}/day</span>
-        <button onclick="bookGuide('${guide.name}')" class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm">Book Now</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-function renderActivityReservations() {
-  const activities = [
-    { name: "Devil's Pool", price: 100, duration: '4 hours', difficulty: 'High' },
-    { name: 'Gorge Swing', price: 85, duration: '2 hours', difficulty: 'High' },
-    { name: 'Helicopter Flight', price: 150, duration: '15 mins', difficulty: 'Low' },
-    { name: 'White Water Rafting', price: 120, duration: '6 hours', difficulty: 'High' },
-    { name: 'Sunset Cruise', price: 45, duration: '3 hours', difficulty: 'Low' },
-    { name: 'Walking Safari', price: 60, duration: '5 hours', difficulty: 'Medium' }
-  ];
-  
-  document.getElementById('activityReservations').innerHTML = activities.map(activity => `
-    <div class="p-4 rounded-xl border" style="border-color: var(--border-color)">
-      <h3 class="font-bold mb-2" style="color: var(--text-primary)">${activity.name}</h3>
-      <div class="space-y-1 text-sm mb-4" style="color: var(--text-secondary)">
-        <p>💰 $${activity.price} USD / K${Math.round(activity.price * 19)} ZMW</p>
-        <p>⏱️ ${activity.duration}</p>
-        <p>📊 ${activity.difficulty} difficulty</p>
-      </div>
-      <button onclick="bookActivity('${activity.name}', ${activity.price})" class="w-full bg-orange-500 text-white py-2 rounded-lg">Reserve Now</button>
-    </div>
-  `).join('');
-}
-
-function bookGuide(name) {
-  window.enhancedState.bookings.push({ type: 'guide', name, date: new Date().toISOString() });
-  showAchievementToast('Guide Booked!', `${name} reserved for your trip`);
-}
-
-function bookActivity(name, price) {
-  window.enhancedState.bookings.push({ type: 'activity', name, price, date: new Date().toISOString() });
-  updateCostCalculator('activities', price);
-  showAchievementToast('Activity Booked!', `${name} reserved`);
-}
-
-function bookTransport(type) {
-  const prices = { flight: 200, bus: 25, car: 50 };
-  const price = prices[type] || 50;
-  window.enhancedState.bookings.push({ type: 'transport', name: type, price, date: new Date().toISOString() });
-  updateCostCalculator('transport', price);
-  showAchievementToast('Transport Booked!', `${type} reservation confirmed`);
-}
-
-// ============================================
 // VR TOURS & 360° EXPERIENCES
 // ============================================
 function initVRTours() {
@@ -258,169 +181,6 @@ function startVRTour(tourId) {
 // ============================================
 // ROUTE OPTIMIZATION
 // ============================================
-function generateItinerary() {
-  // Get duration from either window.selectedDuration or the hidden input
-  const duration = window.selectedDuration || parseInt(document.getElementById('tripDuration')?.value) || 3;
-  const budget = parseFloat(document.getElementById('tripBudget').value) || 1500;
-
-  if (!budget || budget < 100) {
-    alert('Please enter a valid budget (minimum $100)');
-    return;
-  }
-
-  const itinerary = optimizeRoute(duration, budget);
-  const totalCost = itinerary.reduce((sum, day) => sum + day.cost, 0);
-
-  document.getElementById('generatedItinerary').innerHTML = `
-    <div class="rounded-2xl p-6 mt-6" style="background: var(--bg-primary); border: 1px solid var(--border-color);">
-      <h3 class="font-bold mb-4" style="color: var(--text-primary)">Your Optimized ${duration}-Day Itinerary</h3>
-      ${itinerary.map((day, i) => `
-        <div class="mb-4 p-4 rounded-xl" style="background: var(--bg-card); border: 1px solid var(--border-color);">
-          <h4 class="font-semibold mb-2" style="color: var(--text-primary)">Day ${i + 1}: ${day.destination}</h4>
-          <p class="text-sm mb-2" style="color: var(--text-secondary)">${day.activities.join(' • ')}</p>
-          <div class="flex justify-between items-center">
-            <span class="text-xs font-semibold" style="color: var(--text-secondary)">Daily budget</span>
-            <span class="text-sm font-bold text-green-600">${day.cost} USD / K${Math.round(day.cost * 19)} ZMW</span>
-          </div>
-        </div>
-      `).join('')}
-      <div class="mt-4 p-4 rounded-xl" style="background: linear-gradient(135deg, #16A34A, #15803D);">
-        <div class="flex justify-between items-center text-white">
-          <span class="font-bold">Total Estimated Cost:</span>
-          <div class="text-right">
-            <div class="text-xl font-bold">${totalCost} USD</div>
-            <div class="text-sm opacity-90">K${Math.round(totalCost * 19)} ZMW</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  // Auto-fill cost calculator with breakdown
-  updateCostBreakdown();
-
-  // Show achievement
-  if (window.showAchievementToast) {
-    window.showAchievementToast('Itinerary Generated!', `${duration}-day trip planned`);
-  }
-  if (window.addScore) {
-    window.addScore(30);
-  }
-}
-
-function optimizeRoute(duration, budget) {
-  const dailyBudget = Math.round(budget / duration);
-  const topDestinations = (window.destinations || []).filter(d => d.featured).slice(0, Math.min(duration, 7));
-
-  // If we have fewer destinations than days, repeat some
-  const selectedDestinations = [];
-  for (let i = 0; i < duration; i++) {
-    selectedDestinations.push(topDestinations[i % topDestinations.length]);
-  }
-
-  return selectedDestinations.map((dest, i) => {
-    // Vary daily cost slightly (±20%)
-    const variance = 0.8 + (Math.random() * 0.4);
-    const dayCost = Math.round(dailyBudget * variance);
-
-    return {
-      destination: dest.name,
-      activities: [
-        'Morning exploration',
-        dest.category === 'Wildlife' ? 'Game drive' : dest.category === 'Adventure' ? 'Adventure activity' : 'Sightseeing',
-        'Local cuisine',
-        'Evening relaxation'
-      ],
-      cost: dayCost
-    };
-  });
-}
-
-// ============================================
-// CULTURAL EVENTS CALENDAR
-// ============================================
-function initCulturalEvents() {
-  window.enhancedState.culturalEvents = [
-    { name: 'Kuomboka Ceremony', date: '2024-04-15', location: 'Western Province', type: 'Traditional' },
-    { name: 'Nc\'wala Ceremony', date: '2024-02-24', location: 'Eastern Province', type: 'Traditional' },
-    { name: 'Zambia International Trade Fair', date: '2024-07-01', location: 'Ndola', type: 'Commercial' },
-    { name: 'Livingstone Cultural Festival', date: '2024-08-15', location: 'Livingstone', type: 'Cultural' }
-  ];
-  
-  renderCulturalEvents();
-}
-
-function renderCulturalEvents() {
-  const container = document.getElementById('culturalEvents');
-  if (!container) return;
-  
-  container.innerHTML = window.enhancedState.culturalEvents.map(event => `
-    <div class="p-4 rounded-xl border" style="border-color: var(--border-color);">
-      <h3 class="font-bold" style="color: var(--text-primary)">${event.name}</h3>
-      <p class="text-sm" style="color: var(--text-secondary)">📅 ${new Date(event.date).toLocaleDateString()}</p>
-      <p class="text-sm" style="color: var(--text-secondary)">📍 ${event.location}</p>
-      <span class="inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold" style="background: rgba(232,93,4,0.1); color: #E85D04;">${event.type}</span>
-    </div>
-  `).join('');
-}
-
-// ============================================
-// COST CALCULATOR & LOCAL PAYMENTS
-// ============================================
-function updateCostCalculator(category, amount) {
-  // This function is called when booking activities/transport
-  const inputEl = document.getElementById(`input${category.charAt(0).toUpperCase() + category.slice(1)}`);
-  if (inputEl) {
-    const currentValue = parseFloat(inputEl.value) || 0;
-    inputEl.value = currentValue + amount;
-  }
-  updateManualCosts();
-}
-
-function updateManualCosts() {
-  // Get values from input fields
-  const accommodation = parseFloat(document.getElementById('inputAccommodation')?.value) || 0;
-  const transport = parseFloat(document.getElementById('inputTransport')?.value) || 0;
-  const activities = parseFloat(document.getElementById('inputActivities')?.value) || 0;
-  const food = parseFloat(document.getElementById('inputFood')?.value) || 0;
-  
-  const total = accommodation + transport + activities + food;
-  const zmwRate = 19; // 1 USD = 19 ZMW (current rate)
-  
-  // Update totals
-  const totalUSDEl = document.getElementById('totalUSD');
-  const totalZMWEl = document.getElementById('totalZMW');
-  
-  if (totalUSDEl) totalUSDEl.textContent = `$${total.toFixed(0)}`;
-  if (totalZMWEl) totalZMWEl.textContent = `K${Math.round(total * zmwRate)}`;
-}
-
-function updateCostBreakdown() {
-  // Auto-fill based on budget input
-  const budget = parseFloat(document.getElementById('tripBudget')?.value) || 1500;
-  
-  // Typical breakdown percentages
-  const accommodation = Math.round(budget * 0.40); // 40%
-  const transport = Math.round(budget * 0.25);     // 25%
-  const activities = Math.round(budget * 0.25);    // 25%
-  const food = Math.round(budget * 0.10);          // 10%
-  
-  // Set input values
-  document.getElementById('inputAccommodation').value = accommodation;
-  document.getElementById('inputTransport').value = transport;
-  document.getElementById('inputActivities').value = activities;
-  document.getElementById('inputFood').value = food;
-  
-  updateManualCosts();
-}
-
-function resetCostCalculator() {
-  document.getElementById('inputAccommodation').value = 0;
-  document.getElementById('inputTransport').value = 0;
-  document.getElementById('inputActivities').value = 0;
-  document.getElementById('inputFood').value = 0;
-  updateManualCosts();
-}
 
 // ============================================
 // SAFETY & EMERGENCY FEATURES
@@ -518,7 +278,6 @@ function initOfflineSupport() {
 // ============================================
 function initEnhancedFeatures() {
   initPhotoUpload();
-  initBookingSystems();
   initVRTours();
   initCulturalEvents();
   initSafetyFeatures();
@@ -533,9 +292,6 @@ function initEnhancedFeatures() {
 window.likeStory = likeStory;
 window.findTravelBuddies = findTravelBuddies;
 window.connectBuddy = connectBuddy;
-window.bookGuide = bookGuide;
-window.bookActivity = bookActivity;
-window.bookTransport = bookTransport;
 window.generateItinerary = generateItinerary;
 window.showEmbassies = showEmbassies;
 window.startVRTour = startVRTour;

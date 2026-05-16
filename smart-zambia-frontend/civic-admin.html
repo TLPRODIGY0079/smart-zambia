@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' http://localhost:3001 https://api.smartzambia.com;">
     <title>Smart Zambia - Civic Admin Dashboard</title>
-    <script src="https://cdn.tailwindcss.com" integrity="sha384-4fNyHlqJp4NUjsf8QzFjKzP5zP5zP5zP5zP5zP5zP5zP5zP5zP5zP5zP5zP5zP5z" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="css/output.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js" integrity="sha256-Fgm10CEX/QnwKXdQNzNMuLuPNHo0t5dZSYjGNeedKME=" crossorigin="anonymous"></script>
+    <script src="js/api-config.js"></script>
 </head>
 <body class="bg-gray-100">
     <div class="min-h-screen">
@@ -177,7 +179,6 @@
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:3001/api';
         let adminToken = localStorage.getItem('adminToken');
         let reportsMap = null;
 
@@ -195,7 +196,7 @@
             const password = document.getElementById('loginPassword').value;
 
             try {
-                const response = await fetch(`${API_BASE}/auth/login`, {
+                const response = await fetch(`${window.API_BASE_URL}/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })

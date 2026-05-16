@@ -25,11 +25,8 @@ function initDarkMode() {
   const darkMode = localStorage.getItem('darkMode');
   if (darkMode === 'enabled') {
     document.documentElement.classList.add('dark');
-  } else if (darkMode === null) {
-    // Check system preference
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      document.documentElement.classList.add('dark');
-    }
+  } else if (darkMode === null && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    document.documentElement.classList.add('dark');
   }
 }
 

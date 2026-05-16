@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' http://localhost:3001 https://api.smartzambia.com;">
   <title>Super Admin - Smart Zambia</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/output.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="js/api-config.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
@@ -362,34 +364,40 @@
   </div>
 
   <script>
-    // Admin credentials (in production, this should be server-side)
-    const ADMIN_CREDENTIALS = {
-      email: 'admin@smartzambia.com',
-      password: 'SmartZambia2024!',
-      name: 'Super Admin'
-    };
-
     // Admin state
     let adminLoggedIn = false;
     let currentTab = 'users';
 
     // Handle admin login
-    function handleAdminLogin(e) {
+    async function handleAdminLogin(e) {
       e.preventDefault();
       const email = document.getElementById('adminEmail').value;
       const password = document.getElementById('adminPassword').value;
 
-      if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
-        adminLoggedIn = true;
-        localStorage.setItem('smartZambia_adminSession', JSON.stringify({
-          loggedIn: true,
-          email: email,
-          timestamp: Date.now()
-        }));
-        
-        showDashboard();
-      } else {
-        alert('Invalid credentials. Access denied.');
+      try {
+        const response = await fetch(`${window.API_BASE_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.token && result.user.role === 'superadmin') {
+          adminLoggedIn = true;
+          localStorage.setItem('smartZambia_adminSession', JSON.stringify({
+            loggedIn: true,
+            token: result.token,
+            name: result.user.fullName,
+            timestamp: Date.now()
+          }));
+          showDashboard();
+        } else {
+          alert(result.error || 'Access denied. Authorized personnel only.');
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        alert('System error during authentication.');
       }
     }
 
@@ -397,7 +405,8 @@
     function showDashboard() {
       document.getElementById('adminLogin').classList.add('hidden');
       document.getElementById('adminDashboard').classList.remove('hidden');
-      document.getElementById('adminUserName').textContent = ADMIN_CREDENTIALS.name;
+      const session = JSON.parse(localStorage.getItem('smartZambia_adminSession'));
+      document.getElementById('adminUserName').textContent = session.name || 'Admin';
       
       loadDashboardData();
     }

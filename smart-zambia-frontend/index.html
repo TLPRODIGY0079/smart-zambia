@@ -4,829 +4,20 @@
   <link rel="manifest" href="/manifest.json">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:3001 https://api.smartzambia.com;">
   <title>Smart Zambia - Discover the Real Africa</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/output.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="js/api-config.js"></script>
   <script>
-    
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            display: ['Playfair Display', 'serif'],
-            sans: ['DM Sans', 'sans-serif'],
-          },
-          colors: {
-            zambia: {
-              orange: '#E85D04',
-              copper: '#C45508',
-              gold: '#F59E0B',
-              forest: '#166534',
-              sky: '#0EA5E9',
-              earth: '#78350F',
-            }
-          }
-        }
-      }
-    }
+    // Preconnect to speed up external assets
+    const preconnect = (url) => {
+      const link = document.createElement('link'); link.rel = 'preconnect'; link.href = url; document.head.appendChild(link);
+    };
   </script>
-  <script>
-  // Register Service Worker for offline support
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('SW registered:', reg))
-      .catch(err => console.log('SW failed:', err));
-  }
-</script>
-  <style>
-    * { 
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    
-    :root {
-      --bg-primary: #FFFBF5;
-      --bg-secondary: #FFFFFF;
-      --bg-card: #FFFFFF;
-      --text-primary: #1F2937;
-      --text-secondary: #6B7280;
-      --border-color: rgba(0,0,0,0.08);
-      --glass-bg: rgba(255,255,255,0.85);
-      --glass-border: rgba(255,255,255,0.5);
-      --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
-      --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
-      --shadow-lg: 0 12px 32px rgba(0,0,0,0.12);
-      --shadow-xl: 0 20px 48px rgba(0,0,0,0.16);
-      --spacing-xs: 0.5rem;
-      --spacing-sm: 1rem;
-      --spacing-md: 1.5rem;
-      --spacing-lg: 2rem;
-      --spacing-xl: 3rem;
-      --spacing-2xl: 4rem;
-    }
-    
-    .dark {
-      --bg-primary: #0F172A;
-      --bg-secondary: #1E293B;
-      --bg-card: #1E293B;
-      --text-primary: #F1F5F9;
-      --text-secondary: #94A3B8;
-      --border-color: rgba(255,255,255,0.1);
-      --glass-bg: rgba(30,41,59,0.9);
-      --glass-border: rgba(255,255,255,0.1);
-      --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
-      --shadow-md: 0 4px 16px rgba(0,0,0,0.3);
-      --shadow-lg: 0 12px 32px rgba(0,0,0,0.4);
-      --shadow-xl: 0 20px 48px rgba(0,0,0,0.5);
-    }
-    
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-    
-    .font-display { font-family: 'Playfair Display', serif; }
-    
-    /* Hero Background */
-    .hero-bg {
-      background: linear-gradient(135deg, rgba(232,93,4,0.85) 0%, rgba(220,47,2,0.75) 25%, rgba(157,2,8,0.65) 50%, rgba(106,4,15,0.75) 75%, rgba(55,6,23,0.85) 100%),
-                  url('assets/BG.jpg');
-      background-size: cover;
-      background-position: center;
-      background-attachment: fixed;
-      position: relative;
-    }
-    
-    .dark .hero-bg {
-      background: linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(30,41,59,0.85) 50%, rgba(15,23,42,0.9) 100%),
-                  url('assets/BG.jpg');
-      background-size: cover;
-      background-position: center;
-      background-attachment: fixed;
-    }
-    
-    /* Glass morphism */
-    .glass {
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-    }
-    
-    /* Gradient text */
-    .gradient-text {
-      background: linear-gradient(135deg, #E85D04 0%, #F59E0B 50%, #C45508 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    
-    .dark .gradient-text {
-      background: linear-gradient(135deg, #F59E0B 0%, #FBBF24 50%, #F97316 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    
-    /* Destination Cards */
-    .destination-card {
-      background: var(--bg-card);
-      border-radius: 24px;
-      overflow: hidden;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      cursor: pointer;
-      border: 1px solid var(--border-color);
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
-    }
-    
-    .destination-card:hover {
-      transform: translateY(-8px) scale(1.02);
-      box-shadow: 0 25px 50px -12px rgba(232,93,4,0.25);
-    }
-    
-    .destination-card:hover .card-image {
-      transform: scale(1.1);
-    }
-    
-    .card-image {
-      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    /* Tabs */
-    .tab-btn {
-      padding: 8px 12px;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 12px;
-      color: var(--text-secondary);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      white-space: nowrap;
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-    }
-    
-    .tab-btn i {
-      font-size: 14px;
-    }
-    
-    .tab-btn span {
-      font-size: 12px;
-    }
-    
-    .tab-btn-icon {
-      padding: 10px;
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      font-size: 16px;
-      color: var(--text-secondary);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .tab-btn::before,
-    .tab-btn-icon::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: rgba(232,93,4,0.1);
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform 0.3s ease;
-    }
-    
-    .tab-btn:hover::before,
-    .tab-btn-icon:hover::before {
-      transform: scaleX(1);
-    }
-    
-    .tab-btn:hover,
-    .tab-btn-icon:hover {
-      color: #E85D04;
-    }
-    
-    .tab-btn.active,
-    .tab-btn-icon.active {
-      background: linear-gradient(135deg, #E85D04 0%, #C45508 100%);
-      color: white;
-      box-shadow: 0 6px 20px rgba(232,93,4,0.35);
-      transform: translateY(-1px);
-    }
-    
-    .tab-btn.active::before,
-    .tab-btn-icon.active::before {
-      display: none;
-    }
-    
-    /* Tablet nav */
-    .tablet-nav {
-      max-width: 100%;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
-    
-    .tablet-nav::-webkit-scrollbar {
-      display: none;
-    }
-    
-    /* Login Form */
-    .login-card {
-      background: var(--bg-card);
-      border-radius: 32px;
-      box-shadow: 0 25px 80px -20px rgba(0,0,0,0.3);
-      border: 1px solid var(--border-color);
-    }
-    
-    .input-field {
-      background: var(--bg-primary);
-      border: 2px solid var(--border-color);
-      border-radius: 16px;
-      padding: 16px 20px;
-      font-size: 16px;
-      color: var(--text-primary);
-      transition: all 0.3s ease;
-      width: 100%;
-    }
-    
-    .input-field:focus {
-      outline: none;
-      border-color: #E85D04;
-      box-shadow: 0 0 0 4px rgba(232,93,4,0.1);
-    }
-    
-    .input-field::placeholder {
-      color: var(--text-secondary);
-    }
-    
-    /* Primary Button */
-    .btn-primary {
-      background: linear-gradient(135deg, #E85D04 0%, #C45508 100%);
-      color: white;
-      font-weight: 700;
-      padding: 16px 32px;
-      border-radius: 16px;
-      border: none;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 16px;
-      width: 100%;
-    }
-    
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 32px rgba(232,93,4,0.4);
-    }
-    
-    .btn-primary:active {
-      transform: translateY(0);
-    }
-    
-    /* Modal */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(8px);
-      z-index: 100;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    
-    .modal-overlay.active {
-      opacity: 1;
-      visibility: visible;
-    }
-    
-    .modal-content {
-      background: var(--bg-card);
-      border-radius: 32px;
-      max-width: 600px;
-      width: 100%;
-      max-height: 90vh;
-      overflow-y: auto;
-      transform: scale(0.9) translateY(20px);
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 40px 100px -20px rgba(0,0,0,0.5);
-    }
-    
-    .modal-overlay.active .modal-content {
-      transform: scale(1) translateY(0);
-    }
-    
-    /* Achievement Toast */
-    .achievement-toast {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      background: linear-gradient(135deg, #166534 0%, #15803D 100%);
-      color: white;
-      padding: 20px 28px;
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      z-index: 200;
-      transform: translateX(150%);
-      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 16px 48px rgba(22,101,52,0.4);
-    }
-    
-    .achievement-toast.show {
-      transform: translateX(0);
-    }
-    
-    /* Global Toast System */
-    .toast-container {
-      position: fixed;
-      top: 24px;
-      right: 24px;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      max-width: 400px;
-    }
-    
-    .toast {
-      background: var(--bg-card);
-      border-radius: 12px;
-      padding: 16px 20px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      transform: translateX(450px);
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      border-left: 4px solid;
-    }
-    
-    .toast.show {
-      transform: translateX(0);
-    }
-    
-    .toast.success {
-      border-left-color: #10b981;
-    }
-    
-    .toast.error {
-      border-left-color: #ef4444;
-    }
-    
-    .toast.warning {
-      border-left-color: #f59e0b;
-    }
-    
-    .toast.info {
-      border-left-color: #3b82f6;
-    }
-    
-    .toast-icon {
-      font-size: 20px;
-      flex-shrink: 0;
-    }
-    
-    .toast.success .toast-icon {
-      color: #10b981;
-    }
-    
-    .toast.error .toast-icon {
-      color: #ef4444;
-    }
-    
-    .toast.warning .toast-icon {
-      color: #f59e0b;
-    }
-    
-    .toast.info .toast-icon {
-      color: #3b82f6;
-    }
-    
-    .toast-content {
-      flex: 1;
-      color: var(--text-primary);
-    }
-    
-    .toast-close {
-      background: none;
-      border: none;
-      color: var(--text-secondary);
-      cursor: pointer;
-      font-size: 18px;
-      padding: 0;
-      width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 6px;
-      transition: all 0.2s;
-    }
-    
-    .toast-close:hover {
-      background: var(--glass-bg);
-      color: var(--text-primary);
-    }
-    
-    /* Skeleton Loaders */
-    .skeleton {
-      background: linear-gradient(90deg, var(--glass-bg) 25%, var(--glass-border) 50%, var(--glass-bg) 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-      border-radius: 8px;
-    }
-    
-    @keyframes shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-    
-    .skeleton-card {
-      background: var(--bg-card);
-      border-radius: 24px;
-      overflow: hidden;
-      border: 1px solid var(--border-color);
-    }
-    
-    .skeleton-image {
-      width: 100%;
-      height: 200px;
-    }
-    
-    .skeleton-text {
-      height: 16px;
-      margin: 8px 0;
-    }
-    
-    .skeleton-title {
-      height: 24px;
-      width: 70%;
-      margin: 12px 0;
-    }
-    
-    /* Adventure Badge */
-    .adventure-badge {
-      position: fixed;
-      bottom: 24px;
-      left: 24px;
-      background: linear-gradient(135deg, #E85D04 0%, #F59E0B 100%);
-      color: white;
-      padding: 12px 20px;
-      border-radius: 50px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      z-index: 50;
-      box-shadow: 0 8px 32px rgba(232,93,4,0.4);
-      font-weight: 700;
-      font-size: 14px;
-    }
-    
-    /* Compass */
-    .compass {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #F59E0B 0%, #E85D04 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 16px rgba(232,93,4,0.3);
-      position: relative;
-    }
-    
-    .compass:hover {
-      transform: rotate(45deg) scale(1.1);
-    }
-    
-    .compass::before {
-      content: '↑';
-      font-size: 20px;
-      font-weight: 900;
-      color: white;
-    }
-    
-    /* Progress bars */
-    .treasure-progress {
-      height: 8px;
-      background: rgba(0,0,0,0.1);
-      border-radius: 999px;
-      overflow: hidden;
-    }
-    
-    .dark .treasure-progress {
-      background: rgba(255,255,255,0.1);
-    }
-    
-    .treasure-progress-bar {
-      height: 100%;
-      background: linear-gradient(90deg, #F59E0B 0%, #E85D04 100%);
-      border-radius: 999px;
-      transition: width 0.5s ease;
-    }
-    
-    /* Animations */
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-    
-    @keyframes blob {
-      0%, 100% { transform: translate(0, 0) scale(1); }
-      25% { transform: translate(20px, -50px) scale(1.1); }
-      50% { transform: translate(-20px, 20px) scale(0.9); }
-      75% { transform: translate(50px, 50px) scale(1.05); }
-    }
-    
-    .animate-blob {
-      animation: blob 7s infinite;
-    }
-    
-    .animation-delay-2000 {
-      animation-delay: 2s;
-    }
-    
-    .animation-delay-4000 {
-      animation-delay: 4s;
-    }
-    
-    /* Profile Hero Styles */
-    .profile-hero {
-      position: relative;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    }
-    
-    .stat-pill {
-      animation: fadeInUp 0.6s ease forwards;
-      opacity: 0;
-    }
-    
-    .stat-pill:nth-child(1) { animation-delay: 0.1s; }
-    .stat-pill:nth-child(2) { animation-delay: 0.2s; }
-    .stat-pill:nth-child(3) { animation-delay: 0.3s; }
-    
-    .stat-card {
-      animation: fadeInUp 0.6s ease forwards;
-      opacity: 0;
-    }
-    
-    .stat-card:nth-child(1) { animation-delay: 0.1s; }
-    .stat-card:nth-child(2) { animation-delay: 0.2s; }
-    .stat-card:nth-child(3) { animation-delay: 0.3s; }
-    .stat-card:nth-child(4) { animation-delay: 0.4s; }
-    
-    @keyframes pulse-glow {
-      0%, 100% { box-shadow: 0 0 20px rgba(232,93,4,0.4); }
-      50% { box-shadow: 0 0 40px rgba(232,93,4,0.6); }
-    }
-    
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    /* Phase 2 Profile Enhancements */
-    @keyframes shine {
-      0% { transform: translateX(-100%); }
-      100% { transform: translateX(100%); }
-    }
-    
-    @keyframes ping {
-      75%, 100% {
-        transform: scale(2);
-        opacity: 0;
-      }
-    }
-    
-    @keyframes slideInRight {
-      from {
-        opacity: 0;
-        transform: translateX(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-    
-    /* Reduced motion support */
-    @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-      }
-    }
-    
-    .achievement-card {
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .achievement-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-      transition: left 0.5s;
-    }
-    
-    .achievement-card:hover::before {
-      left: 100%;
-    }
-    
-    .favorite-card {
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .favorite-card::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(232,93,4,0.1), rgba(245,158,11,0.1));
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    
-    .favorite-card:hover::after {
-      opacity: 1;
-    }
-    
-    .activity-item {
-      position: relative;
-    }
-    
-    .activity-item::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      background: linear-gradient(135deg, #E85D04, #F59E0B);
-      transform: scaleY(0);
-      transition: transform 0.3s;
-    }
-    
-    .activity-item:hover::before {
-      transform: scaleY(1);
-    }
-    
-    @keyframes countUp {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    /* Loading states */
-    .loading-shimmer {
-      background: linear-gradient(90deg, 
-        var(--bg-card) 0%, 
-        var(--glass-bg) 50%, 
-        var(--bg-card) 100%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-    }
-    
-    /* Smooth scrolling */
-    html {
-      scroll-behavior: smooth;
-    }
-    
-    @media (prefers-reduced-motion: reduce) {
-      html {
-        scroll-behavior: auto;
-      }
-    }
-    
-    .animate-float { animation: float 3s ease-in-out infinite; }
-    .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
-    .animate-fadeInUp { animation: fadeInUp 0.6s ease forwards; }
-    .animate-ping { animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; }
-    .animate-slideInRight { animation: slideInRight 0.5s ease forwards; }
-    
-    .stagger-1 { animation-delay: 0.1s; opacity: 0; }
-    .stagger-2 { animation-delay: 0.2s; opacity: 0; }
-    .stagger-3 { animation-delay: 0.3s; opacity: 0; }
-    .stagger-4 { animation-delay: 0.4s; opacity: 0; }
-    
-    /* Map Container */
-    #fullMap, #destination-map {
-      border-radius: 24px;
-      overflow: hidden;
-    }
-    
-    /* Custom scrollbar */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-    
-    ::-webkit-scrollbar-track {
-      background: var(--bg-primary);
-    }
-    
-    ::-webkit-scrollbar-thumb {
-      background: linear-gradient(180deg, #E85D04, #C45508);
-      border-radius: 4px;
-    }
-    
-    /* Mobile nav */
-    .mobile-nav {
-      display: none;
-    }
-    
-    .tablet-nav {
-      display: none;
-    }
-    
-    @media (max-width: 1024px) {
-      .desktop-nav { display: none !important; }
-      .tablet-nav { display: flex !important; }
-    }
-    
-    @media (max-width: 768px) {
-      .desktop-nav { display: none !important; }
-      .tablet-nav { display: none !important; }
-      .mobile-nav {
-        display: flex;
-        overflow-x: auto;
-        gap: 8px;
-        padding: 10px;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-      }
-      .mobile-nav::-webkit-scrollbar { display: none; }
-      .tab-btn { font-size: 12px; padding: 10px 14px; }
-      .adventure-badge { 
-        bottom: 12px; 
-        left: 12px; 
-        right: 12px; 
-        justify-content: center;
-      }
-    }
-    
-    /* Leaflet fixes */
-    .leaflet-popup-content-wrapper {
-      border-radius: 16px !important;
-    }
-    
-    .leaflet-popup-content {
-      margin: 12px !important;
-    }
-    
-    /* Dark Mode Toggle */
-    .dark .dark-mode-icon {
-      display: none;
-    }
-    
-    .dark .light-mode-icon {
-      display: inline-block !important;
-    }
-    
-    #darkModeToggle {
-      transition: transform 0.3s ease;
-    }
-    
-    #darkModeToggle:hover {
-      transform: scale(1.1);
-    }
-  </style>
+  <link rel="stylesheet" href="css/main.css" />
 </head>
 <body>
   <script>
@@ -834,6 +25,16 @@
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       document.documentElement.classList.add('dark');
     }
+
+    // Register Service Worker for offline support
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('SW registered'))
+          .catch(err => console.log('SW failed', err));
+      });
+    }
+
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
       if (event.matches) {
         document.documentElement.classList.add('dark');
@@ -1365,6 +566,29 @@
               </button>
             </div>
             
+            <!-- Daily Spin Wheel -->
+            <div class="rounded-3xl p-8 text-white relative overflow-hidden" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);">
+              <h2 class="text-2xl font-bold mb-4 flex items-center gap-3">
+                <i class="fas fa-dharmachakra"></i> Daily Spin
+              </h2>
+              <div class="flex flex-col items-center">
+                <div class="relative w-48 h-48 mb-6">
+                  <!-- Pointer -->
+                  <div class="absolute -top-2 left-1/2 -translate-x-1/2 z-10 w-4 h-6 bg-white" style="clip-path: polygon(50% 100%, 0 0, 100% 0);"></div>
+                  <!-- Wheel Graphic -->
+                  <div id="wheelGraphic" class="w-full h-full rounded-full border-4 border-white/30 relative shadow-2xl transition-transform" style="background: conic-gradient(#E85D04 0deg 45deg, #F59E0B 45deg 90deg, #166534 90deg 135deg, #0EA5E9 135deg 180deg, #78350F 180deg 225deg, #C45508 225deg 270deg, #FBBF24 270deg 315deg, #10B981 315deg 360deg);">
+                    <div class="absolute inset-0 flex items-center justify-center">
+                      <div class="w-10 h-10 rounded-full bg-white shadow-inner flex items-center justify-center text-green-600 font-bold">SZ</div>
+                    </div>
+                  </div>
+                </div>
+                <p id="spinTimer" class="text-sm font-semibold mb-4 opacity-90 text-center">Spin now for a prize!</p>
+                <button id="spinBtn" onclick="SpinWheel.spin()" class="w-full bg-white text-green-600 font-bold py-4 rounded-xl hover:bg-green-50 transition-all shadow-lg">
+                  SPIN WHEEL
+                </button>
+              </div>
+            </div>
+
             <!-- Achievements -->
             <div class="rounded-3xl p-8" style="background: var(--bg-card); border: 1px solid var(--border-color);">
               <h2 class="text-2xl font-bold mb-6 flex items-center gap-3" style="color: var(--text-primary)">
@@ -1410,7 +634,7 @@
                   
                   <div class="relative group">
                     <div id="profileImageContainer" class="w-28 h-28 md:w-32 md:h-32 rounded-full bg-white/20 backdrop-blur-lg flex items-center justify-center text-white font-bold text-5xl border-4 border-white/40 overflow-hidden shadow-2xl">
-                      <img id="profileImage" src="" alt="Profile" class="w-full h-full object-cover hidden">
+                      <img id="profileImage" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Profile" class="w-full h-full object-cover hidden">
                       <span id="profileInitial">U</span>
                     </div>
                     <button onclick="triggerImageUpload()" class="absolute bottom-0 right-0 w-11 h-11 bg-white text-orange-500 rounded-full flex items-center justify-center shadow-xl hover:scale-110 transition-all group-hover:animate-bounce" title="Change profile picture">
@@ -1612,6 +836,25 @@
 
             <!-- Right Column - Progress & Rewards -->
             <div class="space-y-8">
+              <!-- Local Explorer Toggle -->
+              <div class="rounded-3xl p-6 shadow-lg border border-white/20" style="background: var(--bg-card);">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-zambia-orange to-zambia-copper flex items-center justify-center text-white">
+                      <i class="fas fa-flag"></i>
+                    </div>
+                    <div>
+                      <h3 class="font-bold" style="color: var(--text-primary)">Local Explorer</h3>
+                      <p class="text-xs" style="color: var(--text-secondary)">Citizen rates & bonuses</p>
+                    </div>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="localExplorerToggle" class="sr-only peer" onchange="toggleLocalExplorer(this.checked)">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-zambia-orange"></div>
+                  </label>
+                </div>
+              </div>
+
               <!-- Level Progress - Enhanced -->
               <div class="rounded-3xl p-6 shadow-xl relative overflow-hidden" style="background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);">
                 <!-- Animated background circles -->
@@ -1627,7 +870,7 @@
                     <div class="text-sm opacity-90">Explorer Level</div>
                   </div>
                   <div class="bg-white/20 rounded-full h-3 mb-2 overflow-hidden">
-                    <div id="profileLevelBar" class="bg-white rounded-full h-3 transition-all duration-1000" style="width: 0%; box-shadow: 0 0 10px rgba(255,255,255,0.5);"></div>
+                    <div id="profileLevelBarSide" class="bg-white rounded-full h-3 transition-all duration-1000" style="width: 0%; box-shadow: 0 0 10px rgba(255,255,255,0.5);"></div>
                   </div>
                   <div class="flex justify-between text-sm opacity-90">
                     <span id="profileCurrentXP">0 XP</span>
@@ -1645,6 +888,7 @@
                   <div class="text-center mb-4">
                     <div class="text-5xl font-bold mb-2">K<span id="profileCashBig">0</span></div>
                     <div class="text-sm opacity-90">Total Kwacha Earned</div>
+                    <button onclick="Wallet.openModal()" class="mt-4 px-6 py-2 bg-white/20 hover:bg-white/30 rounded-xl font-bold transition-all border border-white/30 text-sm">Withdraw Funds</button>
                   </div>
                   <div class="space-y-2 text-sm">
                     <div class="flex justify-between items-center p-3 bg-white/20 rounded-lg">
@@ -1660,6 +904,19 @@
                       <span id="reward2000" class="font-bold">K250</span>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              <!-- Transaction History -->
+              <div class="rounded-3xl p-6 md:p-8 shadow-lg" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h2 class="text-xl font-bold mb-6 flex items-center" style="color: var(--text-primary)">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center mr-3">
+                    <i class="fas fa-history text-white"></i>
+                  </div>
+                  Transaction History
+                </h2>
+                <div id="transactionHistory" class="space-y-3">
+                  <p class="text-center py-4" style="color: var(--text-secondary)">No transactions yet.</p>
                 </div>
               </div>
 
@@ -1732,6 +989,30 @@
       </div>
     </div>
     
+    <!-- NRC Verification Modal -->
+    <div class="modal-overlay" id="nrcModal">
+      <div class="modal-content p-8" style="max-width: 480px;">
+        <div class="text-center mb-6">
+          <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+            <i class="fas fa-id-card"></i>
+          </div>
+          <h2 class="text-2xl font-bold" style="color: var(--text-primary)">Citizen Verification</h2>
+          <p class="text-sm" style="color: var(--text-secondary)">Enter your NRC number to enable Local Explorer rates and rewards.</p>
+        </div>
+        <form onsubmit="handleNRCVerification(event)" class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">NRC Number</label>
+            <input type="text" id="nrcInput" required class="input-field" placeholder="######/##/1" pattern="^\d{6}/\d{2}/\d{1}$" title="Please enter a valid NRC number (e.g., 123456/11/1)">
+            <p class="text-[10px] mt-1 text-gray-500">Format: 123456/11/1. Identity verification is required for local discounts.</p>
+          </div>
+          <div class="flex gap-3 pt-4">
+            <button type="button" onclick="closeNRCModal()" class="flex-1 py-3 rounded-xl font-semibold transition-all" style="background: var(--bg-primary); color: var(--text-primary); border: 2px solid var(--border-color);">Cancel</button>
+            <button type="submit" class="flex-1 py-3 rounded-xl font-semibold text-white transition-all bg-blue-600 hover:bg-blue-700">Verify Identity</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- Achievement Toast -->
     <div class="achievement-toast" id="achievementToast">
       <i class="fas fa-trophy text-3xl"></i>
@@ -1774,90 +1055,58 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="js/ui-utils.js?v=20241215001"></script>
   <script src="js/profile.js?v=20241215001"></script>
-  <script src="js/api-config.js"></script>
   <script src="js/api-integration.js"></script>
+  <script src="js/destinations-data.js"></script>
+  <script src="js/daily-challenges.js"></script>
+  <script src="js/spin-wheel.js"></script>
+  <script src="js/wallet.js"></script>
+  <script src="js/gamification.js"></script>
+  <script src="js/community.js"></script>
   <script src="js/quick-wins.js"></script>
+  <script src="js/bookings.js"></script>
+  <script src="js/trip-planner.js"></script>
+  <script src="js/map-controller.js"></script>
   <script src="js/enhanced-features.js"></script>
+
+  <!-- Wallet Modal -->
+  <div class="modal-overlay" id="walletModal">
+    <div class="modal-content p-8" style="max-width: 480px;">
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+          <i class="fas fa-wallet"></i>
+        </div>
+        <h2 class="text-2xl font-bold" style="color: var(--text-primary)">Withdraw Funds</h2>
+        <p class="text-sm" style="color: var(--text-secondary)">Move your rewards to Mobile Money</p>
+      </div>
+      <div class="p-4 rounded-xl mb-6 bg-gray-50 border border-dashed border-gray-300">
+        <p class="text-xs uppercase font-bold text-gray-500 mb-1">Available Balance</p>
+        <p class="text-2xl font-bold text-gray-900">K<span id="modalWalletBalance">0</span></p>
+      </div>
+      <form onsubmit="Wallet.handleWithdrawal(event)" class="space-y-4">
+        <div>
+          <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">Method</label>
+          <select id="withdrawMethod" class="input-field">
+            <option value="mtn">MTN Mobile Money</option>
+            <option value="airtel">Airtel Money</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">Phone Number</label>
+          <input type="tel" id="withdrawPhone" required class="input-field" placeholder="097xxxxxxx">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">Amount (ZMW)</label>
+          <input type="number" id="withdrawAmount" required min="50" class="input-field" placeholder="Min K50">
+        </div>
+        <div class="flex gap-3 pt-4">
+          <button type="button" onclick="Wallet.closeModal()" class="flex-1 py-3 rounded-xl font-semibold transition-all" style="background: var(--bg-primary); color: var(--text-primary); border: 2px solid var(--border-color);">Cancel</button>
+          <button type="submit" class="flex-1 py-3 rounded-xl font-semibold text-white transition-all bg-green-600 hover:bg-green-700">Withdraw</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
-    // ============================================
-    // DESTINATION DATA (Embedded for standalone use)
-    // ============================================
-    const destinations = [
-      { id: 1, name: "Victoria Falls", province: "Southern Province", category: "Nature", rating: 4.9, description: "One of the Seven Natural Wonders of the World. Known locally as 'Mosi-oa-Tunya' - The Smoke That Thunders. Experience the world's largest sheet of falling water. Hydrology briefings often cite about 108 m of visible drop referenced against viewing positions near −17°S.", image_url: "https://images.unsplash.com/photo-1568625502763-2a5ec6a94c47?w=800", entry_fee_foreign: 30, featured: true, lat: -17.9243, lng: 25.8572 },
-      { id: 2, name: "South Luangwa National Park", province: "Eastern Province", category: "Wildlife", rating: 4.8, description: "One of Africa's greatest wildlife sanctuaries. Famous for walking safaris and leopard sightings. Home to over 60 mammal species and 400 bird species.", image_url: "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800", entry_fee_foreign: 25, featured: true, lat: -13.0833, lng: 31.7500 },
-      { id: 3, name: "Lower Zambezi National Park", province: "Southern Province", category: "Wildlife", rating: 4.7, description: "Pristine wilderness along the mighty Zambezi River. Perfect for canoe safaris, fishing, and game viewing. Elephants frequently swim across the river.", image_url: "https://images.unsplash.com/photo-1549366021-9f761d450615?w=800", entry_fee_foreign: 25, featured: true, lat: -15.6667, lng: 29.1667 },
-      { id: 4, name: "Mosi-oa-Tunya National Park", province: "Southern Province", category: "Wildlife", rating: 4.6, description: "A wildlife reserve with diverse species including rare rhinos and spectacular views of Victoria Falls.", image_url: "https://images.unsplash.com/photo-1612196808214-b7e239e5f6dc?w=800", entry_fee_foreign: 15, featured: false, lat: -17.9167, lng: 25.8667 },
-      { id: 5, name: "Gorge Swing", province: "Southern Province", category: "Adventure", rating: 4.8, description: "A thrilling adventure offering spectacular views of Victoria Falls with an adrenaline-pumping swing experience over the gorge.", image_url: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=800", entry_fee_foreign: 85, featured: true, lat: -17.9300, lng: 25.8600 },
-      { id: 6, name: "Kalambo Falls", province: "Northern Province", category: "Nature", rating: 4.7, description: "The second highest uninterrupted waterfall in Africa at 235m. An archaeological treasure trove with Stone Age artifacts.", image_url: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=800", entry_fee_foreign: 18, featured: true, lat: -8.6000, lng: 31.2333 },
-      { id: 7, name: "Lake Tanganyika", province: "Northern Province", category: "Nature", rating: 4.5, description: "The world's longest freshwater lake and second deepest. Home to hundreds of endemic fish species found nowhere else on Earth.", image_url: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800", entry_fee_foreign: 10, featured: false, lat: -8.8000, lng: 31.0000 },
-      { id: 8, name: "Liuwa Plains National Park", province: "Western Province", category: "Wildlife", rating: 4.7, description: "Witness the second-largest wildebeest migration in Africa. Vast open plains teeming with wildlife and spectacular sunsets.", image_url: "https://images.unsplash.com/photo-1535941339077-2dd1c7963098?w=800", entry_fee_foreign: 25, featured: true, lat: -14.5000, lng: 22.7000 },
-      { id: 9, name: "Kafue National Park", province: "Central Province", category: "Wildlife", rating: 4.6, description: "Zambia's largest national park, roughly the size of Wales. Diverse ecosystems from miombo woodland to vast floodplains.", image_url: "https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800", entry_fee_foreign: 20, featured: false, lat: -15.5000, lng: 26.0000 },
-      { id: 10, name: "Devil's Pool", province: "Southern Province", category: "Adventure", rating: 4.9, description: "Swim on the very edge of Victoria Falls! A natural infinity pool that forms during low water season. Ultimate bucket list experience.", image_url: "https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?w=800", entry_fee_foreign: 100, featured: true, lat: -17.9247, lng: 25.8539 },
-      { id: 11, name: "Kuomboka Ceremony", province: "Western Province", category: "Heritage", rating: 4.8, description: "Experience the Lozi King's majestic barge gliding through the Zambezi floodplains. One of Africa's most colorful traditional ceremonies. Archivists peg the sovereign republic milestone to Oct 1964; copper routes still shorthand element 29; outbound GSM plans begin with dialing 260.", image_url: "https://images.unsplash.com/photo-1594736797933-d0401ba2fe65?w=800", entry_fee_foreign: 0, featured: true, lat: -15.2500, lng: 23.1500 },
-      { id: 12, name: "Nyika Plateau", province: "Eastern Province", category: "Nature", rating: 4.5, description: "Rolling grasslands at high altitude, perfect for hiking and horseback riding. Stunning orchid displays and unique wildlife.", image_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800", entry_fee_foreign: 15, featured: false, lat: -10.5000, lng: 33.7500 },
-      { id: 13, name: "Kundalila Falls", province: "Central Province", category: "Nature", rating: 4.4, description: "Stunning 75m waterfall offering breathtaking views across the Luangwa valley. Perfect for swimming and hiking.", image_url: "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?w=800", entry_fee_foreign: 10, featured: false, lat: -14.7000, lng: 28.7500 },
-      { id: 14, name: "Chishimba Falls", province: "Northern Province", category: "Nature", rating: 4.4, description: "Three spectacular waterfalls considered sacred by the local Bemba people. Lush rainforest setting.", image_url: "https://images.unsplash.com/photo-1541675154750-0444c7d51e8e?w=800", entry_fee_foreign: 12, featured: false, lat: -10.7500, lng: 29.1333 },
-      { id: 15, name: "Ngonye Falls", province: "Western Province", category: "Nature", rating: 4.3, description: "A series of horseshoe-shaped waterfalls on the Zambezi, less crowded than Victoria Falls but equally stunning.", image_url: "https://images.unsplash.com/photo-1475113548554-5a36f1f523d6?w=800", entry_fee_foreign: 12, featured: false, lat: -16.1000, lng: 23.1000 },
-      { id: 16, name: "Zambezi River Safari", province: "Western Province", category: "Adventure", rating: 4.6, description: "Cruise along Africa's fourth-longest river. Spot hippos, crocodiles, and elephants while enjoying spectacular sunsets.", image_url: "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800", entry_fee_foreign: 15, featured: false, lat: -15.5000, lng: 23.0000 },
-      { id: 17, name: "Kasanka National Park", province: "Central Province", category: "Wildlife", rating: 4.5, description: "Famous for hosting the world's largest mammal migration - 10 million fruit bats! Also home to rare sitatunga antelope.", image_url: "https://images.unsplash.com/photo-1504173010664-32509aeebb62?w=800", entry_fee_foreign: 15, featured: false, lat: -12.5500, lng: 30.2000 },
-      { id: 18, name: "Blue Lagoon National Park", province: "Central Province", category: "Wildlife", rating: 4.2, description: "Vast wetland paradise for birdwatchers. Home to Kafue lechwe and stunning floodplain scenery.", image_url: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800", entry_fee_foreign: 10, featured: false, lat: -15.0167, lng: 28.0500 },
-      { id: 19, name: "Lochinvar National Park", province: "Southern Province", category: "Wildlife", rating: 4.3, description: "Wetland wonderland with thousands of Kafue lechwe. Over 400 bird species make this a birder's paradise.", image_url: "https://images.unsplash.com/photo-1557456170-0cf4f4d0d362?w=800", entry_fee_foreign: 10, featured: false, lat: -15.9667, lng: 27.2500 },
-      { id: 20, name: "Shiwa Ng'andu", province: "Northern Province", category: "Heritage", rating: 4.4, description: "A stunning English manor house in the heart of Africa. Built by Sir Stewart Gore-Browne in the 1920s.", image_url: "https://images.unsplash.com/photo-1577282748124-3c8c8f98af8d?w=800", entry_fee_foreign: 15, featured: false, lat: -11.2000, lng: 31.7500 },
-      { id: 21, name: "Bangweulu Wetlands", province: "Northern Province", category: "Wildlife", rating: 4.5, description: "Vast floodplain system where you can see the rare shoebill stork. One of Africa's great wetland ecosystems.", image_url: "https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?w=800", entry_fee_foreign: 15, featured: false, lat: -11.5000, lng: 29.7500 }
-    ];
-
-    // ============================================
-    // STATE MANAGEMENT
-    // ============================================
-    const state = {
-      isLoggedIn: false,
-      user: null,
-      score: 0,
-      level: 1,
-      achievements: [],
-      wishlist: [],
-      currentDestination: null,
-      visitedDestinations: [],
-      treasureHuntActive: false,
-      foundTreasures: [],
-      currentTreasureIndex: 0,
-      treasureClues: [
-        { clue: "Where the smoke thunders and rainbows dance...", destination: 1 },
-        { clue: "Where leopards prowl at night...", destination: 2 },
-        { clue: "Swim on the edge of the world...", destination: 10 },
-        { clue: "Millions of bats darken the sky...", destination: 17 },
-        { clue: "The King's royal barge glides through waters...", destination: 11 }
-      ],
-      civicXP: 0,
-      civicLevel: 1,
-      civicReports: [],
-      uploadedMedia: [],
-      pendingMedia: [],
-      posts: []
-    };
-
-    // Civic Challenges
-    const civicChallenges = [
-      { id: 'flooded_area', name: 'Flooded Tourist Area', desc: 'Report flooded areas affecting tourists', icon: 'fa-water', xp: 40, cash: 5, color: 'bg-blue-500' },
-      { id: 'blocked_trail', name: 'Blocked Trail', desc: 'Report blocked hiking/walking trails', icon: 'fa-hiking', xp: 35, cash: 4, color: 'bg-green-500' },
-      { id: 'unsafe_viewpoint', name: 'Unsafe Viewpoint', desc: 'Report dangerous viewing areas', icon: 'fa-exclamation-triangle', xp: 45, cash: 6, color: 'bg-red-500' },
-      { id: 'damaged_facilities', name: 'Damaged Facilities', desc: 'Report broken tourist facilities', icon: 'fa-tools', xp: 30, cash: 3, color: 'bg-yellow-500' },
-      { id: 'wildlife_concern', name: 'Wildlife Safety', desc: 'Report wildlife-related issues', icon: 'fa-paw', xp: 50, cash: 7, color: 'bg-purple-500' },
-      { id: 'tourist_safety', name: 'Tourist Safety', desc: 'General tourist safety concerns', icon: 'fa-shield-alt', xp: 55, cash: 8, color: 'bg-indigo-500' }
-    ];
-
-    // Achievement Definitions
-    const achievementDefs = [
-      { id: 'first_visit', name: 'First Steps', desc: 'View your first destination', icon: 'fa-shoe-prints', xp: 10 },
-      { id: 'explorer', name: 'Explorer', desc: 'View 5 different destinations', icon: 'fa-compass', xp: 50 },
-      { id: 'treasure_hunter', name: 'Treasure Hunter', desc: 'Find your first treasure', icon: 'fa-gem', xp: 100 },
-      { id: 'wishlist_pro', name: 'Dream Collector', desc: 'Add 5 places to wishlist', icon: 'fa-heart', xp: 30 },
-      { id: 'civic_hero', name: 'Civic Hero', desc: 'Make your first safety report', icon: 'fa-shield-alt', xp: 50 }
-    ];
-
-    let mainMap = null;
-    let destinationMap = null;
-
     // ============================================
     // SESSION PERSISTENCE
     // ============================================
@@ -1884,6 +1133,11 @@
           achievements: state.achievements || [],
           visitedDestinations: state.visitedDestinations || [],
           wishlist: state.wishlist || [],
+          transactions: state.transactions || [],
+          
+          // Citizen status
+          isLocalExplorer: state.isLocalExplorer || false,
+          isVerifiedCitizen: state.isVerifiedCitizen || false,
           
           // Reviews and ratings
           userReviews: state.userReviews || {},
@@ -1956,6 +1210,11 @@
           state.visitedDestinations = userData.visitedDestinations || [];
           state.wishlist = userData.wishlist || [];
           state.userReviews = userData.userReviews || {};
+          state.transactions = userData.transactions || [];
+          
+          // Restore citizen status
+          state.isLocalExplorer = userData.isLocalExplorer || false;
+          state.isVerifiedCitizen = userData.isVerifiedCitizen || false;
           
           // Restore treasure hunt data
           state.treasureHuntProgress = userData.treasureHuntProgress || {};
@@ -2233,9 +1492,15 @@
       renderCivicChallenges();
       renderAchievements();
       renderLeaderboard();
+      renderTransactions();
       setupEventListeners();
       updateUI();
       
+      // Init Local Explorer switch
+      document.getElementById('localExplorerToggle').checked = window.state.isLocalExplorer || false;
+      // Init Spin Wheel
+      if (window.SpinWheel) window.SpinWheel.init();
+
       // Load profile image if exists
       loadProfileImage();
     }
@@ -2248,6 +1513,7 @@
       const searchTerm = document.getElementById('searchInput')?.value?.toLowerCase() || '';
       const province = document.getElementById('provinceFilter')?.value || 'All';
       const category = document.getElementById('categoryFilter')?.value || 'All';
+      const isLocal = window.state.isLocalExplorer;
 
       const filtered = destinations.filter(dest => {
         const matchesSearch = dest.name.toLowerCase().includes(searchTerm) || 
@@ -2259,7 +1525,14 @@
 
       checkSearchMathEggs(searchTerm);
 
-      grid.innerHTML = filtered.map((dest, index) => `
+      grid.innerHTML = filtered.map((dest, index) => {
+        // Calculate Local Rate: 60% discount (approx citizen rate) converted to ZMW
+        const zmwRate = 19;
+        const localPrice = Math.round(dest.entry_fee_foreign * 0.4 * zmwRate);
+        const displayPrice = isLocal ? `K${localPrice}` : `$${dest.entry_fee_foreign}`;
+        const priceLabel = isLocal ? 'Citizen Rate' : '';
+
+        return `
         <div class="destination-card animate-fadeInUp" style="animation-delay: ${index * 0.05}s; opacity: 0;" onclick="openDestination(${dest.id})">
           <div class="relative h-48 md:h-56 overflow-hidden">
             <img src="${dest.image_url}" alt="${dest.name}" class="card-image w-full h-full object-cover" loading="lazy">
@@ -2290,13 +1563,15 @@
               <span class="text-xs font-semibold px-3 py-1.5 rounded-full" style="background: rgba(232,93,4,0.1); color: #E85D04;">
                 ${dest.category}
               </span>
-              <span class="text-sm font-bold" style="color: #16A34A;">
-                $${dest.entry_fee_foreign}
-              </span>
+              <div class="text-right">
+                <p class="text-sm font-bold text-green-600">${displayPrice}</p>
+                ${priceLabel ? `<p class="text-[10px] font-bold text-orange-500 uppercase tracking-tighter">${priceLabel}</p>` : ''}
+              </div>
             </div>
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
 
       if (filtered.length === 0) {
         grid.innerHTML = `
@@ -2375,43 +1650,6 @@
         destinationMap.remove();
         destinationMap = null;
       }
-    }
-
-    function initDestinationMap(lat, lng, name) {
-      const container = document.getElementById('destination-map');
-      if (destinationMap) {
-        destinationMap.remove();
-      }
-
-      destinationMap = L.map('destination-map').setView([lat, lng], 12);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
-      }).addTo(destinationMap);
-
-      L.marker([lat, lng]).addTo(destinationMap).bindPopup(name).openPopup();
-    }
-
-    function initMainMap() {
-      if (mainMap) return;
-
-      mainMap = L.map('fullMap').setView([-14.5, 28], 6);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
-      }).addTo(mainMap);
-
-      destinations.forEach(dest => {
-        const marker = L.marker([dest.lat, dest.lng]).addTo(mainMap);
-        marker.bindPopup(`
-          <div style="min-width: 180px; font-family: 'DM Sans', sans-serif;">
-            <img src="${dest.image_url}" alt="${dest.name}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 8px; margin-bottom: 8px;">
-            <h3 style="font-weight: bold; margin-bottom: 4px; font-size: 14px;">${dest.name}</h3>
-            <p style="color: #666; font-size: 11px; margin-bottom: 8px;">${dest.province}</p>
-            <button onclick="openDestination(${dest.id})" style="background: linear-gradient(135deg, #E85D04, #C45508); color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 12px; font-weight: 600;">
-              View Details
-            </button>
-          </div>
-        `);
-      });
     }
 
     // ============================================
@@ -2595,6 +1833,60 @@
           `;
         }).join('');
       }
+    }
+
+    function toggleLocalExplorer(isLocal) {
+      if (isLocal && !window.state.isVerifiedCitizen) {
+        // Revert toggle and request verification
+        document.getElementById('localExplorerToggle').checked = false;
+        openNRCModal();
+        return;
+      }
+
+      window.state.isLocalExplorer = isLocal;
+      saveUserData();
+      
+      showAchievementToast(
+        isLocal ? 'Local Explorer Active!' : 'Tourist Mode Active',
+        isLocal ? 'Citizen rates and bonus rewards applied' : 'Standard international rates applied'
+      );
+      
+      if (window.updateManualCosts) window.updateManualCosts();
+      renderDestinations();
+    }
+
+    function openNRCModal() {
+      document.getElementById('nrcModal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeNRCModal() {
+      document.getElementById('nrcModal').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    function handleNRCVerification(event) {
+      event.preventDefault();
+      const nrc = document.getElementById('nrcInput').value;
+      
+      // Mock verification process with a delay
+      showToast('Verifying NRC with National Database...', 'info');
+      
+      setTimeout(() => {
+        window.state.isVerifiedCitizen = true;
+        window.state.isLocalExplorer = true;
+        
+        // Automatically enable the toggle upon success
+        document.getElementById('localExplorerToggle').checked = true;
+        saveUserData();
+        closeNRCModal();
+        
+        showAchievementToast('Identity Verified!', 'Welcome, Local Explorer! +100 XP awarded.');
+        if (window.addScore) window.addScore(100);
+        
+        renderDestinations();
+        if (window.updateManualCosts) window.updateManualCosts();
+      }, 1500);
     }
 
     // ============================================
@@ -3085,6 +2377,7 @@
           
           if (btn.dataset.tab === 'profile') {
             loadProfileData();
+            renderTransactions();
           }
         });
       });
@@ -3110,212 +2403,6 @@
       });
     }
 
-    // Load tour guides
-    function loadTourGuides() {
-      const guides = [
-        { name: 'John Mwale', rating: 4.9, tours: 150, price: 50, specialty: 'Wildlife Safari', img: 'https://i.pravatar.cc/150?img=12' },
-        { name: 'Sarah Banda', rating: 4.8, tours: 120, price: 45, specialty: 'Cultural Tours', img: 'https://i.pravatar.cc/150?img=47' },
-        { name: 'David Phiri', rating: 4.7, tours: 95, price: 40, specialty: 'Adventure Tours', img: 'https://i.pravatar.cc/150?img=33' }
-      ];
-      document.getElementById('tourGuides').innerHTML = guides.map(g => `
-        <div class="flex items-center gap-4 p-4 rounded-xl border cursor-pointer hover:bg-gray-50" style="border-color: var(--border-color)" onclick="bookGuide('${g.name}')">
-          <img src="${g.img}" class="w-16 h-16 rounded-full" alt="${g.name}">
-          <div class="flex-1">
-            <h3 class="font-bold" style="color: var(--text-primary)">${g.name}</h3>
-            <p class="text-sm" style="color: var(--text-secondary)">${g.specialty}</p>
-            <div class="flex items-center gap-2 mt-1">
-              <span class="text-yellow-500 text-sm">⭐ ${g.rating}</span>
-              <span class="text-xs" style="color: var(--text-secondary)">${g.tours} tours</span>
-            </div>
-          </div>
-          <div class="text-right">
-            <p class="font-bold text-green-600">$${g.price}/day</p>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function bookGuide(name) {
-      showAchievementToast('Guide Booked!', `${name} will contact you soon`);
-      addScore(15);
-    }
-
-    function bookTransport(type) {
-      const types = { flight: 'Flight', bus: 'Bus', car: 'Car Rental' };
-      const modal = document.createElement('div');
-      modal.className = 'modal-overlay active';
-      modal.innerHTML = `
-        <div class="modal-content p-8" style="max-width: 500px;">
-          <h2 class="text-2xl font-bold mb-6" style="color: var(--text-primary)">Book ${types[type]}</h2>
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">From</label>
-              <input type="text" class="input-field" placeholder="Departure city" value="Lusaka">
-            </div>
-            <div>
-              <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">To</label>
-              <input type="text" class="input-field" placeholder="Destination city">
-            </div>
-            <div>
-              <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">Date</label>
-              <input type="date" class="input-field">
-            </div>
-            <div class="flex gap-3 mt-6">
-              <button onclick="this.closest('.modal-overlay').remove()" class="flex-1 py-3 rounded-xl font-semibold" style="background: var(--bg-primary); color: var(--text-primary); border: 2px solid var(--border-color);">Cancel</button>
-              <button onclick="confirmTransport('${types[type]}')" class="flex-1 py-3 rounded-xl font-semibold text-white" style="background: linear-gradient(135deg, #16A34A, #15803D);">Search ${types[type]}</button>
-            </div>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(modal);
-    }
-
-    function confirmTransport(type) {
-      document.querySelector('.modal-overlay').remove();
-      showAchievementToast('Searching...', `Finding best ${type} options`);
-      addScore(10);
-    }
-
-    function loadActivities() {
-      const activities = [
-        { name: 'Bungee Jumping', location: 'Victoria Falls', price: 160, duration: '2 hours', img: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=300' },
-        { name: 'White Water Rafting', location: 'Zambezi River', price: 120, duration: '4 hours', img: 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=300' },
-        { name: 'Walking Safari', location: 'South Luangwa', price: 80, duration: '3 hours', img: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=300' },
-        { name: 'Canoe Safari', location: 'Lower Zambezi', price: 95, duration: '5 hours', img: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=300' },
-        { name: 'Helicopter Tour', location: 'Victoria Falls', price: 250, duration: '30 min', img: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=300' },
-        { name: 'Night Game Drive', location: 'Kafue NP', price: 70, duration: '3 hours', img: 'https://images.unsplash.com/photo-1549366021-9f761d450615?w=300' }
-      ];
-      document.getElementById('activityReservations').innerHTML = activities.map(a => `
-        <div class="rounded-xl overflow-hidden border cursor-pointer hover:shadow-lg transition-all" style="border-color: var(--border-color)" onclick="bookActivity('${a.name}', ${a.price})">
-          <img src="${a.img}" class="w-full h-40 object-cover" alt="${a.name}">
-          <div class="p-4">
-            <h3 class="font-bold mb-1" style="color: var(--text-primary)">${a.name}</h3>
-            <p class="text-sm mb-2" style="color: var(--text-secondary)"><i class="fas fa-map-marker-alt mr-1"></i>${a.location}</p>
-            <div class="flex justify-between items-center">
-              <span class="text-sm" style="color: var(--text-secondary)"><i class="fas fa-clock mr-1"></i>${a.duration}</span>
-              <span class="font-bold text-green-600">$${a.price}</span>
-            </div>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function bookActivity(name, price) {
-      showAchievementToast('Activity Booked!', `${name} - $${price}`);
-      addScore(20);
-    }
-
-    let selectedDuration = 3;
-    
-    function selectDuration(days) {
-      selectedDuration = days;
-      document.getElementById('tripDuration').value = days;
-      document.querySelectorAll('.duration-btn').forEach(btn => {
-        if (parseInt(btn.dataset.days) === days) {
-          btn.style.borderColor = '#E85D04';
-          btn.style.background = 'rgba(232,93,4,0.1)';
-          btn.style.color = '#E85D04';
-        } else {
-          btn.style.borderColor = 'var(--border-color)';
-          btn.style.background = 'transparent';
-          btn.style.color = 'var(--text-primary)';
-        }
-      });
-    }
-    
-    function generateItinerary() {
-      try {
-        console.log('Generate Itinerary clicked');
-        
-        const days = selectedDuration;
-        const budget = parseInt(document.getElementById('tripBudget').value);
-        
-        console.log('Days:', days, 'Budget:', budget);
-        
-        if (!budget || budget < 100) {
-          alert('Please enter a valid budget (minimum $100)');
-          return;
-        }
-        
-        const itinerary = [];
-        const destinations = ['Victoria Falls', 'South Luangwa NP', 'Lower Zambezi NP', 'Livingstone', 'Lusaka'];
-        
-        for (let i = 1; i <= days; i++) {
-          const dest = destinations[Math.floor(Math.random() * destinations.length)];
-          itinerary.push({
-            day: i,
-            destination: dest,
-            activities: ['Morning game drive', 'Lunch at lodge', 'Afternoon activity', 'Dinner'],
-            accommodation: budget > 1500 ? 'Luxury Lodge' : budget > 500 ? 'Mid-range Hotel' : 'Budget Hostel'
-          });
-        }
-        
-        const accommodation = Math.round(budget * 0.4);
-        const transport = Math.round(budget * 0.25);
-        const activities = Math.round(budget * 0.25);
-        const food = budget - accommodation - transport - activities;
-        
-        console.log('Breakdown:', { accommodation, transport, activities, food });
-        
-        // Update the cost calculator INPUT FIELDS
-        const inputAccommodation = document.getElementById('inputAccommodation');
-        const inputTransport = document.getElementById('inputTransport');
-        const inputActivities = document.getElementById('inputActivities');
-        const inputFood = document.getElementById('inputFood');
-        const totalUSD = document.getElementById('totalUSD');
-        const totalZMW = document.getElementById('totalZMW');
-        
-        if (inputAccommodation) inputAccommodation.value = accommodation;
-        if (inputTransport) inputTransport.value = transport;
-        if (inputActivities) inputActivities.value = activities;
-        if (inputFood) inputFood.value = food;
-        if (totalUSD) totalUSD.textContent = `${budget}`;
-        if (totalZMW) totalZMW.textContent = `K${Math.round(budget * 19)}`;
-        
-        console.log('Cost calculator updated');
-        
-        const itineraryContainer = document.getElementById('generatedItinerary');
-        if (itineraryContainer) {
-          itineraryContainer.innerHTML = `
-            <div class="mt-6 p-6 rounded-2xl" style="background: var(--bg-primary); border: 1px solid var(--border-color);">
-              <h3 class="text-xl font-bold mb-4" style="color: var(--text-primary)">Your ${days}-Day Itinerary</h3>
-              <div class="space-y-4">
-                ${itinerary.map(day => `
-                  <div class="p-4 rounded-xl" style="background: var(--bg-card); border: 1px solid var(--border-color);">
-                    <h4 class="font-bold mb-2" style="color: var(--text-primary)">Day ${day.day}: ${day.destination}</h4>
-                    <p class="text-sm mb-2" style="color: var(--text-secondary)"><i class="fas fa-bed mr-2"></i>${day.accommodation}</p>
-                    <ul class="text-sm space-y-1" style="color: var(--text-secondary)">
-                      ${day.activities.map(a => `<li><i class="fas fa-check text-green-500 mr-2"></i>${a}</li>`).join('')}
-                    </ul>
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-          `;
-          console.log('Itinerary displayed');
-        }
-        
-        if (typeof showAchievementToast === 'function') {
-          showAchievementToast('Itinerary Generated!', `${days}-day trip planned`);
-        }
-        if (typeof addScore === 'function') {
-          addScore(30);
-        }
-        
-        console.log('Generate Itinerary completed successfully');
-      } catch (error) {
-        console.error('Error in generateItinerary:', error);
-        alert('Error generating itinerary: ' + error.message);
-      }
-    }
-
-    // Initialize bookings tab
-    setTimeout(() => {
-      loadTourGuides();
-      loadActivities();
-    }, 500);
-
-    // Global functions
     window.handleLogin = handleLogin;
     window.handleRegister = handleRegister;
     window.showRegister = showRegister;
@@ -3324,6 +2411,9 @@
     window.openDestination = openDestination;
     window.closeModal = closeModal;
     window.addToWishlist = addToWishlist;
+    window.openNRCModal = openNRCModal;
+    window.closeNRCModal = closeNRCModal;
+    window.handleNRCVerification = handleNRCVerification;
     // ============================================
     // SERVICES TAB
     // ============================================

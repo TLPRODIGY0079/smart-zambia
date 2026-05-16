@@ -1,7 +1,10 @@
 // API Configuration for Smart Zambia Backend Integration
 // This file handles all API calls to the backend
 
-const API_BASE_URL = 'http://localhost:3001/api';
+// Detect environment and set base URL
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:3001/api'
+  : 'https://api.smartzambia.com/api'; // Replace with your production API URL
 
 // Helper function to get auth token
 function getAuthToken() {

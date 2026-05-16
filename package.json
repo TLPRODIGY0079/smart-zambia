@@ -1,0 +1,12 @@
+{
+  "name": "smart-zambia-frontend",
+  "version": "1.0.0",
+  "description": "Smart Zambia - Production Build",
+  "scripts": {
+    "build": "tailwindcss -o ./css/output.css --minify",
+    "watch": "tailwindcss -o ./css/output.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.1"
+  }
+}
