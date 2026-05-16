@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Smart Zambia - Production Build",
   "scripts": {
-    "build": "tailwindcss -o ./css/output.css --minify",
-    "watch": "tailwindcss -o ./css/output.css --watch"
+    "build": "tailwindcss -o ./smart-zambia-frontend/css/output.css --minify",
+    "watch": "tailwindcss -o ./smart-zambia-frontend/css/output.css --watch"
   },
   "devDependencies": {
     "tailwindcss": "^3.4.1"

@@ -2,11 +2,11 @@
   # Base directory (root of the project)
   base = "."
   
-  # Directory to publish (where index.html is located)
-  publish = "public"
+  # Directory to publish
+  publish = "smart-zambia-frontend"
   
-  # Build command (if needed)
-  command = "echo 'No build step required for static site'"
+  # Build command
+  command = "npm run build"
 
 [build.environment]
   # Environment variables for build
