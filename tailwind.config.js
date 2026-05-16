@@ -1,6 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./*.html", "./js/**/*.js"],
+  content: [
+    "./smart-zambia-frontend/**/*.html",
+    "./smart-zambia-frontend/js/**/*.js"
+  ],
   darkMode: 'class',
   theme: {
     extend: {

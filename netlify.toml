@@ -11,6 +11,11 @@
 [build.environment]
   # Environment variables for build
   NODE_VERSION = "18"
+  NPM_FLAGS = "--version"
+
+[context.production]
+  command = "npm run build"
+  publish = "smart-zambia-frontend"
 
 [[redirects]]
   # Handle client-side routing (SPA)
