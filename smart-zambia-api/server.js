@@ -17,6 +17,7 @@ if (!process.env.JWT_SECRET) {
 const app = express();
 const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET;
+const { PORT = 3001, JWT_SECRET } = process.env;
 
 // Middleware
 const corsOptions = {

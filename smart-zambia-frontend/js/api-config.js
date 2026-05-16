@@ -2,9 +2,11 @@
 // This file handles all API calls to the backend
 
 // Detect environment and set base URL
-const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://localhost:3001/api'
-  : 'https://api.smartzambia.com/api'; // Replace with your production API URL
+const isLocal = window.location.hostname === 'localhost' || 
+                window.location.hostname === '127.0.0.1' || 
+                window.location.hostname.includes('192.168.');
+
+const API_BASE_URL = isLocal ? 'http://localhost:3001/api' : 'https://api.smartzambia.com/api';
 
 // Helper function to get auth token
 function getAuthToken() {
