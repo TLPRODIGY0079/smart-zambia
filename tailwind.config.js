@@ -2,26 +2,29 @@
 module.exports = {
   content: [
     "./smart-zambia-frontend/**/*.html",
-    "./smart-zambia-frontend/js/**/*.js"
+    "./smart-zambia-frontend/js/**/*.js",
+    "./public/**/*.html",
+    "./public/js/**/*.js",
+    "./*.html",
   ],
-  darkMode: 'class',
+  darkMode: "class",
   theme: {
     extend: {
       fontFamily: {
-        display: ['Playfair Display', 'serif'],
-        sans: ['DM Sans', 'sans-serif'],
+        display: ["Playfair Display", "serif"],
+        sans: ["DM Sans", "sans-serif"],
       },
       colors: {
         zambia: {
-          orange: '#E85D04',
-          copper: '#C45508',
-          gold: '#F59E0B',
-          forest: '#166534',
-          sky: '#0EA5E9',
-          earth: '#78350F',
-        }
-      }
+          orange: "#E85D04",
+          copper: "#C45508",
+          gold: "#F59E0B",
+          forest: "#166534",
+          sky: "#0EA5E9",
+          earth: "#78350F",
+        },
+      },
     },
   },
   plugins: [],
-}
+};
