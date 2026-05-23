@@ -1761,6 +1761,10 @@
             <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">Description</label>
             <textarea id="reportDescInput" required rows="3" class="input-field" placeholder="Describe the issue..."></textarea>
           </div>
+          <div class="mb-6">
+            <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">Location (Optional)</label>
+            <input type="text" id="reportLocationInput" class="input-field" placeholder="e.g. Near the main entrance or trail head">
+          </div>
           <div class="flex gap-3">
             <button type="button" onclick="closeReportModal()" class="flex-1 py-3 rounded-xl font-semibold transition-all" style="background: var(--bg-primary); color: var(--text-primary); border: 2px solid var(--border-color);">Cancel</button>
             <button type="submit" class="flex-1 py-3 rounded-xl font-semibold text-white transition-all" style="background: linear-gradient(135deg, #3B82F6, #8B5CF6);">Submit Report</button>
@@ -1837,7 +1841,7 @@
     };
 
     // Civic Challenges
-    const civicChallenges = [
+    window.civicChallenges = [
       { id: 'flooded_area', name: 'Flooded Tourist Area', desc: 'Report flooded areas affecting tourists', icon: 'fa-water', xp: 40, cash: 5, color: 'bg-blue-500' },
       { id: 'blocked_trail', name: 'Blocked Trail', desc: 'Report blocked hiking/walking trails', icon: 'fa-hiking', xp: 35, cash: 4, color: 'bg-green-500' },
       { id: 'unsafe_viewpoint', name: 'Unsafe Viewpoint', desc: 'Report dangerous viewing areas', icon: 'fa-exclamation-triangle', xp: 45, cash: 6, color: 'bg-red-500' },
@@ -2425,7 +2429,7 @@
       }
       
       // Defensive check for civicChallenges array
-      if (!window.civicChallenges || !Array.isArray(window.civicChallenges)) {
+      if (!civicChallenges || !Array.isArray(civicChallenges)) {
         console.warn('civicChallenges array not found or invalid');
         container.innerHTML = '<div class="text-center py-8 text-gray-500">Civic challenges not available</div>';
         return;
@@ -2465,7 +2469,7 @@
       }
       
       container.innerHTML = reports.slice(-5).reverse().map(report => {
-        const challenge = window.civicChallenges.find(c => c.id === report.type);
+        const challenge = civicChallenges.find(c => c.id === report.type);
         if (!challenge) return '';
         
         return `
@@ -2507,6 +2511,7 @@
       document.body.style.overflow = '';
       document.getElementById('reportTitleInput').value = '';
       document.getElementById('reportDescInput').value = '';
+      if (document.getElementById('reportLocationInput')) document.getElementById('reportLocationInput').value = '';
     }
 
     function submitReport(e) {
@@ -2567,14 +2572,21 @@
     }
 
     function updateCivicUI() {
-      document.getElementById('civicLevelDisplay').textContent = state.civicLevel;
-      document.getElementById('civicXPDisplay').textContent = state.civicXP;
-      document.getElementById('civicXPNeeded').textContent = (state.civicLevel * 100) - state.civicXP;
-      document.getElementById('civicProgressBar').style.width = `${(state.civicXP % 100)}%`;
+      const levelEl = document.getElementById('civicLevelDisplay');
+      if (levelEl) levelEl.textContent = state.civicLevel;
+      
+      const xpEl = document.getElementById('civicXPDisplay');
+      if (xpEl) xpEl.textContent = state.civicXP;
+      
+      const neededEl = document.getElementById('civicXPNeeded');
+      if (neededEl) neededEl.textContent = (state.civicLevel * 100) - state.civicXP;
+      
+      const progressEl = document.getElementById('civicProgressBar');
+      if (progressEl) progressEl.style.width = `${(state.civicXP % 100)}%`;
       
       // Update reports list
       const list = document.getElementById('civicReportsList');
-      if (state.civicReports.length > 0) {
+      if (list && state.civicReports.length > 0) {
         list.innerHTML = state.civicReports.slice(-5).reverse().map(report => {
           const challenge = civicChallenges.find(c => c.id === report.type);
           return `
