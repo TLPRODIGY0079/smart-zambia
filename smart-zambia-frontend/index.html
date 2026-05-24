@@ -1580,6 +1580,22 @@
                 </div>
               </div>
 
+              <!-- My Bookings -->
+              <div class="rounded-3xl p-6 md:p-8 shadow-lg" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+                <h2 class="text-2xl font-bold mb-6 flex items-center" style="color: var(--text-primary)">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mr-3">
+                    <i class="fas fa-calendar-check text-white"></i>
+                  </div>
+                  My Bookings
+                </h2>
+                <div id="profileBookings" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="text-center py-8" style="color: var(--text-secondary)">
+                    <i class="fas fa-calendar-alt text-4xl mb-3 opacity-30"></i>
+                    <p>No bookings yet</p>
+                  </div>
+                </div>
+              </div>
+
               <!-- Achievements - Enhanced -->
               <div class="rounded-3xl p-6 md:p-8 shadow-lg" style="background: var(--bg-card); border: 1px solid var(--border-color);">
                 <h2 class="text-2xl font-bold mb-6 flex items-center" style="color: var(--text-primary)">
@@ -1814,7 +1830,23 @@
             <h3 class="text-xs font-bold uppercase tracking-wider mb-2 opacity-60" style="color: var(--text-primary)">Recent Reviews</h3>
             <div id="guideModalReviews"></div>
           </div>
-          
+
+          <!-- Guide Review Form -->
+          <div class="mb-8 pt-6 border-t" style="border-color: var(--border-color)">
+            <h3 class="text-xs font-bold uppercase tracking-wider mb-4 opacity-60" style="color: var(--text-primary)">Write a Review</h3>
+            <div class="space-y-3">
+              <select id="guideReviewRating" class="input-field py-2 text-sm" style="width: auto;">
+                <option value="5">⭐⭐⭐⭐⭐ 5</option>
+                <option value="4">⭐⭐⭐⭐ 4</option>
+                <option value="3">⭐⭐⭐ 3</option>
+                <option value="2">⭐⭐ 2</option>
+                <option value="1">⭐ 1</option>
+              </select>
+              <textarea id="guideReviewText" rows="2" class="input-field text-sm" placeholder="Your experience..."></textarea>
+              <button onclick="submitGuideReview()" class="py-2 px-4 rounded-xl text-sm font-bold transition-all" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color);">Post Review</button>
+            </div>
+          </div>
+
           <button id="guideBookBtn" class="btn-primary w-full">Book This Guide</button>
         </div>
       </div>
@@ -3144,6 +3176,7 @@
           
           if (btn.dataset.tab === 'profile') {
             loadProfileData();
+            if (typeof renderProfileBookings === 'function') renderProfileBookings();
           }
         });
       });
@@ -3170,7 +3203,7 @@
     }
 
     // Tour Guides Data
-    const tourGuidesData = [
+    let tourGuidesData = [
       { id: 1, name: 'John Mwale', rating: 4.9, tours: 150, price: 50, specialty: 'Wildlife Safari', img: 'https://i.pravatar.cc/150?img=12', languages: ['English', 'Bemba'], bio: 'Born and raised near South Luangwa, John has spent over 15 years tracking leopards and lions. He is a certified master safari guide.', reviews: ['Amazing experience!', 'John knows every corner of the park.'] },
       { id: 2, name: 'Sarah Banda', rating: 4.8, tours: 120, price: 45, specialty: 'Cultural Tours', img: 'https://i.pravatar.cc/150?img=47', languages: ['English', 'Nyanja', 'Tonga'], bio: 'Sarah is a local historian who brings Zambian heritage to life through storytelling. She specializes in village visits and traditional ceremonies.', reviews: ['Best cultural tour I have ever taken.', 'Incredibly knowledgeable.'] },
       { id: 3, name: 'David Phiri', rating: 4.7, tours: 95, price: 40, specialty: 'Adventure Tours', img: 'https://i.pravatar.cc/150?img=33', languages: ['English'], bio: 'For those seeking adrenaline, David is your guide. From gorge swings to white water rafting, he ensures safety and maximum fun.', reviews: ['Extreme fun!', 'David is a great instructor.'] }
@@ -3231,9 +3264,96 @@
     }
 
     function confirmBooking(name) {
+      const guide = tourGuidesData.find(g => g.name === name);
+      if (!guide) return;
+
+      const booking = {
+        id: Date.now(),
+        type: 'Guide',
+        name: guide.name,
+        specialty: guide.specialty,
+        price: guide.price,
+        date: new Date().toISOString(),
+        status: 'Confirmed'
+      };
+
+      if (!state.bookings) state.bookings = [];
+      state.bookings.push(booking);
+      
+      saveUserData();
       closeGuideModal();
       showAchievementToast('Booking Request Sent!', `Inquiry for ${name} submitted. They will contact you to finalize the trip.`);
       addScore(25);
+      
+      if (document.getElementById('profileTab').classList.contains('active')) {
+        renderProfileBookings();
+      }
+    }
+
+    function submitGuideReview() {
+      const ratingSelect = document.getElementById('guideReviewRating');
+      const textInput = document.getElementById('guideReviewText');
+      const rating = parseInt(ratingSelect.value);
+      const text = textInput.value.trim();
+      
+      if (!text) {
+        showToast('Please enter your review text.', 'warning');
+        return;
+      }
+      
+      const guideName = document.getElementById('guideModalName').textContent;
+      const guide = tourGuidesData.find(g => g.name === guideName);
+      if (!guide) return;
+      
+      guide.reviews.unshift(text);
+      guide.rating = parseFloat(((guide.rating + rating) / 2).toFixed(1));
+      
+      document.getElementById('guideModalRating').textContent = guide.rating;
+      const reviewsContainer = document.getElementById('guideModalReviews');
+      reviewsContainer.innerHTML = guide.reviews.map(r => `
+        <div class="p-3 rounded-xl mb-2 italic text-sm" style="background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-secondary);">
+          "${r}"
+        </div>
+      `).join('');
+      
+      textInput.value = '';
+      ratingSelect.value = '5';
+      showAchievementToast('Review Posted!', `Thank you for reviewing ${guide.name}`);
+      addScore(15);
+      loadTourGuides();
+    }
+
+    function renderProfileBookings() {
+      const container = document.getElementById('profileBookings');
+      if (!container) return;
+      
+      const bookings = state.bookings || [];
+      
+      if (bookings.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-8" style="color: var(--text-secondary)">
+            <i class="fas fa-calendar-alt text-4xl mb-3 opacity-30"></i>
+            <p>No bookings yet</p>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = bookings.map(b => `
+        <div class="p-4 rounded-2xl border transition-all hover:bg-gray-50 dark:hover:bg-gray-800" style="border-color: var(--border-color); background: var(--bg-card)">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <h4 class="font-bold" style="color: var(--text-primary)">${b.name}</h4>
+              <p class="text-xs" style="color: var(--text-secondary)">${b.type} • ${b.specialty}</p>
+            </div>
+            <span class="text-xs font-bold text-green-600 px-2 py-1 rounded-lg" style="background: rgba(22,163,74,0.1)">${b.status}</span>
+          </div>
+          <div class="flex justify-between items-center mt-3 pt-3 border-t" style="border-color: var(--border-color)">
+            <span class="text-xs" style="color: var(--text-secondary)">${new Date(b.date).toLocaleDateString()}</span>
+            <span class="font-bold text-sm" style="color: var(--text-primary)">$${b.price}</span>
+          </div>
+        </div>
+      `).join('');
     }
 
     function bookTransport(type) {
@@ -4002,6 +4122,8 @@
     window.bookGuide = bookGuide;
     window.openGuideModal = openGuideModal;
     window.closeGuideModal = closeGuideModal;
+    window.submitGuideReview = submitGuideReview;
+    window.renderProfileBookings = renderProfileBookings;
     window.bookTransport = bookTransport;
     window.confirmTransport = confirmTransport;
     window.bookActivity = bookActivity;
