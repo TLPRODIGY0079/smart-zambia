@@ -1582,12 +1582,6 @@
 
               <!-- My Bookings -->
               <div class="rounded-3xl p-6 md:p-8 shadow-lg" style="background: var(--bg-card); border: 1px solid var(--border-color);">
-                <h2 class="text-2xl font-bold mb-6 flex items-center" style="color: var(--text-primary)">
-                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mr-3">
-                    <i class="fas fa-calendar-check text-white"></i>
-                  </div>
-                  My Bookings
-                </h2>
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                   <h2 class="text-2xl font-bold flex items-center" style="color: var(--text-primary)">
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mr-3">
@@ -1598,6 +1592,11 @@
                   <button onclick="document.querySelector('.tab-btn[data-tab=bookings]').click()" class="px-4 py-2 rounded-xl text-sm font-bold text-white transition-all shadow-md hover:scale-105" style="background: linear-gradient(135deg, #16A34A, #15803D);">
                     <i class="fas fa-plus mr-2"></i>New Booking
                   </button>
+                </div>
+                <!-- Booking History Filters -->
+                <div class="flex gap-2 mb-6">
+                  <button onclick="renderProfileBookings('active')" id="filterActive" class="booking-filter-btn px-4 py-2 rounded-full text-xs font-bold transition-all bg-green-600 text-white shadow-sm">Active</button>
+                  <button onclick="renderProfileBookings('completed')" id="filterCompleted" class="booking-filter-btn px-4 py-2 rounded-full text-xs font-bold transition-all bg-gray-100 text-gray-600 shadow-sm">History</button>
                 </div>
                 <div id="profileBookings" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div class="text-center py-8" style="color: var(--text-secondary)">
@@ -1860,6 +1859,25 @@
 
           <button id="guideBookBtn" class="btn-primary w-full">Book This Guide</button>
         </div>
+      </div>
+    </div>
+
+    <!-- Edit Booking Modal -->
+    <div class="modal-overlay" id="editBookingModal">
+      <div class="modal-content p-8" style="max-width: 450px;">
+        <h2 class="text-2xl font-bold mb-4" style="color: var(--text-primary)">Change Booking Date</h2>
+        <p class="text-sm mb-6" style="color: var(--text-secondary)">Updating your reservation for <span id="editBookingName" class="font-bold text-zambia-orange"></span></p>
+        <form id="editBookingForm" onsubmit="saveBookingEdit(event)">
+          <input type="hidden" id="editBookingId">
+          <div class="mb-6">
+            <label class="block text-sm font-semibold mb-2" style="color: var(--text-secondary)">New Date</label>
+            <input type="date" id="editBookingDateInput" required class="input-field">
+          </div>
+          <div class="flex gap-3">
+            <button type="button" onclick="closeEditBookingModal()" class="flex-1 py-3 rounded-xl font-semibold transition-all" style="background: var(--bg-primary); color: var(--text-primary); border: 2px solid var(--border-color);">Cancel</button>
+            <button type="submit" class="flex-1 py-3 rounded-xl font-semibold text-white transition-all shadow-lg hover:scale-105" style="background: linear-gradient(135deg, #E85D04, #C45508);">Update Date</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -3334,39 +3352,74 @@
       loadTourGuides();
     }
 
-    function renderProfileBookings() {
+    let currentBookingFilter = 'active';
+
+    function renderProfileBookings(filter = currentBookingFilter) {
+      currentBookingFilter = filter;
       const container = document.getElementById('profileBookings');
       if (!container) return;
       
-      const bookings = state.bookings || [];
+      // Update filter button UI
+      const btnActive = document.getElementById('filterActive');
+      const btnCompleted = document.getElementById('filterCompleted');
       
-      if (bookings.length === 0) {
+      if (btnActive && btnCompleted) {
+        if (filter === 'active') {
+          btnActive.className = 'booking-filter-btn px-4 py-2 rounded-full text-xs font-bold transition-all bg-green-600 text-white shadow-sm';
+          btnCompleted.className = 'booking-filter-btn px-4 py-2 rounded-full text-xs font-bold transition-all bg-gray-100 text-gray-600 shadow-sm';
+        } else {
+          btnActive.className = 'booking-filter-btn px-4 py-2 rounded-full text-xs font-bold transition-all bg-gray-100 text-gray-600 shadow-sm';
+          btnCompleted.className = 'booking-filter-btn px-4 py-2 rounded-full text-xs font-bold transition-all bg-green-600 text-white shadow-sm';
+        }
+      }
+
+      const allBookings = state.bookings || [];
+      const now = new Date();
+      now.setHours(0,0,0,0);
+      
+      const filtered = allBookings.filter(b => {
+        const bDate = new Date(b.date);
+        bDate.setHours(0,0,0,0);
+        return filter === 'active' ? bDate >= now : bDate < now;
+      }).sort((a, b) => {
+        return filter === 'active' 
+          ? new Date(a.date) - new Date(b.date) 
+          : new Date(b.date) - new Date(a.date);
+      });
+
+      if (filtered.length === 0) {
         container.innerHTML = `
           <div class="col-span-full text-center py-8" style="color: var(--text-secondary)">
             <i class="fas fa-calendar-alt text-4xl mb-3 opacity-30"></i>
-            <p>No bookings yet</p>
-            <button onclick="document.querySelector('.tab-btn[data-tab=bookings]').click()" class="mt-4 text-sm font-bold text-zambia-orange hover:underline">Find your next guide!</button>
+            <p>No ${filter} bookings yet</p>
+            ${filter === 'active' ? `<button onclick="document.querySelector('.tab-btn[data-tab=bookings]').click()" class="mt-4 text-sm font-bold text-zambia-orange hover:underline">Find your next adventure!</button>` : ''}
           </div>
         `;
         return;
       }
       
-      container.innerHTML = bookings.map(b => `
+      container.innerHTML = filtered.map(b => `
         <div class="p-4 rounded-2xl border transition-all hover:bg-gray-50 dark:hover:bg-gray-800" style="border-color: var(--border-color); background: var(--bg-card)">
           <div class="flex justify-between items-start mb-2">
             <div>
               <h4 class="font-bold" style="color: var(--text-primary)">${b.name}</h4>
               <p class="text-xs" style="color: var(--text-secondary)">${b.type} • ${b.specialty}</p>
             </div>
-            <span class="text-xs font-bold text-green-600 px-2 py-1 rounded-lg" style="background: rgba(22,163,74,0.1)">${b.status}</span>
+            <span class="text-xs font-bold ${filter === 'active' ? 'text-green-600' : 'text-gray-400'} px-2 py-1 rounded-lg" style="background: ${filter === 'active' ? 'rgba(22,163,74,0.1)' : 'rgba(156,163,175,0.1)'}">${filter === 'active' ? b.status : 'Completed'}</span>
           </div>
           <div class="flex justify-between items-center mt-3 pt-3 border-t" style="border-color: var(--border-color)">
-            <span class="text-xs" style="color: var(--text-secondary)">${new Date(b.date).toLocaleDateString()}</span>
-            <span class="font-bold text-sm" style="color: var(--text-primary)">$${b.price}</span>
+            <div class="flex flex-col">
+              <span class="text-xs font-bold" style="color: var(--text-secondary)">${new Date(b.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+              <span class="text-xs opacity-60" style="color: var(--text-primary)">$${b.price}</span>
+            </div>
             <div class="flex items-center gap-3">
-              <span class="font-bold text-sm" style="color: var(--text-primary)">$${b.price}</span>
-              <button onclick="cancelBooking(${b.id})" class="w-8 h-8 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors" title="Cancel Booking">
-                <i class="fas fa-times-circle"></i>
+              ${filter === 'active' ? `
+                <button onclick="openEditBookingModal(${b.id})" class="w-8 h-8 rounded-lg flex items-center justify-center text-blue-500 hover:bg-blue-50 transition-colors" title="Edit Date">
+                  <i class="fas fa-edit"></i>
+                </button>
+              ` : ''}
+              <button onclick="cancelBooking(${b.id})" class="w-8 h-8 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors" title="${filter === 'active' ? 'Cancel Booking' : 'Delete Record'}">
+                <i class="fas ${filter === 'active' ? 'fa-times-circle' : 'fa-trash-alt'}"></i>
               </button>
             </div>
           </div>
@@ -3374,12 +3427,49 @@
       `).join('');
     }
 
+    function openEditBookingModal(id) {
+      const booking = state.bookings.find(b => b.id === id);
+      if (!booking) return;
+
+      document.getElementById('editBookingId').value = id;
+      document.getElementById('editBookingName').textContent = booking.name;
+      const date = new Date(booking.date);
+      const dateStr = date.toISOString().split('T')[0];
+      document.getElementById('editBookingDateInput').value = dateStr;
+
+      document.getElementById('editBookingModal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeEditBookingModal() {
+      document.getElementById('editBookingModal').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    function saveBookingEdit(e) {
+      e.preventDefault();
+      const id = parseInt(document.getElementById('editBookingId').value);
+      const newDate = document.getElementById('editBookingDateInput').value;
+
+      const booking = state.bookings.find(b => b.id === id);
+      if (booking) {
+        booking.date = new Date(newDate).toISOString();
+        saveUserData();
+        renderProfileBookings();
+        closeEditBookingModal();
+        showAchievementToast('Booking Updated', 'The date of your reservation has been changed.');
+      }
+    }
+
     function cancelBooking(id) {
-      if (confirm('Are you sure you want to cancel this booking?')) {
+      const isHistory = currentBookingFilter === 'completed';
+      const msg = isHistory ? 'Remove this record from your history?' : 'Are you sure you want to cancel this booking?';
+      
+      if (confirm(msg)) {
         state.bookings = state.bookings.filter(b => b.id !== id);
         saveUserData();
         renderProfileBookings();
-        showAchievementToast('Booking Cancelled', 'The reservation has been removed from your profile.');
+        showAchievementToast(isHistory ? 'Record Removed' : 'Booking Cancelled', isHistory ? 'The entry was deleted.' : 'The reservation has been removed from your profile.');
       }
     }
 
@@ -4150,6 +4240,9 @@
     window.openGuideModal = openGuideModal;
     window.closeGuideModal = closeGuideModal;
     window.submitGuideReview = submitGuideReview;
+    window.openEditBookingModal = openEditBookingModal;
+    window.closeEditBookingModal = closeEditBookingModal;
+    window.saveBookingEdit = saveBookingEdit;
     window.cancelBooking = cancelBooking;
     window.renderProfileBookings = renderProfileBookings;
     window.bookTransport = bookTransport;
