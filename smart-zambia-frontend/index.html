@@ -1588,6 +1588,17 @@
                   </div>
                   My Bookings
                 </h2>
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                  <h2 class="text-2xl font-bold flex items-center" style="color: var(--text-primary)">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mr-3">
+                      <i class="fas fa-calendar-check text-white"></i>
+                    </div>
+                    My Bookings
+                  </h2>
+                  <button onclick="document.querySelector('.tab-btn[data-tab=bookings]').click()" class="px-4 py-2 rounded-xl text-sm font-bold text-white transition-all shadow-md hover:scale-105" style="background: linear-gradient(135deg, #16A34A, #15803D);">
+                    <i class="fas fa-plus mr-2"></i>New Booking
+                  </button>
+                </div>
                 <div id="profileBookings" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div class="text-center py-8" style="color: var(--text-secondary)">
                     <i class="fas fa-calendar-alt text-4xl mb-3 opacity-30"></i>
@@ -3334,6 +3345,7 @@
           <div class="col-span-full text-center py-8" style="color: var(--text-secondary)">
             <i class="fas fa-calendar-alt text-4xl mb-3 opacity-30"></i>
             <p>No bookings yet</p>
+            <button onclick="document.querySelector('.tab-btn[data-tab=bookings]').click()" class="mt-4 text-sm font-bold text-zambia-orange hover:underline">Find your next guide!</button>
           </div>
         `;
         return;
@@ -3351,9 +3363,24 @@
           <div class="flex justify-between items-center mt-3 pt-3 border-t" style="border-color: var(--border-color)">
             <span class="text-xs" style="color: var(--text-secondary)">${new Date(b.date).toLocaleDateString()}</span>
             <span class="font-bold text-sm" style="color: var(--text-primary)">$${b.price}</span>
+            <div class="flex items-center gap-3">
+              <span class="font-bold text-sm" style="color: var(--text-primary)">$${b.price}</span>
+              <button onclick="cancelBooking(${b.id})" class="w-8 h-8 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors" title="Cancel Booking">
+                <i class="fas fa-times-circle"></i>
+              </button>
+            </div>
           </div>
         </div>
       `).join('');
+    }
+
+    function cancelBooking(id) {
+      if (confirm('Are you sure you want to cancel this booking?')) {
+        state.bookings = state.bookings.filter(b => b.id !== id);
+        saveUserData();
+        renderProfileBookings();
+        showAchievementToast('Booking Cancelled', 'The reservation has been removed from your profile.');
+      }
     }
 
     function bookTransport(type) {
@@ -4123,6 +4150,7 @@
     window.openGuideModal = openGuideModal;
     window.closeGuideModal = closeGuideModal;
     window.submitGuideReview = submitGuideReview;
+    window.cancelBooking = cancelBooking;
     window.renderProfileBookings = renderProfileBookings;
     window.bookTransport = bookTransport;
     window.confirmTransport = confirmTransport;
