@@ -3122,22 +3122,27 @@
       });
     }
 
+    // Tour Guides Data
+    const tourGuidesData = [
+      { id: 1, name: 'John Mwale', rating: 4.9, tours: 150, price: 50, specialty: 'Wildlife Safari', img: 'https://i.pravatar.cc/150?img=12', languages: ['English', 'Bemba'], bio: 'Born and raised near South Luangwa, John has spent over 15 years tracking leopards and lions. He is a certified master safari guide.', reviews: ['Amazing experience!', 'John knows every corner of the park.'] },
+      { id: 2, name: 'Sarah Banda', rating: 4.8, tours: 120, price: 45, specialty: 'Cultural Tours', img: 'https://i.pravatar.cc/150?img=47', languages: ['English', 'Nyanja', 'Tonga'], bio: 'Sarah is a local historian who brings Zambian heritage to life through storytelling. She specializes in village visits and traditional ceremonies.', reviews: ['Best cultural tour I have ever taken.', 'Incredibly knowledgeable.'] },
+      { id: 3, name: 'David Phiri', rating: 4.7, tours: 95, price: 40, specialty: 'Adventure Tours', img: 'https://i.pravatar.cc/150?img=33', languages: ['English'], bio: 'For those seeking adrenaline, David is your guide. From gorge swings to white water rafting, he ensures safety and maximum fun.', reviews: ['Extreme fun!', 'David is a great instructor.'] }
+    ];
+
     // Load tour guides
     function loadTourGuides() {
-      const guides = [
-        { name: 'John Mwale', rating: 4.9, tours: 150, price: 50, specialty: 'Wildlife Safari', img: 'https://i.pravatar.cc/150?img=12' },
-        { name: 'Sarah Banda', rating: 4.8, tours: 120, price: 45, specialty: 'Cultural Tours', img: 'https://i.pravatar.cc/150?img=47' },
-        { name: 'David Phiri', rating: 4.7, tours: 95, price: 40, specialty: 'Adventure Tours', img: 'https://i.pravatar.cc/150?img=33' }
-      ];
-      document.getElementById('tourGuides').innerHTML = guides.map(g => `
-        <div class="flex items-center gap-4 p-4 rounded-xl border cursor-pointer hover:bg-gray-50" style="border-color: var(--border-color)" onclick="bookGuide('${g.name}')">
-          <img src="${g.img}" class="w-16 h-16 rounded-full" alt="${g.name}">
+      const container = document.getElementById('tourGuides');
+      if (!container) return;
+      
+      container.innerHTML = tourGuidesData.map(g => `
+        <div class="flex items-center gap-4 p-4 rounded-xl border cursor-pointer hover:bg-gray-50 transition-all hover:shadow-md" style="border-color: var(--border-color)" onclick="openGuideModal(${g.id})">
+          <img src="${g.img}" class="w-16 h-16 rounded-full object-cover" alt="${g.name}">
           <div class="flex-1">
             <h3 class="font-bold" style="color: var(--text-primary)">${g.name}</h3>
             <p class="text-sm" style="color: var(--text-secondary)">${g.specialty}</p>
             <div class="flex items-center gap-2 mt-1">
               <span class="text-yellow-500 text-sm">⭐ ${g.rating}</span>
-              <span class="text-xs" style="color: var(--text-secondary)">${g.tours} tours</span>
+              <span class="text-xs opacity-60" style="color: var(--text-primary)">${g.tours} tours</span>
             </div>
           </div>
           <div class="text-right">
@@ -3147,9 +3152,41 @@
       `).join('');
     }
 
-    function bookGuide(name) {
-      showAchievementToast('Guide Booked!', `${name} will contact you soon`);
-      addScore(15);
+    function openGuideModal(id) {
+      const guide = tourGuidesData.find(g => g.id === id);
+      if (!guide) return;
+      
+      document.getElementById('guideModalImg').src = guide.img;
+      document.getElementById('guideModalName').textContent = guide.name;
+      document.getElementById('guideModalSpecialty').textContent = guide.specialty;
+      document.getElementById('guideModalBio').textContent = guide.bio;
+      document.getElementById('guideModalPrice').textContent = `$${guide.price}/day`;
+      document.getElementById('guideModalRating').textContent = guide.rating;
+      document.getElementById('guideModalLanguages').textContent = guide.languages.join(', ');
+      
+      const reviewsContainer = document.getElementById('guideModalReviews');
+      reviewsContainer.innerHTML = guide.reviews.map(r => `
+        <div class="p-3 rounded-xl mb-2 italic text-sm" style="background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-secondary);">
+          "${r}"
+        </div>
+      `).join('');
+      
+      const bookBtn = document.getElementById('guideBookBtn');
+      bookBtn.onclick = () => confirmBooking(guide.name);
+      
+      document.getElementById('guideModal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeGuideModal() {
+      document.getElementById('guideModal').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    function confirmBooking(name) {
+      closeGuideModal();
+      showAchievementToast('Booking Request Sent!', `Inquiry for ${name} submitted. They will contact you to finalize the trip.`);
+      addScore(25);
     }
 
     function bookTransport(type) {
