@@ -1698,6 +1698,7 @@
         </button>
         <div class="relative h-64 md:h-80 overflow-hidden">
           <img id="modalImage" class="w-full h-full object-cover" src="assets/images/destination.jpg" alt="">
+          <img id="modalImage" class="w-full h-full object-cover" src="" alt="">
           <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
           <div class="absolute bottom-6 left-6 right-6 text-white">
             <div id="modalFeatured" class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold mb-3 hidden" style="background: linear-gradient(135deg, #E85D04, #F59E0B);">
@@ -1770,6 +1771,52 @@
             <button type="submit" class="flex-1 py-3 rounded-xl font-semibold text-white transition-all" style="background: linear-gradient(135deg, #3B82F6, #8B5CF6);">Submit Report</button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- Guide Modal -->
+    <div class="modal-overlay" id="guideModal">
+      <div class="modal-content p-0 overflow-hidden" style="max-width: 500px;">
+        <div class="relative h-40 bg-gradient-to-br from-zambia-orange to-zambia-copper">
+          <button onclick="closeGuideModal()" class="absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center z-10 bg-white/20 hover:bg-white/40 text-white transition-all">
+            <i class="fas fa-times"></i>
+          </button>
+          <div class="absolute -bottom-10 left-8">
+            <img id="guideModalImg" src="" alt="" class="w-24 h-24 rounded-2xl border-4 object-cover shadow-xl" style="border-color: var(--bg-card)">
+          </div>
+        </div>
+        <div class="pt-14 p-8">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <h2 id="guideModalName" class="text-2xl font-bold" style="color: var(--text-primary)"></h2>
+              <p id="guideModalSpecialty" class="text-zambia-orange font-semibold"></p>
+            </div>
+            <div class="text-right">
+              <div class="flex items-center gap-1 text-yellow-500 font-bold">
+                <i class="fas fa-star"></i>
+                <span id="guideModalRating"></span>
+              </div>
+              <p id="guideModalPrice" class="text-green-600 font-bold text-lg"></p>
+            </div>
+          </div>
+          
+          <div class="mb-6">
+            <h3 class="text-xs font-bold uppercase tracking-wider mb-2 opacity-60" style="color: var(--text-primary)">About</h3>
+            <p id="guideModalBio" class="text-sm leading-relaxed" style="color: var(--text-primary)"></p>
+          </div>
+          
+          <div class="mb-6">
+            <h3 class="text-xs font-bold uppercase tracking-wider mb-2 opacity-60" style="color: var(--text-primary)">Languages</h3>
+            <p id="guideModalLanguages" class="text-sm" style="color: var(--text-primary)"></p>
+          </div>
+          
+          <div class="mb-8">
+            <h3 class="text-xs font-bold uppercase tracking-wider mb-2 opacity-60" style="color: var(--text-primary)">Recent Reviews</h3>
+            <div id="guideModalReviews"></div>
+          </div>
+          
+          <button id="guideBookBtn" class="btn-primary w-full">Book This Guide</button>
+        </div>
       </div>
     </div>
   </div>
@@ -3953,6 +4000,8 @@
     window.findTravelBuddies = findTravelBuddies;
     window.connectBuddy = connectBuddy;
     window.bookGuide = bookGuide;
+    window.openGuideModal = openGuideModal;
+    window.closeGuideModal = closeGuideModal;
     window.bookTransport = bookTransport;
     window.confirmTransport = confirmTransport;
     window.bookActivity = bookActivity;
