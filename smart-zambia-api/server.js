@@ -5,8 +5,30 @@ import pool from './db.js';
 import dotenv from 'dotenv';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import * as Sentry from '@sentry/node';
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
 dotenv.config();
+
+const app = express();
+
+// Initialize Sentry (must be done before any other middleware)
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV || 'development',
+    integrations: [
+      new Sentry.Integrations.Http({ tracing: true }),
+      new Sentry.Integrations.Express({ app }),
+      nodeProfilingIntegration(),
+    ],
+    tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+    profilesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+  });
+  
+  app.use(Sentry.Handlers.requestHandler());
+  app.use(Sentry.Handlers.tracingHandler());
+}
 
 // Validate required environment variables
 if (!process.env.JWT_SECRET) {
@@ -14,7 +36,6 @@ if (!process.env.JWT_SECRET) {
   process.exit(1);
 }
 
-const app = express();
 const { PORT = 3001, JWT_SECRET } = process.env;
 
 // Middleware
@@ -550,14 +571,37 @@ app.get('/api/destinations/:id/weather', async (req, res) => {
   }
 });
 
-// Get user notifications
+// Get user notifications with pagination
 app.get('/api/notifications', authenticateToken, async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 20',
-      [req.user.id]
-    );
-    res.json(result.rows);
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(Math.max(1, parseInt(req.query.limit) || 20), 100);
+    const offset = (page - 1) * limit;
+    
+    const [data, countResult] = await Promise.all([
+      pool.query(
+        'SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3',
+        [req.user.id, limit, offset]
+      ),
+      pool.query(
+        'SELECT COUNT(*) FROM notifications WHERE user_id = $1',
+        [req.user.id]
+      )
+    ]);
+    
+    const total = parseInt(countResult.rows[0].count);
+    
+    res.json({
+      data: data.rows,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1
+      }
+    });
   } catch (err) {
     console.error('Notifications error:', err);
     res.status(500).json({ error: 'Failed to get notifications' });
@@ -578,21 +622,41 @@ app.put('/api/notifications/:id/read', authenticateToken, async (req, res) => {
   }
 });
 
-// Get social feed
+// Get social feed with pagination
 app.get('/api/social/feed', authenticateToken, async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT sp.*, u.full_name, up.profile_image_url,
-             d.name as destination_name, cr.title as report_title
-      FROM social_posts sp
-      JOIN users u ON sp.user_id = u.id
-      LEFT JOIN user_profiles up ON u.id = up.user_id
-      LEFT JOIN destinations d ON sp.destination_id = d.id
-      LEFT JOIN civic_reports cr ON sp.civic_report_id = cr.id
-      ORDER BY sp.created_at DESC
-      LIMIT 50
-    `);
-    res.json(result.rows);
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(Math.max(1, parseInt(req.query.limit) || 20), 50);
+    const offset = (page - 1) * limit;
+    
+    const [data, countResult] = await Promise.all([
+      pool.query(`
+        SELECT sp.*, u.full_name, up.profile_image_url,
+               d.name as destination_name, cr.title as report_title
+        FROM social_posts sp
+        JOIN users u ON sp.user_id = u.id
+        LEFT JOIN user_profiles up ON u.id = up.user_id
+        LEFT JOIN destinations d ON sp.destination_id = d.id
+        LEFT JOIN civic_reports cr ON sp.civic_report_id = cr.id
+        ORDER BY sp.created_at DESC
+        LIMIT $1 OFFSET $2
+      `, [limit, offset]),
+      pool.query('SELECT COUNT(*) FROM social_posts')
+    ]);
+    
+    const total = parseInt(countResult.rows[0].count);
+    
+    res.json({
+      data: data.rows,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1
+      }
+    });
   } catch (err) {
     console.error('Feed error:', err);
     res.status(500).json({ error: 'Failed to get feed' });
@@ -757,35 +821,61 @@ app.post('/api/civic/achievement', authenticateToken, async (req, res) => {
 // ========================
 
 // Get all civic reports (admin)
-app.get('/api/admin/civic-reports', authenticateToken, async (req, res) => {
+app.get('/api/admin/civic-reports', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const { status, type, limit = 50 } = req.query;
+    const { status, type } = req.query;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(Math.max(1, parseInt(req.query.limit) || 20), 100);
+    const offset = (page - 1) * limit;
+    
     let query = `
       SELECT cr.*, u.full_name, u.email 
       FROM civic_reports cr 
       JOIN users u ON cr.user_id = u.id 
       WHERE 1=1
     `;
+    let countQuery = 'SELECT COUNT(*) FROM civic_reports cr WHERE 1=1';
     const params = [];
+    const countParams = [];
     let paramIndex = 1;
     
     if (status) {
       query += ` AND cr.status = $${paramIndex}`;
+      countQuery += ` AND cr.status = $${paramIndex}`;
       params.push(status);
+      countParams.push(status);
       paramIndex++;
     }
     
     if (type) {
       query += ` AND cr.type = $${paramIndex}`;
+      countQuery += ` AND cr.type = $${paramIndex}`;
       params.push(type);
+      countParams.push(type);
       paramIndex++;
     }
     
-    query += ` ORDER BY cr.created_at DESC LIMIT $${paramIndex}`;
-    params.push(parseInt(limit));
+    query += ` ORDER BY cr.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+    params.push(limit, offset);
     
-    const result = await pool.query(query, params);
-    res.json(result.rows);
+    const [data, countResult] = await Promise.all([
+      pool.query(query, params),
+      pool.query(countQuery, countParams)
+    ]);
+    
+    const total = parseInt(countResult.rows[0].count);
+    
+    res.json({
+      data: data.rows,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1
+      }
+    });
   } catch (err) {
     console.error('Admin reports error:', err);
     res.status(500).json({ error: 'Failed to fetch reports' });
@@ -1038,10 +1128,29 @@ app.post('/api/me/profile/image', authenticateToken, async (req, res) => {
 });
 
 // ========================
+// ERROR HANDLING
+// ========================
+
+// Sentry error handler (must be before other error handlers)
+if (process.env.SENTRY_DSN) {
+  app.use(Sentry.Handlers.errorHandler());
+}
+
+// Custom error handler
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal server error',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
+});
+
+// ========================
 // START SERVER
 // ========================
 
 app.listen(PORT, () => {
   console.log(`✅ Smart Zambia API running on http://localhost:${PORT}`);
   console.log(`🔐 JWT Secret: ${JWT_SECRET.substring(0, 8)}... (for dev only)`);
+  console.log(`📊 Monitoring: ${process.env.SENTRY_DSN ? 'Enabled' : 'Disabled'}`);
 });
