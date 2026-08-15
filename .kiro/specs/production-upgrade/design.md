@@ -1,756 +1,928 @@
-# Design Document: Smart Zambia Production Upgrade
+# Technical Design Document
 
 ## Overview
 
-The Smart Zambia Production Upgrade transforms the existing localStorage-based MVP (70% complete) into a fully production-ready tourism gamification platform with persistent data storage, enterprise-grade security, role-based access control, and comprehensive testing. This upgrade addresses the fundamental architecture limitations that prevent the current system from being deployed to production.
+### Purpose
 
-### Current State
+This design specifies the technical architecture for upgrading the Smart Zambia tourism gamification platform from an MVP state (70% complete, localStorage-only) to a production-ready system. The upgrade encompasses:
 
-The Smart Zambia platform currently consists of:
-- **Frontend**: Static HTML/CSS/JavaScript application serving 21 Zambian tourist destinations
-- **Data Storage**: Browser localStorage for all user data (non-persistent across devices/sessions)
-- **Authentication**: None - users identified only by localStorage entries
-- **Backend**: Basic Express.js API with PostgreSQL (schema exists but largely unused by frontend)
-- **Features**: Daily check-ins, XP system, achievements, trip planner, favorites (all localStorage-based)
-- **Deployment**: Attempted Vercel deployment with configuration issues
+- **Backend Migration**: Transitioning from localStorage to Supabase (PostgreSQL database, authentication, storage, real-time capabilities)
+- **Role-Based Access Control**: Implementing a four-tier user system (International Tourist, Local Tourist, Tour Guide, Admin) with granular permissions
+- **Production Deployment**: Configuring Vercel deployment with proper environment management and CI/CD
+- **Feature Completion**: Implementing persistent trip planner, favorites, search history, notifications, and booking management
+- **Security Hardening**: Implementing RLS policies, rate limiting, input sanitization, audit trails, and secure credential management
+- **Comprehensive Testing**: Unit, integration, E2E, cross-browser, mobile, performance, security, and accessibility testing
+- **Production Infrastructure**: Analytics, error monitoring, SEO, email templates, PWA features, payment integration
 
-### Target State
+### Context
 
-The production-ready system will feature:
-- **Backend**: Supabase Backend-as-a-Service (PostgreSQL + Authentication + Storage + Realtime)
-- **Authentication**: Secure Supabase Auth with email/password and social OAuth (Google, Facebook)
-- **Role System**: Four-tier role-based access control (International Tourist, Local Tourist, Tour Guide, Admin)
-- **Data Persistence**: All user data, bookings, content stored in Supabase with Row Level Security
-- **Real-Time Features**: Live notifications, chat, dashboard updates via Supabase Realtime
-- **Payment Integration**: Stripe for international payments, mobile money for local payments
-- **Deployment**: Production-ready Vercel configuration with proper environment management
-- **Testing**: Comprehensive unit, integration, E2E, performance, and security testing
+The Smart Zambia platform currently features:
+- 21 destinations across Zambian provinces
+- Daily check-in system with XP rewards
+- Gamification system (XP, levels, achievements, streaks)
+- User profiles with stats tracking
+- Responsive UI with Tailwind CSS
+- Basic PostgreSQL backend via Express API
 
-### Design Principles
+**Current Limitations:**
+- Temporary localStorage data storage (lost on browser clear)
+- No persistent authentication system
+- Single "user" role without granular permissions
+- Incomplete Vercel deployment configuration
+- Missing production features (payments, monitoring, comprehensive testing)
+- No multi-language support or local payment methods
+- Security vulnerabilities (exposed credentials, no rate limiting, no RLS policies)
 
-1. **Migration-First**: Preserve existing user data and features during transition
-2. **Security by Default**: Implement defense-in-depth with multiple security layers
-3. **Role-Based Everything**: All features filtered through role-based permissions
-4. **Real-Time by Design**: Leverage Supabase Realtime for instant updates
-5. **Test-Driven Confidence**: Comprehensive testing at all levels before production
-6. **Progressive Enhancement**: Build PWA features for mobile-first experience
-7. **Scalable Architecture**: Design for 100+ concurrent users with growth path
+### Goals
+
+1. **Data Persistence**: Migrate all user data from localStorage to Supabase PostgreSQL with real-time synchronization
+2. **Secure Authentication**: Implement Supabase Auth with email/password and OAuth providers (Google, Facebook)
+3. **Role-Based System**: Create four distinct user roles with appropriate permissions and features
+4. **Production Deployment**: Configure Vercel with proper build settings, environment variables, and SSL/HTTPS
+5. **Feature Parity**: Complete all partially implemented features with database persistence
+6. **Security Compliance**: Harden security with RLS policies, rate limiting, input validation, and audit trails
+7. **Testing Coverage**: Achieve 80%+ code coverage with comprehensive test suites
+8. **Production Readiness**: Implement monitoring, analytics, error tracking, backups, and documentation
 
 
 ## Architecture
 
-### High-Level System Architecture
+### System Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                                USERS                                     │
-│  [International Tourists] [Local Tourists] [Tour Guides] [Admins]       │
-└────────────────────────────────┬────────────────────────────────────────┘
-                                 │ HTTPS
-                                 ▼
+│                          CLIENT LAYER                                    │
+│  ┌───────────────────────────────────────────────────────────────────┐  │
+│  │  Web Browser (Desktop, Mobile, Tablet)                            │  │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐           │  │
+│  │  │ HTML/Tailwind│  │ JavaScript   │  │ PWA Service  │           │  │
+│  │  │ CSS UI       │  │ Application  │  │ Worker       │           │  │
+│  │  └──────────────┘  └──────────────┘  └──────────────┘           │  │
+│  └───────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    │ HTTPS
+                                    ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                         VERCEL EDGE NETWORK                              │
-│  [CDN] [SSL/TLS] [DDoS Protection] [Global Distribution]               │
-└────────────────────────────────┬────────────────────────────────────────┘
-                                 │
-                                 ▼
+│                     VERCEL EDGE NETWORK                                  │
+│  ┌───────────────────────────────────────────────────────────────────┐  │
+│  │  CDN Edge Nodes (Global Distribution)                            │  │
+│  │  - Static Asset Caching                                          │  │
+│  │  - Image Optimization                                            │  │
+│  │  - Code Splitting Delivery                                       │  │
+│  │  - SSL/TLS Termination                                           │  │
+│  └───────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    │
+                                    ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                      FRONTEND APPLICATION                                │
-│  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │  Static Assets (HTML, CSS, JS)                                   │  │
-│  │  - Service Worker (PWA, offline support)                         │  │
-│  │  - Code Splitting (route-based lazy loading)                     │  │
-│  │  - Optimized Images (WebP, responsive)                           │  │
-│  └──────────────────────────────────────────────────────────────────┘  │
-│  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │  Client-Side Application Logic                                   │  │
-│  │  - Authentication State Management                               │  │
-│  │  - Role-Based UI Rendering                                       │  │
-│  │  - Real-Time Subscription Handlers                               │  │
-│  │  - Offline-First Data Sync                                       │  │
-│  └──────────────────────────────────────────────────────────────────┘  │
-└────────────────────────────────┬────────────────────────────────────────┘
-                                 │
-                                 ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         SUPABASE BACKEND                                 │
-│  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │  Supabase Auth                                                   │  │
-│  │  - Email/Password Authentication                                 │  │
-│  │  - Google OAuth                                                  │  │
-│  │  - Facebook OAuth                                                │  │
-│  │  - JWT Token Management                                          │  │
-│  │  - Session Handling (30-min timeout)                             │  │
-│  └──────────────────────────────────────────────────────────────────┘  │
-│  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │  Supabase Database (PostgreSQL)                                  │  │
-│  │  - Row Level Security (RLS) Policies                             │  │
-│  │  - Relational Data Models                                        │  │
-│  │  - Full-Text Search Indexes                                      │  │
-│  │  - Materialized Views for Analytics                              │  │
-│  └──────────────────────────────────────────────────────────────────┘  │
-│  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │  Supabase Storage                                                │  │
-│  │  - User Profile Images                                           │  │
-│  │  - Destination Photos                                            │  │
-│  │  - Review Images                                                 │  │
-│  │  - Tour Guide Verification Documents                             │  │
-│  └──────────────────────────────────────────────────────────────────┘  │
-│  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │  Supabase Realtime                                               │  │
-│  │  - WebSocket Connections                                         │  │
-│  │  - Live Notifications                                            │  │
-│  │  - Chat Messages                                                 │  │
-│  │  - Dashboard Updates                                             │  │
-│  └──────────────────────────────────────────────────────────────────┘  │
-└────────────────────────────────┬────────────────────────────────────────┘
-                                 │
-                ┌────────────────┴──────────────────┐
-                │                                   │
-                ▼                                   ▼
-┌──────────────────────────────────┐  ┌─────────────────────────────────────┐
-│  Third-Party Integrations        │  │  Monitoring & Analytics             │
-│  - Stripe (International)        │  │  - Google Analytics 4               │
-│  - Mobile Money (Local)          │  │  - Sentry Error Tracking            │
-│  - Google Maps API               │  │  - Vercel Analytics                 │
-│  - SendGrid (Email)              │  │  - Uptime Monitoring                │
-└──────────────────────────────────┘  └─────────────────────────────────────┘
+│                     SUPABASE BACKEND                                     │
+│  ┌──────────────────────────────────────────────────────────────────┐   │
+│  │  Authentication Service                                          │   │
+│  │  - Email/Password Auth                                           │   │
+│  │  - OAuth (Google, Facebook)                                      │   │
+│  │  - JWT Token Management                                          │   │
+│  │  - Session Handling                                              │   │
+│  └──────────────────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────────────────┐   │
+│  │  PostgreSQL Database (with RLS)                                  │   │
+│  │  - User profiles & roles                                         │   │
+│  │  - Destinations & reviews                                        │   │
+│  │  - Bookings & payments                                           │   │
+│  │  - Gamification data                                             │   │
+│  └──────────────────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────────────────┐   │
+│  │  Storage Service                                                 │   │
+│  │  - User profile images                                           │   │
+│  │  - Destination photos                                            │   │
+│  │  - Review images                                                 │   │
+│  │  - Tour guide documents                                          │   │
+│  └──────────────────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────────────────┐   │
+│  │  Realtime Service                                                │   │
+│  │  - Live notifications                                            │   │
+│  │  - Chat messages                                                 │   │
+│  │  - Booking updates                                               │   │
+│  │  - Admin dashboard data                                          │   │
+│  └──────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ├─────────────────────┐
+                                    ▼                     ▼
+┌──────────────────────────────────────┐  ┌──────────────────────────────┐
+│      EXTERNAL SERVICES               │  │   MONITORING & ANALYTICS      │
+│  ┌────────────────────────────────┐  │  │  ┌─────────────────────────┐ │
+│  │  Payment Processing            │  │  │  │  Google Analytics 4     │ │
+│  │  - Stripe (International)      │  │  │  └─────────────────────────┘ │
+│  │  - Mobile Money (Local)        │  │  │  ┌─────────────────────────┐ │
+│  └────────────────────────────────┘  │  │  │  Sentry Error Tracking  │ │
+│  ┌────────────────────────────────┐  │  │  └─────────────────────────┘ │
+│  │  Email Services                │  │  │  ┌─────────────────────────┐ │
+│  │  - Transactional emails        │  │  │  │  Vercel Analytics       │ │
+│  │  - Notification emails         │  │  │  └─────────────────────────┘ │
+│  └────────────────────────────────┘  │  └──────────────────────────────┘
+└──────────────────────────────────────┘
 ```
 
-### Architecture Decisions
+### Technology Stack
 
-#### Why Supabase Over Custom Backend?
+**Frontend:**
+- HTML5 + Tailwind CSS (responsive UI framework)
+- Vanilla JavaScript (ES6+ modules)
+- Supabase JavaScript Client (@supabase/supabase-js)
+- Service Worker (PWA offline support)
+- Vite (build tool for optimization)
 
-**Decision**: Migrate from custom Express/PostgreSQL backend to Supabase Backend-as-a-Service.
+**Backend:**
+- Supabase PostgreSQL (primary database)
+- Supabase Auth (authentication service)
+- Supabase Storage (file/image storage)
+- Supabase Realtime (WebSocket connections)
+- Row Level Security (RLS) policies
 
-**Rationale**:
-1. **Authentication Built-In**: Supabase provides enterprise-grade auth (email/password, OAuth) out of the box, eliminating custom JWT implementation risks
-2. **Row Level Security**: Database-level security policies ensure data isolation between users without application-level permission checks
-3. **Real-Time Capabilities**: WebSocket infrastructure for live updates without managing connection pools or scaling concerns
-4. **Automatic API Generation**: REST and GraphQL APIs auto-generated from database schema
-5. **Managed Infrastructure**: Automatic backups, scaling, monitoring without DevOps overhead
-6. **Time to Production**: Reduces development time by 60-70% compared to building equivalent features
+**Deployment:**
+- Vercel (frontend hosting and CDN)
+- GitHub Actions (CI/CD pipeline)
+- Environment-based configuration
 
-**Trade-offs**:
-- Vendor lock-in to Supabase (mitigated: PostgreSQL underneath allows data portability)
-- Less control over infrastructure (acceptable: focus is on business logic, not infrastructure)
-- Cost scaling with usage (acceptable: pricing competitive with self-hosted at 100-1000 users)
-
-#### Frontend-Only Deployment on Vercel
-
-**Decision**: Deploy frontend as static site on Vercel, backend on Supabase (no custom API server).
-
-**Rationale**:
-1. **Serverless Architecture**: No server maintenance, automatic scaling
-2. **Edge Network**: Global CDN reduces latency for international tourists
-3. **Zero-Config Deployment**: Git push triggers automatic builds
-4. **Cost Efficiency**: Free tier sufficient for MVP, scales with usage
+**External Services:**
+- Stripe (international payment processing)
+- Mobile Money API (local Zambian payments)
+- Google Analytics 4 (user behavior tracking)
+- Sentry (error monitoring and reporting)
+- Email service provider (transactional emails)
 
 
-#### Four-Tier Role System
+### Layered Architecture
 
-**Decision**: Implement hierarchical role system with distinct permissions per role.
+The application follows a clean layered architecture:
 
-**Roles**:
-1. **International Tourist**: Browse, book, review, earn XP (USD pricing, international payments)
-2. **Local Tourist**: All International Tourist features + local discounts, ZMW pricing, mobile money, civic features, local language support
-3. **Tour Guide**: Manage bookings, view earnings, chat with tourists, availability calendar (cannot write reviews to avoid conflicts of interest)
-4. **Admin**: Full system access, user management, content moderation, analytics, tour guide verification
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    PRESENTATION LAYER                        │
+│  - HTML pages (index.html, profile.html, admin.html)       │
+│  - Tailwind CSS styles                                      │
+│  - UI components (modals, cards, navigation)               │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    APPLICATION LAYER                         │
+│  - main.js (application orchestration)                      │
+│  - User interaction handlers                                │
+│  - State management                                         │
+│  - Routing logic                                            │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     SERVICE LAYER                            │
+│  - auth-service.js (authentication)                         │
+│  - destination-service.js (destination operations)          │
+│  - booking-service.js (booking management)                  │
+│  - gamification-service.js (XP, achievements)               │
+│  - notification-service.js (real-time notifications)        │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     DATA ACCESS LAYER                        │
+│  - supabase-client.js (Supabase initialization)            │
+│  - database queries (CRUD operations)                       │
+│  - Real-time subscriptions                                  │
+│  - Storage operations                                        │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    SUPABASE BACKEND                          │
+│  - PostgreSQL Database                                      │
+│  - Authentication Service                                   │
+│  - Storage Buckets                                          │
+│  - Realtime Engine                                          │
+└─────────────────────────────────────────────────────────────┘
+```
 
-**Rationale**: Different user types have fundamentally different needs and pricing structures, requiring distinct permission sets and UI experiences.
+### Security Architecture
 
-### Migration Strategy
+**Defense in Depth Strategy:**
 
-#### Phase 1: Parallel Infrastructure (Week 1)
+1. **Transport Security**
+   - HTTPS/TLS 1.3 for all connections
+   - HSTS headers to enforce HTTPS
+   - Secure cookie flags (HttpOnly, Secure, SameSite)
 
-1. Set up Supabase project and configure authentication providers
-2. Create database schema matching current localStorage structure
-3. Implement RLS policies for all tables
-4. Deploy Supabase client library to frontend (no breaking changes)
+2. **Authentication Security**
+   - Supabase Auth with JWT tokens
+   - OAuth 2.0 for social login
+   - Password complexity requirements
+   - Rate-limited login attempts (5 attempts per 15 minutes)
+   - Session expiration after 30 minutes of inactivity
 
-#### Phase 2: Feature-by-Feature Migration (Weeks 2-4)
+3. **Authorization Security**
+   - Row Level Security (RLS) policies on all tables
+   - Role-based access control (4 tiers)
+   - API endpoint authorization checks
+   - Resource-level permissions
 
-Migrate one feature at a time to minimize risk:
+4. **Data Security**
+   - Input validation (client and server side)
+   - Output encoding to prevent XSS
+   - Parameterized queries to prevent SQL injection
+   - CSRF token validation
+   - Sensitive data encryption at rest
 
-1. **Authentication** (Week 2): Implement Supabase Auth, add registration/login screens
-2. **User Profiles** (Week 2): Migrate user data from localStorage to users table
-3. **Daily Check-Ins** (Week 3): Migrate check-in history, implement streak calculation in database
-4. **XP & Achievements** (Week 3): Migrate gamification data, implement leaderboard
-5. **Trip Planner** (Week 3): Migrate saved trips, implement sharing
-6. **Favorites** (Week 4): Migrate favorite destinations, implement collections
-7. **Search History** (Week 4): Implement search logging and suggestions
-
-#### Phase 3: New Production Features (Weeks 5-6)
-
-1. **Role System**: Implement four-tier roles with RLS policies
-2. **Real-Time**: Add notifications, chat, live dashboard updates
-3. **Payments**: Integrate Stripe and mobile money
-4. **Admin Dashboard**: Build live analytics and moderation tools
-
-#### Phase 4: Testing & Launch Preparation (Weeks 7-8)
-
-1. **Testing**: Execute comprehensive test suite (unit, integration, E2E, performance, security)
-2. **Security Audit**: Review all RLS policies, authentication flows, input validation
-3. **Performance Optimization**: Implement code splitting, lazy loading, caching
-4. **Beta Testing**: Deploy to staging, gather feedback from 20+ beta users
-5. **Documentation**: Complete all technical and user documentation
+5. **Application Security**
+   - Rate limiting on all API endpoints
+   - CORS configuration (restricted origins)
+   - Content Security Policy (CSP) headers
+   - X-Frame-Options to prevent clickjacking
+   - Audit logging for sensitive operations
 
 
 ## Components and Interfaces
 
-### Authentication Layer
-
-#### Supabase Auth Integration
-
-**Components**:
-- `AuthService`: Wrapper around Supabase Auth client
-- `AuthContext`: React/vanilla JS context for auth state management
-- `ProtectedRoute`: Component/function to guard authenticated routes
-- `RoleGuard`: Component/function to enforce role-based access
-
-**Key Methods**:
-```javascript
-// AuthService Interface
-class AuthService {
-  async signUp(email, password, role, additionalData)
-  async signIn(email, password)
-  async signInWithGoogle()
-  async signInWithFacebook()
-  async signOut()
-  async resetPassword(email)
-  async updatePassword(newPassword)
-  async getSession()
-  async refreshSession()
-  onAuthStateChange(callback)
-}
-```
-
-**Authentication Flow**:
-1. User submits credentials via login/registration form
-2. Frontend calls `AuthService.signUp()` or `AuthService.signIn()`
-3. Supabase validates credentials, returns JWT token
-4. Token stored in `localStorage` (persistent) and `AuthContext` (in-memory)
-5. Supabase client automatically includes token in all subsequent requests
-6. RLS policies enforce data access based on `auth.uid()` and role
-
-**Session Management**:
-- JWT tokens expire after 1 hour (Supabase default)
-- Refresh tokens valid for 7 days
-- Automatic refresh 5 minutes before expiration via `AuthService.refreshSession()`
-- Idle timeout: 30 minutes of inactivity triggers logout
-- Token stored in httpOnly cookie (if backend) or localStorage (client-only)
-
-### User Role System
-
-#### Role Assignment
-
-**Role Storage**: `user_roles` table with many-to-many relationship to users
-```sql
-CREATE TABLE user_roles (
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  role TEXT NOT NULL CHECK (role IN ('international_tourist', 'local_tourist', 'tour_guide', 'admin')),
-  granted_at TIMESTAMP DEFAULT NOW(),
-  granted_by UUID REFERENCES auth.users(id),
-  PRIMARY KEY (user_id, role)
-);
-```
-
-**Role Assignment Logic**:
-- **International Tourist**: Default role assigned on registration
-- **Local Tourist**: Requires Zambian phone number verification or NRC validation
-- **Tour Guide**: Requires application submission + admin approval + document verification
-- **Admin**: Manually assigned by existing admin (seeded during initial setup)
-
-
-#### Role-Based Access Control (RBAC)
-
-**Permission Matrix**:
-
-| Feature | International Tourist | Local Tourist | Tour Guide | Admin |
-|---------|----------------------|---------------|------------|-------|
-| Browse destinations | ✓ | ✓ | ✓ | ✓ |
-| Book trips | ✓ | ✓ | ✗ | ✓ |
-| Write reviews | ✓ | ✓ | ✗ | ✓ |
-| View reviews | ✓ | ✓ | ✓ | ✓ |
-| Trip planner | ✓ | ✓ | ✗ | ✓ |
-| Favorites | ✓ | ✓ | ✗ | ✓ |
-| Daily check-in | ✓ | ✓ | ✗ | ✓ |
-| XP & Achievements | ✓ | ✓ | ✗ | ✓ |
-| Local discounts | ✗ | ✓ | ✗ | ✓ |
-| Mobile money payment | ✗ | ✓ | ✓ | ✓ |
-| Local language | ✗ | ✓ | ✓ | ✓ |
-| Civic engagement | ✗ | ✓ | ✗ | ✓ |
-| Tour dashboard | ✗ | ✗ | ✓ | ✓ |
-| Manage bookings | Own only | Own only | Assigned | All |
-| Chat with tourists | ✗ | ✗ | ✓ | ✓ |
-| View earnings | ✗ | ✗ | ✓ | ✓ |
-| User management | ✗ | ✗ | ✗ | ✓ |
-| Content moderation | ✗ | ✗ | ✗ | ✓ |
-| Verify tour guides | ✗ | ✗ | ✗ | ✓ |
-| Analytics dashboard | ✗ | ✗ | ✗ | ✓ |
-| System settings | ✗ | ✗ | ✗ | ✓ |
-
-**RLS Policy Examples**:
-
-```sql
--- Bookings: Users can view their own bookings, tour guides see assigned, admins see all
-CREATE POLICY "view_bookings" ON bookings
-  FOR SELECT
-  USING (
-    auth.uid() = user_id OR
-    auth.uid() = tour_guide_id OR
-    EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin')
-  );
-
--- Reviews: Anyone can read, only tourists can create, admins can delete
-CREATE POLICY "create_reviews" ON reviews
-  FOR INSERT
-  WITH CHECK (
-    auth.uid() = user_id AND
-    EXISTS (
-      SELECT 1 FROM user_roles
-      WHERE user_id = auth.uid()
-      AND role IN ('international_tourist', 'local_tourist')
-    )
-  );
-
--- User management: Only admins can update user data
-CREATE POLICY "admin_update_users" ON profiles
-  FOR UPDATE
-  USING (
-    EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin')
-  );
-```
-
-
 ### Frontend Components
 
-#### Core UI Components
+#### 1. Authentication Module (`auth-service.js`)
 
-**`<DestinationCard>`**: Displays destination with role-based pricing
-- Props: `destination`, `userRole`
-- Displays USD for international tourists, ZMW for local tourists/guides
-- Shows "Local Discount" badge for local tourists
-- Renders appropriate booking button based on role
+**Responsibilities:**
+- User registration and login
+- OAuth integration (Google, Facebook)
+- Session management
+- Token refresh
+- Password reset functionality
 
-**`<BookingForm>`**: Multi-step booking wizard
-- Step 1: Select dates and group size
-- Step 2: Choose payment method (Stripe for international, mobile money for local)
-- Step 3: Confirm and pay
-- Role-based pricing calculation
-- Integration with Stripe/mobile money APIs
+**Key Methods:**
+```javascript
+async register(email, password, userData)
+async login(email, password)
+async loginWithOAuth(provider)
+async logout()
+async resetPassword(email)
+async updatePassword(newPassword)
+async getSession()
+async refreshSession()
+```
 
-**`<Notification>`**: Real-time notification component
-- Subscribes to Supabase Realtime channel: `notifications:{user_id}`
-- Displays toast notifications for new bookings, achievements, messages
-- Mark as read/unread functionality
-- Category filtering (bookings, achievements, messages, system)
+**Interface with Supabase:**
+```javascript
+import { createClient } from '@supabase/supabase-js'
 
-**`<ChatWidget>`**: Real-time chat interface
-- Available for tourists chatting with their assigned tour guide
-- Supabase Realtime for instant message delivery
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+// Registration
+const { data, error } = await supabase.auth.signUp({
+  email,
+  password,
+  options: {
+    data: { full_name, role }
+  }
+})
+
+// Login
+const { data, error } = await supabase.auth.signInWithPassword({
+  email,
+  password
+})
+
+// OAuth
+const { data, error } = await supabase.auth.signInWithOAuth({
+  provider: 'google'
+})
+```
+
+#### 2. User Profile Module (`profile-service.js`)
+
+**Responsibilities:**
+- Fetch and update user profile data
+- Upload profile images
+- Manage user preferences
+- Track user statistics (XP, level, check-ins)
+
+**Key Methods:**
+```javascript
+async getUserProfile(userId)
+async updateProfile(userId, profileData)
+async uploadProfileImage(file)
+async getUserStats(userId)
+async updateUserPreferences(preferences)
+```
+
+#### 3. Destination Module (`destination-service.js`)
+
+**Responsibilities:**
+- Browse and search destinations
+- Filter destinations by criteria
+- Manage favorites
+- Submit reviews and ratings
+
+**Key Methods:**
+```javascript
+async getDestinations(filters)
+async getDestinationById(id)
+async searchDestinations(query)
+async addToFavorites(destinationId)
+async removeFromFavorites(destinationId)
+async getFavorites(userId)
+async submitReview(destinationId, rating, comment, images)
+```
+
+#### 4. Booking Module (`booking-service.js`)
+
+**Responsibilities:**
+- Create and manage bookings
+- Process payments
+- Track booking status
+- Handle cancellations and modifications
+
+**Key Methods:**
+```javascript
+async createBooking(bookingData)
+async getBookings(userId)
+async getBookingById(bookingId)
+async cancelBooking(bookingId)
+async updateBooking(bookingId, updates)
+async processPayment(bookingId, paymentMethod)
+```
+
+#### 5. Gamification Module (`gamification-service.js`)
+
+**Responsibilities:**
+- Calculate and award XP
+- Manage achievements
+- Track check-in streaks
+- Update user levels
+- Manage leaderboards
+
+**Key Methods:**
+```javascript
+async awardXP(userId, amount, reason)
+async unlockAchievement(userId, achievementId)
+async getAchievements(userId)
+async recordCheckIn(userId, destinationId)
+async getCheckInStreak(userId)
+async getLeaderboard(limit)
+async calculateLevel(xp)
+```
+
+#### 6. Notification Module (`notification-service.js`)
+
+**Responsibilities:**
+- Subscribe to real-time notifications
+- Display notifications to users
+- Mark notifications as read
+- Manage notification preferences
+
+**Key Methods:**
+```javascript
+async subscribeToNotifications(userId, callback)
+async getNotifications(userId)
+async markAsRead(notificationId)
+async markAllAsRead(userId)
+async getUnreadCount(userId)
+async updateNotificationPreferences(userId, preferences)
+```
+
+
+#### 7. Chat Module (`chat-service.js`)
+
+**Responsibilities:**
+- Real-time messaging between tourists and tour guides
+- Chat history retrieval
 - Typing indicators
-- Image upload support
-- Unread message count badge
+- Image sharing
 
-**`<AdminDashboard>`**: Live analytics dashboard
-- Real-time metrics: active users, bookings today, revenue
-- Chart components: user growth, popular destinations, revenue trends
-- Content moderation queue
-- Tour guide verification queue
-- Uses Supabase Realtime subscriptions for live updates
-
-**`<TourGuideDashboard>`**: Tour guide management interface
-- Upcoming bookings calendar
-- Assigned tourist groups
-- Earnings tracker with monthly breakdown
-- Availability management
-- Review and rating display
-
-#### Data Fetching Strategy
-
-**Supabase Client Patterns**:
-
+**Key Methods:**
 ```javascript
-// Simple fetch with RLS automatic filtering
-const { data, error } = await supabase
-  .from('destinations')
-  .select('*')
-  .eq('featured', true);
+async sendMessage(conversationId, message)
+async getConversation(conversationId)
+async subscribeToConversation(conversationId, callback)
+async uploadChatImage(file)
+async markConversationAsRead(conversationId)
+async getConversations(userId)
+```
 
-// Real-time subscription
-const subscription = supabase
-  .channel('public:notifications')
-  .on('postgres_changes', {
-    event: 'INSERT',
-    schema: 'public',
-    table: 'notifications',
-    filter: `user_id=eq.${userId}`
-  }, (payload) => {
-    displayNotification(payload.new);
+#### 8. Admin Dashboard Module (`admin-service.js`)
+
+**Responsibilities:**
+- User management
+- Content moderation
+- Analytics and reporting
+- System configuration
+
+**Key Methods:**
+```javascript
+async getUsers(filters)
+async updateUserRole(userId, newRole)
+async suspendUser(userId, reason)
+async getDashboardStats()
+async moderateContent(contentId, action)
+async approveTourGuide(applicationId)
+async addDestination(destinationData)
+async updateDestination(destinationId, updates)
+```
+
+#### 9. Trip Planner Module (`trip-planner-service.js`)
+
+**Responsibilities:**
+- Create and save trip plans
+- Add destinations to itinerary
+- Share trip plans
+- Export to PDF
+
+**Key Methods:**
+```javascript
+async createTripPlan(planData)
+async getTripPlans(userId)
+async getTripPlanById(planId)
+async updateTripPlan(planId, updates)
+async deleteTripPlan(planId)
+async shareTripPlan(planId)
+async exportToPDF(planId)
+```
+
+#### 10. Payment Module (`payment-service.js`)
+
+**Responsibilities:**
+- Process Stripe payments (international)
+- Process Mobile Money payments (local)
+- Handle refunds
+- Track transaction history
+
+**Key Methods:**
+```javascript
+async createPaymentIntent(amount, currency)
+async confirmPayment(paymentIntentId)
+async processMobileMoneyPayment(phoneNumber, amount)
+async refundPayment(transactionId, amount)
+async getTransactionHistory(userId)
+```
+
+### Backend Components (Supabase Functions)
+
+#### 1. Database Functions
+
+**Calculate XP Function:**
+```sql
+CREATE OR REPLACE FUNCTION calculate_xp(user_id BIGINT, action TEXT)
+RETURNS INTEGER AS $$
+DECLARE
+  xp_amount INTEGER;
+BEGIN
+  xp_amount := CASE action
+    WHEN 'check_in' THEN 10
+    WHEN 'review' THEN 25
+    WHEN 'booking' THEN 50
+    WHEN 'achievement' THEN 100
+    ELSE 0
+  END;
+  
+  UPDATE users 
+  SET xp = xp + xp_amount,
+      level = FLOOR(xp / 100) + 1
+  WHERE id = user_id;
+  
+  RETURN xp_amount;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+**Check Streak Function:**
+```sql
+CREATE OR REPLACE FUNCTION check_streak(user_id BIGINT)
+RETURNS INTEGER AS $$
+DECLARE
+  last_check_in DATE;
+  current_streak INTEGER;
+BEGIN
+  SELECT MAX(created_at::DATE), COUNT(DISTINCT created_at::DATE)
+  INTO last_check_in, current_streak
+  FROM check_ins
+  WHERE user_id = user_id
+    AND created_at >= NOW() - INTERVAL '7 days';
+  
+  IF last_check_in = CURRENT_DATE - INTERVAL '1 day' THEN
+    RETURN current_streak + 1;
+  ELSIF last_check_in = CURRENT_DATE THEN
+    RETURN current_streak;
+  ELSE
+    RETURN 1;
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+
+#### 2. Edge Functions (Supabase)
+
+**Send Email Notification:**
+```typescript
+// supabase/functions/send-email/index.ts
+import { serve } from 'std/server'
+
+serve(async (req) => {
+  const { to, subject, template, data } = await req.json()
+  
+  // Email service integration
+  const response = await fetch(EMAIL_SERVICE_URL, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${EMAIL_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      to,
+      subject,
+      html: renderTemplate(template, data)
+    })
   })
-  .subscribe();
-
-// Optimistic updates
-const updateProfile = async (updates) => {
-  // Update UI immediately (optimistic)
-  setProfile({ ...profile, ...updates });
-
-  // Send to database
-  const { error } = await supabase
-    .from('profiles')
-    .update(updates)
-    .eq('id', userId);
-
-  // Rollback on error
-  if (error) {
-    setProfile(profile); // revert
-    showError(error.message);
-  }
-};
+  
+  return new Response(JSON.stringify({ success: true }), {
+    headers: { 'Content-Type': 'application/json' }
+  })
+})
 ```
 
+**Process Payment:**
+```typescript
+// supabase/functions/process-payment/index.ts
+import { serve } from 'std/server'
+import Stripe from 'stripe'
 
-### Payment Integration
+const stripe = new Stripe(STRIPE_SECRET_KEY)
 
-#### Stripe Integration (International Tourists)
-
-**Components**:
-- `StripePaymentForm`: Embedded Stripe Elements for card input
-- `PaymentService`: Wrapper around Stripe API
-
-**Flow**:
-1. User completes booking form with dates and group size
-2. Frontend calculates total price in USD
-3. Frontend creates Stripe Payment Intent via Supabase Edge Function
-4. User enters card details in Stripe Elements (PCI-compliant iframe)
-5. Stripe processes payment, returns success/failure
-6. On success: Create booking record in database, send confirmation email
-7. On failure: Display error, allow retry
-
-**Edge Function** (runs on Supabase):
-```javascript
-// supabase/functions/create-payment-intent/index.ts
-import Stripe from 'stripe';
-
-export default async function handler(req) {
-  const { amount, currency, bookingDetails } = await req.json();
-
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
+serve(async (req) => {
+  const { amount, currency, userId } = await req.json()
+  
   const paymentIntent = await stripe.paymentIntents.create({
-    amount: amount * 100, // Convert to cents
-    currency: 'usd',
-    metadata: bookingDetails
-  });
-
-  return new Response(JSON.stringify({ clientSecret: paymentIntent.client_secret }));
-}
+    amount,
+    currency,
+    metadata: { userId }
+  })
+  
+  return new Response(
+    JSON.stringify({ clientSecret: paymentIntent.client_secret }),
+    { headers: { 'Content-Type': 'application/json' } }
+  )
+})
 ```
 
-#### Mobile Money Integration (Local Tourists & Tour Guides)
+### API Interfaces
 
-**Providers**: MTN Mobile Money, Airtel Money
+#### Supabase Client Configuration
 
-**Components**:
-- `MobileMoneyForm`: Phone number input + provider selection
-- `MobileMoneyService`: API integration with mobile money gateways
-
-**Flow**:
-1. User selects mobile money payment method
-2. User enters phone number and selects provider (MTN/Airtel)
-3. Frontend calls Supabase Edge Function to initiate payment
-4. Provider sends push notification to user's phone
-5. User approves payment on phone
-6. Webhook callback confirms payment
-7. Create booking record, send confirmation
-
-**Webhook Handler**:
 ```javascript
-// supabase/functions/mobile-money-webhook/index.ts
-export default async function handler(req) {
-  const signature = req.headers.get('x-webhook-signature');
-  const payload = await req.json();
+// config/supabase-client.js
+import { createClient } from '@supabase/supabase-js'
 
-  // Verify signature
-  if (!verifySignature(signature, payload)) {
-    return new Response('Unauthorized', { status: 401 });
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10
+    }
   }
+})
+```
 
-  // Update booking status
-  if (payload.status === 'success') {
-    await supabaseAdmin
-      .from('bookings')
-      .update({ payment_status: 'paid', paid_at: new Date() })
-      .eq('id', payload.booking_id);
+#### Real-time Subscriptions
 
-    // Send confirmation email
-    await sendBookingConfirmation(payload.booking_id);
-  }
+```javascript
+// Subscribe to notifications
+const subscription = supabase
+  .channel('notifications')
+  .on(
+    'postgres_changes',
+    {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'notifications',
+      filter: `user_id=eq.${userId}`
+    },
+    (payload) => {
+      displayNotification(payload.new)
+    }
+  )
+  .subscribe()
 
-  return new Response('OK');
-}
+// Subscribe to chat messages
+const chatSubscription = supabase
+  .channel('chat_messages')
+  .on(
+    'postgres_changes',
+    {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'chat_messages',
+      filter: `conversation_id=eq.${conversationId}`
+    },
+    (payload) => {
+      appendMessage(payload.new)
+    }
+  )
+  .subscribe()
 ```
 
 
 ## Data Models
 
-### Core Tables
+### Core Database Schema
 
-#### users (managed by Supabase Auth)
+#### Users Table
+
 ```sql
--- Managed by Supabase, read-only from application
-auth.users (
-  id UUID PRIMARY KEY,
-  email TEXT UNIQUE,
-  encrypted_password TEXT,
-  email_confirmed_at TIMESTAMP,
-  last_sign_in_at TIMESTAMP,
-  created_at TIMESTAMP,
-  updated_at TIMESTAMP
-)
-```
-
-#### profiles (extended user data)
-```sql
-CREATE TABLE profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  username TEXT UNIQUE NOT NULL,
-  full_name TEXT,
-  avatar_url TEXT,
-  phone_number TEXT,
-  nrc_number TEXT, -- Zambian National Registration Card (for local tourist verification)
-  preferred_language TEXT DEFAULT 'en' CHECK (preferred_language IN ('en', 'bem', 'ny')),
-  xp_points INTEGER DEFAULT 0,
-  level INTEGER DEFAULT 1,
-  total_bookings INTEGER DEFAULT 0,
-  total_reviews INTEGER DEFAULT 0,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- RLS: Users can view all profiles, update only their own
-CREATE POLICY "view_profiles" ON profiles FOR SELECT USING (true);
-CREATE POLICY "update_own_profile" ON profiles FOR UPDATE USING (auth.uid() = id);
-```
-
-#### user_roles
-```sql
-CREATE TABLE user_roles (
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT UNIQUE NOT NULL,
+  full_name TEXT NOT NULL,
   role TEXT NOT NULL CHECK (role IN ('international_tourist', 'local_tourist', 'tour_guide', 'admin')),
-  granted_at TIMESTAMP DEFAULT NOW(),
-  granted_by UUID REFERENCES auth.users(id),
-  verified BOOLEAN DEFAULT false, -- For tour guides: verification status
-  verification_documents JSONB, -- Links to Supabase Storage files
-  PRIMARY KEY (user_id, role)
+  
+  -- Profile information
+  phone_number TEXT,
+  profile_image_url TEXT,
+  bio TEXT,
+  preferred_language TEXT DEFAULT 'en' CHECK (preferred_language IN ('en', 'bem', 'nya')),
+  
+  -- Gamification
+  xp INTEGER NOT NULL DEFAULT 0,
+  level INTEGER NOT NULL DEFAULT 1,
+  cash_earned NUMERIC(12,2) NOT NULL DEFAULT 0,
+  
+  -- Streaks and activity
+  login_streak INTEGER NOT NULL DEFAULT 0,
+  last_login TIMESTAMPTZ,
+  last_check_in TIMESTAMPTZ,
+  
+  -- Preferences
+  notification_preferences JSONB DEFAULT '{"email":true,"push":true,"bookings":true,"achievements":true,"messages":true}',
+  
+  -- Tour guide specific
+  tour_guide_verified BOOLEAN DEFAULT FALSE,
+  tour_guide_bio TEXT,
+  tour_guide_certifications TEXT[],
+  commission_rate NUMERIC(5,2),
+  
+  -- Metadata
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- RLS: Users see their own roles, admins see all
-CREATE POLICY "view_own_roles" ON user_roles FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "admin_view_roles" ON user_roles FOR SELECT
-  USING (EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin'));
+-- Indexes
+CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_xp ON users(xp DESC);
+
+-- RLS Policies
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+
+-- Users can read their own data
+CREATE POLICY "Users can read own data"
+  ON users FOR SELECT
+  USING (auth.uid() = id);
+
+-- Users can update their own data (excluding role)
+CREATE POLICY "Users can update own data"
+  ON users FOR UPDATE
+  USING (auth.uid() = id)
+  WITH CHECK (auth.uid() = id AND role = OLD.role);
+
+-- Admins can read all users
+CREATE POLICY "Admins can read all users"
+  ON users FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM users
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+-- Admins can update all users
+CREATE POLICY "Admins can update all users"
+  ON users FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM users
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
 ```
 
-#### destinations
+#### Destinations Table
+
 ```sql
 CREATE TABLE destinations (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id BIGSERIAL PRIMARY KEY,
   name TEXT NOT NULL,
   slug TEXT UNIQUE NOT NULL,
-  description TEXT,
+  description TEXT NOT NULL,
   province TEXT NOT NULL,
-  category TEXT NOT NULL,
-  latitude DECIMAL(10, 8),
-  longitude DECIMAL(11, 8),
-  featured BOOLEAN DEFAULT false,
-  price_usd DECIMAL(10, 2), -- International pricing
-  price_zmw DECIMAL(10, 2), -- Local pricing
-  local_discount_percentage INTEGER DEFAULT 0,
-  image_urls TEXT[], -- Array of Supabase Storage URLs
-  secrets JSONB, -- Easter eggs, hidden features
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW(),
-  created_by UUID REFERENCES auth.users(id),
+  category TEXT NOT NULL CHECK (category IN ('Nature', 'Wildlife', 'Culture', 'Adventure', 'Historical')),
   
-  -- Full-text search
-  search_vector TSVECTOR GENERATED ALWAYS AS (
-    to_tsvector('english', coalesce(name, '') || ' ' || coalesce(description, '') || ' ' || coalesce(province, ''))
-  ) STORED
+  -- Location
+  latitude NUMERIC(10,6) NOT NULL,
+  longitude NUMERIC(10,6) NOT NULL,
+  address TEXT,
+  
+  -- Pricing
+  entry_fee_local_zmw NUMERIC(10,2),
+  entry_fee_international_usd NUMERIC(10,2),
+  
+  -- Media
+  image_url TEXT NOT NULL,
+  gallery_images TEXT[],
+  video_url TEXT,
+  
+  -- Stats
+  average_rating NUMERIC(2,1) DEFAULT 0,
+  review_count INTEGER DEFAULT 0,
+  visit_count INTEGER DEFAULT 0,
+  
+  -- Features
+  featured BOOLEAN DEFAULT FALSE,
+  active BOOLEAN DEFAULT TRUE,
+  secrets JSONB DEFAULT '[]',
+  
+  -- Metadata
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX destinations_search_idx ON destinations USING GIN (search_vector);
-CREATE INDEX destinations_province_idx ON destinations (province);
-CREATE INDEX destinations_featured_idx ON destinations (featured);
+-- Indexes
+CREATE INDEX idx_destinations_province ON destinations(province);
+CREATE INDEX idx_destinations_category ON destinations(category);
+CREATE INDEX idx_destinations_featured ON destinations(featured) WHERE featured = TRUE;
+CREATE INDEX idx_destinations_active ON destinations(active) WHERE active = TRUE;
 
--- RLS: Everyone can read destinations, only admins can modify
-CREATE POLICY "view_destinations" ON destinations FOR SELECT USING (true);
-CREATE POLICY "admin_manage_destinations" ON destinations FOR ALL
-  USING (EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin'));
+-- Full-text search
+CREATE INDEX idx_destinations_search ON destinations 
+  USING gin(to_tsvector('english', name || ' ' || description));
+
+-- RLS Policies
+ALTER TABLE destinations ENABLE ROW LEVEL SECURITY;
+
+-- Everyone can read active destinations
+CREATE POLICY "Anyone can read active destinations"
+  ON destinations FOR SELECT
+  USING (active = TRUE OR auth.uid() IS NOT NULL);
+
+-- Admins can insert/update/delete
+CREATE POLICY "Admins can manage destinations"
+  ON destinations FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1 FROM users
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
 ```
 
 
-#### bookings
+#### Bookings Table
+
 ```sql
 CREATE TABLE bookings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  destination_id UUID NOT NULL REFERENCES destinations(id),
-  tour_guide_id UUID REFERENCES auth.users(id),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  destination_id BIGINT NOT NULL REFERENCES destinations(id) ON DELETE RESTRICT,
+  tour_guide_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  
+  -- Booking details
   booking_date DATE NOT NULL,
-  start_date DATE NOT NULL,
-  end_date DATE NOT NULL,
-  group_size INTEGER NOT NULL CHECK (group_size > 0),
-  total_price DECIMAL(10, 2) NOT NULL,
+  number_of_people INTEGER NOT NULL CHECK (number_of_people > 0),
+  total_amount NUMERIC(10,2) NOT NULL,
   currency TEXT NOT NULL CHECK (currency IN ('USD', 'ZMW')),
-  payment_method TEXT NOT NULL CHECK (payment_method IN ('stripe', 'mtn_mobile_money', 'airtel_money')),
-  payment_status TEXT DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'failed', 'refunded')),
-  payment_intent_id TEXT, -- Stripe payment intent ID
-  paid_at TIMESTAMP,
-  booking_status TEXT DEFAULT 'confirmed' CHECK (booking_status IN ('confirmed', 'cancelled', 'completed')),
-  cancelled_at TIMESTAMP,
-  cancellation_reason TEXT,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
+  
+  -- Status
+  status TEXT NOT NULL DEFAULT 'pending' 
+    CHECK (status IN ('pending', 'confirmed', 'cancelled', 'completed')),
+  
+  -- Payment
+  payment_status TEXT NOT NULL DEFAULT 'unpaid'
+    CHECK (payment_status IN ('unpaid', 'paid', 'refunded')),
+  payment_method TEXT,
+  payment_transaction_id TEXT,
+  
+  -- Commission (for tour guides)
+  tour_guide_commission NUMERIC(10,2),
+  
+  -- Metadata
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX bookings_user_idx ON bookings (user_id);
-CREATE INDEX bookings_tour_guide_idx ON bookings (tour_guide_id);
-CREATE INDEX bookings_status_idx ON bookings (booking_status);
+-- Indexes
+CREATE INDEX idx_bookings_user ON bookings(user_id);
+CREATE INDEX idx_bookings_tour_guide ON bookings(tour_guide_id);
+CREATE INDEX idx_bookings_date ON bookings(booking_date);
+CREATE INDEX idx_bookings_status ON bookings(status);
 
--- RLS: Users see own bookings, tour guides see assigned, admins see all
-CREATE POLICY "view_bookings" ON bookings FOR SELECT
+-- RLS Policies
+ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
+
+-- Users can read their own bookings
+CREATE POLICY "Users can read own bookings"
+  ON bookings FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- Tour guides can read assigned bookings
+CREATE POLICY "Tour guides can read assigned bookings"
+  ON bookings FOR SELECT
+  USING (auth.uid() = tour_guide_id);
+
+-- Admins can read all bookings
+CREATE POLICY "Admins can read all bookings"
+  ON bookings FOR SELECT
   USING (
-    auth.uid() = user_id OR
-    auth.uid() = tour_guide_id OR
-    EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin')
+    EXISTS (
+      SELECT 1 FROM users
+      WHERE id = auth.uid() AND role = 'admin'
+    )
   );
 
-CREATE POLICY "create_bookings" ON bookings FOR INSERT
+-- Users can create bookings
+CREATE POLICY "Users can create bookings"
+  ON bookings FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "update_own_bookings" ON bookings FOR UPDATE
+-- Users and tour guides can update their bookings
+CREATE POLICY "Users can update own bookings"
+  ON bookings FOR UPDATE
   USING (auth.uid() = user_id OR auth.uid() = tour_guide_id);
 ```
 
-#### reviews
+#### Reviews Table
+
 ```sql
 CREATE TABLE reviews (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  destination_id UUID NOT NULL REFERENCES destinations(id) ON DELETE CASCADE,
-  rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
-  title TEXT,
-  content TEXT NOT NULL CHECK (length(content) >= 20),
-  image_urls TEXT[], -- Review photos
-  helpful_count INTEGER DEFAULT 0,
-  verified_visit BOOLEAN DEFAULT false, -- True if user has checked in at destination
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW(),
+  destination_id BIGINT NOT NULL REFERENCES destinations(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   
-  UNIQUE(user_id, destination_id) -- One review per destination per user
+  -- Review content
+  rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  comment TEXT,
+  images TEXT[],
+  
+  -- Moderation
+  approved BOOLEAN DEFAULT TRUE,
+  flagged BOOLEAN DEFAULT FALSE,
+  admin_notes TEXT,
+  
+  -- Metadata
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  
+  -- Constraint: one review per user per destination
+  UNIQUE(user_id, destination_id)
 );
 
-CREATE INDEX reviews_destination_idx ON reviews (destination_id);
-CREATE INDEX reviews_rating_idx ON reviews (rating);
+-- Indexes
+CREATE INDEX idx_reviews_destination ON reviews(destination_id);
+CREATE INDEX idx_reviews_user ON reviews(user_id);
+CREATE INDEX idx_reviews_rating ON reviews(rating);
 
--- RLS: Everyone reads, tourists create/update own, admins moderate
-CREATE POLICY "view_reviews" ON reviews FOR SELECT USING (true);
-CREATE POLICY "create_reviews" ON reviews FOR INSERT
+-- RLS Policies
+ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+
+-- Everyone can read approved reviews
+CREATE POLICY "Anyone can read approved reviews"
+  ON reviews FOR SELECT
+  USING (approved = TRUE);
+
+-- Tourists can create reviews (not tour guides)
+CREATE POLICY "Tourists can create reviews"
+  ON reviews FOR INSERT
   WITH CHECK (
     auth.uid() = user_id AND
     EXISTS (
-      SELECT 1 FROM user_roles
-      WHERE user_id = auth.uid()
-      AND role IN ('international_tourist', 'local_tourist')
+      SELECT 1 FROM users
+      WHERE id = auth.uid() 
+        AND role IN ('international_tourist', 'local_tourist')
     )
   );
-CREATE POLICY "update_own_reviews" ON reviews FOR UPDATE
+
+-- Users can update their own reviews
+CREATE POLICY "Users can update own reviews"
+  ON reviews FOR UPDATE
   USING (auth.uid() = user_id);
-CREATE POLICY "admin_delete_reviews" ON reviews FOR DELETE
-  USING (EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin'));
-```
 
-
-#### check_ins
-```sql
-CREATE TABLE check_ins (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  destination_id UUID NOT NULL REFERENCES destinations(id),
-  checked_in_at TIMESTAMP DEFAULT NOW(),
-  latitude DECIMAL(10, 8), -- For location verification
-  longitude DECIMAL(11, 8),
-  xp_awarded INTEGER DEFAULT 10,
-  
-  UNIQUE(user_id, destination_id, DATE(checked_in_at)) -- One check-in per destination per day
-);
-
-CREATE INDEX check_ins_user_idx ON check_ins (user_id);
-CREATE INDEX check_ins_date_idx ON check_ins (DATE(checked_in_at));
-
--- RLS: Users see own check-ins, admins see all
-CREATE POLICY "view_own_check_ins" ON check_ins FOR SELECT
-  USING (auth.uid() = user_id);
-CREATE POLICY "create_check_ins" ON check_ins FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
-```
-
-#### achievements
-```sql
-CREATE TABLE achievements (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  code TEXT UNIQUE NOT NULL,
-  name TEXT NOT NULL,
-  description TEXT,
-  icon_url TEXT,
-  xp_reward INTEGER DEFAULT 0,
-  badge_tier TEXT CHECK (badge_tier IN ('bronze', 'silver', 'gold', 'platinum')),
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
-CREATE TABLE user_achievements (
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  achievement_id UUID REFERENCES achievements(id),
-  unlocked_at TIMESTAMP DEFAULT NOW(),
-  PRIMARY KEY (user_id, achievement_id)
-);
-
--- RLS: Everyone reads achievements, users see own unlocks
-CREATE POLICY "view_achievements" ON achievements FOR SELECT USING (true);
-CREATE POLICY "view_own_unlocks" ON user_achievements FOR SELECT
-  USING (auth.uid() = user_id);
-```
-
-#### trip_plans
-```sql
-CREATE TABLE trip_plans (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  name TEXT NOT NULL,
-  description TEXT,
-  start_date DATE,
-  end_date DATE,
-  destinations JSONB NOT NULL, -- Array of {destination_id, day, notes}
-  budget DECIMAL(10, 2),
-  currency TEXT CHECK (currency IN ('USD', 'ZMW')),
-  is_public BOOLEAN DEFAULT false,
-  share_token TEXT UNIQUE, -- For sharing via link
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
-CREATE INDEX trip_plans_user_idx ON trip_plans (user_id);
-CREATE INDEX trip_plans_share_idx ON trip_plans (share_token) WHERE share_token IS NOT NULL;
-
--- RLS: Users see own plans and public plans, admins see all
-CREATE POLICY "view_trip_plans" ON trip_plans FOR SELECT
+-- Admins can moderate all reviews
+CREATE POLICY "Admins can moderate reviews"
+  ON reviews FOR UPDATE
   USING (
-    auth.uid() = user_id OR
-    is_public = true OR
-    EXISTS (SELECT 1 FROM user_roles WHERE user_id = auth.uid() AND role = 'admin')
+    EXISTS (
+      SELECT 1 FROM users
+      WHERE id = auth.uid() AND role = 'admin'
+    )
   );
-CREATE POLICY "manage_own_plans" ON trip_plans FOR ALL
-  USING (auth.uid() = user_id);
 ```
 
