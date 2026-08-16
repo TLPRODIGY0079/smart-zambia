@@ -1,8 +1,8 @@
 // Supabase Integration for Smart Zambia Frontend
 // This file handles authentication state and Supabase client initialization
 
-import { supabase, authService, roleService, profileService } from '../supabase/client.js';
-import { hasLocalStorageData, showMigrationPrompt } from '../supabase/migration.js';
+import { supabase, authService, roleService, profileService } from '../../supabase/client.js';
+import { hasLocalStorageData, showMigrationPrompt } from '../../supabase/migration.js';
 
 // Global state
 window.supabaseState = {
