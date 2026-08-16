@@ -1,92 +1,113 @@
-// js/api.js
-const API_BASE = 'http://localhost:3001/api'; // Update when deployed
+// js/api.js - Updated to use Supabase
+import { supabase, authService, destinationsService } from '../../supabase/client.js';
 
 export async function fetchDestinations(filters = {}) {
-  // Validate and sanitize filter parameters to prevent SSRF
-  const allowedFilters = ['province', 'category', 'featured', 'q'];
-  const sanitizedFilters = {};
-  
-  for (const [key, value] of Object.entries(filters)) {
-    if (allowedFilters.includes(key) && typeof value === 'string') {
-      sanitizedFilters[key] = encodeURIComponent(value);
-    }
+  try {
+    return await destinationsService.getDestinations(filters);
+  } catch (error) {
+    console.error('Failed to fetch destinations:', error);
+    throw error;
   }
-  
-  const params = new URLSearchParams(sanitizedFilters);
-  const res = await fetch(`${API_BASE}/destinations?${params}`);
-  if (!res.ok) throw new Error('Failed to fetch destinations');
-  return await res.json();
 }
 
 export async function fetchDestinationById(id) {
-  // Validate ID to prevent SSRF
-  if (!id || typeof id !== 'number' && typeof id !== 'string') {
-    throw new Error('Invalid destination ID');
+  try {
+    return await destinationsService.getDestination(id);
+  } catch (error) {
+    console.error('Failed to fetch destination:', error);
+    throw error;
   }
-  const sanitizedId = encodeURIComponent(String(id));
-  const res = await fetch(`${API_BASE}/destinations/${sanitizedId}`);
-  if (!res.ok) throw new Error('Destination not found');
-  return await res.json();
 }
 
-// Auth
+// Auth - using Supabase auth service
 export async function registerUser(email, password, fullName) {
-  const res = await fetch(`${API_BASE}/auth/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password, fullName })
-  });
-  return await res.json();
+  try {
+    return await authService.signUp(email, password, { full_name: fullName });
+  } catch (error) {
+    console.error('Registration failed:', error);
+    throw error;
+  }
 }
 
 export async function loginUser(email, password) {
-  const res = await fetch(`${API_BASE}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password })
-  });
-  return await res.json(); // { token, user }
+  try {
+    return await authService.signIn(email, password);
+  } catch (error) {
+    console.error('Login failed:', error);
+    throw error;
+  }
 }
 
-// Civic API functions
-export async function submitCivicReport(reportData, token) {
-  const res = await fetch(`${API_BASE}/civic/report`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
-    body: JSON.stringify(reportData)
-  });
-  if (!res.ok) throw new Error('Failed to submit report');
-  return await res.json();
+// Civic API functions - using Supabase directly
+export async function submitCivicReport(reportData) {
+  try {
+    const { data, error } = await supabase
+      .from('civic_reports')
+      .insert({
+        user_id: (await supabase.auth.getUser()).data.user.id,
+        ...reportData
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Failed to submit report:', error);
+    throw error;
+  }
 }
 
-export async function getUserCivicReports(token) {
-  const res = await fetch(`${API_BASE}/civic/my-reports`, {
-    headers: { 'Authorization': `Bearer ${token}` }
-  });
-  if (!res.ok) throw new Error('Failed to fetch reports');
-  return await res.json();
+export async function getUserCivicReports() {
+  try {
+    const userId = (await supabase.auth.getUser()).data.user.id;
+    const { data, error } = await supabase
+      .from('civic_reports')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch reports:', error);
+    throw error;
+  }
 }
 
-export async function getUserCivicProfile(token) {
-  const res = await fetch(`${API_BASE}/civic/profile`, {
-    headers: { 'Authorization': `Bearer ${token}` }
-  });
-  if (!res.ok) throw new Error('Failed to fetch profile');
-  return await res.json();
+export async function getUserCivicProfile() {
+  try {
+    const userId = (await supabase.auth.getUser()).data.user.id;
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch profile:', error);
+    throw error;
+  }
 }
 
-export async function awardAchievement(achievementData, token) {
-  const res = await fetch(`${API_BASE}/civic/achievement`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
-    body: JSON.stringify(achievementData)
-  });
-  if (!res.ok) throw new Error('Failed to award achievement');
-  return await res.json();
+export async function awardAchievement(achievementData) {
+  try {
+    const userId = (await supabase.auth.getUser()).data.user.id;
+    const { data, error } = await supabase
+      .from('user_achievements')
+      .insert({
+        user_id: userId,
+        ...achievementData
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Failed to award achievement:', error);
+    throw error;
+  }
 }
